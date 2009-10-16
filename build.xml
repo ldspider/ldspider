@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="ldspider" basedir="." default="dist">
+<property name="name" value="ldspider"/>
+<property name="version" value="0.1-dev"/>
+<property name="dist" value="dist"/>
+  <path id="classpath">
+    <fileset dir="lib">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
+		
+  <target name="prepare">
+    <tstamp />
+    <mkdir dir="bin"/>
+    <mkdir dir="dist"/>
+  </target>
+	  
+  <target name="dist" depends="prepare">
+    <javac destdir="bin"
+	   srcdir="src"
+	   debug="yes"
+	   includes="com/ontologycentral/ldspider/**,org/osjava/norbert/**"
+        source="1.5" target="1.5"
+         >
+      <classpath refid="classpath"/>
+      
+    </javac>
+	  	
+    <jar jarfile="${dist}/${name}.${version}.jar" basedir="bin">
+      <zipfileset src="lib/commons-cli-1.2.jar"/>
+        <zipfileset src="lib/httpclient-4.0.jar"/>
+	  <zipfileset src="lib/httpcore-4.0.1.jar"/>
+      <zipfileset src="lib/httpcore-nio-4.0.1.jar"/>
+      <zipfileset src="lib/httpmime-4.0.jar"/>
+      <zipfileset src="lib/nxparser.jar"/>
+      <manifest>
+	<attribute name="Main-Class" value="com.ontologycentral.ldspider.Main"/>
+      </manifest>
+    </jar>
+  </target>
+		
+  <target name="clean">
+    <delete dir="bin"/>
+    <delete>
+      <fileset dir="dist">
+	<include name="*.jar"/>
+      </fileset>
+    </delete>
+  </target>	  
+</project>
