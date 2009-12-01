@@ -121,6 +121,7 @@ public class Main {
 		//start the crawl
 		long time = System.currentTimeMillis();
 
+		
 		Crawler c = new Crawler();
 
 		ErrorHandler eh = new ErrorHandlerLogger();

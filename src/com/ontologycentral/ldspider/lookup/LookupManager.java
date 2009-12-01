@@ -12,6 +12,7 @@ import org.semanticweb.yars.util.Callbacks;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
+import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.queue.FetchQueue;
 import com.ontologycentral.ldspider.queue.UriSrc;
 import com.ontologycentral.ldspider.robot.Robots;
@@ -27,18 +28,18 @@ public class LookupManager {
 	final Robots _robots;
 	UriSrc _urisrc;
 
-	final HttpClient _hc;
+	final ConnectionManager _hc;
 
-	public LookupManager(final HttpClient hc, final Robots robots) {
+	public LookupManager(final ConnectionManager cm, final Robots robots) {
 		_urisrc = new UriSrc();
 		
-		_hc = hc;
+		_hc = cm;
 		_robots = robots;
 	}
 	
-	public HttpClient getHttpClient() {
-		return _hc;
-	}
+//	public HttpClient getHttpClient() {
+//		return _hc;
+//	}
 	
 	/**
 	 * Fetch the list of URIs in the initial queue

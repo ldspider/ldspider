@@ -7,16 +7,14 @@ import java.util.logging.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
+import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.queue.FetchQueue;
 import com.ontologycentral.ldspider.robot.Robots;
 
@@ -29,11 +27,11 @@ public class LookupThread implements Runnable {
 	
 	Robots _robots;
 	ErrorHandler _eh;
-	HttpClient _hclient;
+	ConnectionManager _hclient;
 
 
-	public LookupThread(HttpClient hclient, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh,  FetchFilter ff) {
-		_hclient = hclient;
+	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh,  FetchFilter ff) {
+		_hclient = hc;
 		_q = q;
 		_cbs = cbs;
 		_robots = robots;
@@ -41,8 +39,6 @@ public class LookupThread implements Runnable {
 		_eh = eh;
 	}
 	
-	
-
 	public void run() {
 		_log.info("starting thread ...");
 
@@ -57,17 +53,11 @@ public class LookupThread implements Runnable {
 
 			if (_robots.accessOk(lu)) {
 				if (!_q.getSeen(lu)) {
-
-
-
 					HttpGet hget = new HttpGet(lu);
-
 					hget.setHeaders(CrawlerConstants.HEADERS);
 
-					HttpContext hcon = new BasicHttpContext();
-
 					try {
-						HttpResponse hres = _hclient.execute(hget, hcon);
+						HttpResponse hres = _hclient.connect(hget);
 
 						int status = hres.getStatusLine().getStatusCode();
 
@@ -83,24 +73,6 @@ public class LookupThread implements Runnable {
 								InputStream is = hen.getContent();
 
 								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
-								// while(rxp.hasNext()) rxp.next();
-								//							    
-								//							    for (Node[] nx : cbs.getSet()) {
-								//								//do something with the output
-								//								//_call.processStatement(nx);
-								//								//extract and select links
-								//								//this callback is storing all links to a set
-								//								linkCallback.processStatement(nx);
-								//							    }
-
-								//notify the callbacks that the parsing of the document is done
-
-								//									_log.info("Extracted "+linkCallback.getLinks().size()+" links");		
-								//									for (URI l : linkCallback.getLinks()) {
-								//										if (_q.getSeen(l) == false) {
-								//											_q.put(l);
-								//										}
-								//									}
 							} else {
 								_log.info("not allowed " + lu);
 								hget.abort();

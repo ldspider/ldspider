@@ -18,6 +18,7 @@ import org.osjava.norbert.NoRobotClient;
 import org.osjava.norbert.NoRobotException;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.http.ConnectionManager;
 
 /**
  * 
@@ -30,13 +31,11 @@ public class Robot {
 
 	NoRobotClient _nrc = null;
 	
-	public Robot(HttpClient hc, String host) {
+	public Robot(ConnectionManager cm, String host) {
     	try {
     		URI u = new URI( "http://" + host + "/robots.txt" );
-
-    		HttpGet hget = new HttpGet(u);
-			HttpContext hcon = new BasicHttpContext();
-			HttpResponse hres = hc.execute(hget, hcon);
+			HttpResponse hres = cm.connect(u);
+			
 			int status = hres.getStatusLine().getStatusCode();
 			if (status == 200) {
 				HttpEntity hen = hres.getEntity();

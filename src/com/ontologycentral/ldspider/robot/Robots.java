@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import org.apache.http.client.HttpClient;
 
+import com.ontologycentral.ldspider.http.ConnectionManager;
+
 
 /**
  * 
@@ -21,14 +23,16 @@ public class Robots {
 
 	Map<String, Robot> _robots;
 
-	HttpClient _hc;
+	private ConnectionManager _cm;
+
 	
-	public Robots(HttpClient hc) {
-		_hc = hc;
-		
+	public Robots(ConnectionManager cm) {
+		_cm = cm;
 		_robots = new HashMap<String, Robot>();
 	}
 	
+    
+
     public boolean accessOk(URI uri) {
     	String host = uri.getAuthority();
 
@@ -38,7 +42,7 @@ public class Robots {
     		if (_robots.containsKey(host)) {
     			r = _robots.get(host);
     		} else {
-    			r = new Robot(_hc, host);
+    			r = new Robot(_cm, host);
     			
     			_robots.put(host, r);
     		}
