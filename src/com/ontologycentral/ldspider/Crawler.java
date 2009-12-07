@@ -12,7 +12,7 @@ import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
-import com.ontologycentral.ldspider.hooks.fetch.FetchFilterDefault;
+import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.http.ConnectionManager;
@@ -45,7 +45,7 @@ public class Crawler {
 		_output = new CallbackDummy();
 		_eh = new ErrorHandlerDummy();
 		_links = new LinkFilterDefault(_eh);
-		_ff = new FetchFilterDefault();
+		_ff = new FetchFilterAllow();
 	}
 	
 	public void setFetchFilter(FetchFilter ff) {

@@ -13,7 +13,6 @@ import org.apache.http.protocol.HttpContext;
 public class HttpRequestRetryHandler implements
 	org.apache.http.client.HttpRequestRetryHandler {
 
-    @Override
     public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
 	if (executionCount >= 5) {
             // Do not retry if over max retry count

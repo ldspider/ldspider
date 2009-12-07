@@ -1,3 +1,4 @@
+package com.ontologycentral.ldspider;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 
 
-public class FetchTEST {
+public class FetchTest {
 public static void main(String[] args) throws URISyntaxException {
 	List<URI> seeds = new ArrayList<URI>();
 	seeds.add(new URI("http://ld2sd.deri.org/dady/publisher/test-dataset.rdf"));
@@ -59,19 +60,16 @@ class NodeCollector implements Callback{
     public NodeCollector(){
 	_content = new HashSet<Nodes>();
     }
-    @Override
     public void endDocument() {
 	// TODO Auto-generated method stub
 	
     }
 
-    @Override
     public void processStatement(Node[] arg0) {
 	_content.add(new Nodes(arg0[0],arg0[1],arg0[2]));
 	
     }
 
-    @Override
     public void startDocument() {
 	// TODO Auto-generated method stub
 	
