@@ -12,6 +12,17 @@ import java.util.logging.Logger;
 import com.ontologycentral.ldspider.lookup.Redirects;
 import com.ontologycentral.ldspider.tld.TldManager;
 
+/**
+ * A queue for uris.
+ * 
+ * New uris are added to a frontier, and then scheduled for the next
+ * round.
+ * 
+ * Scheduling takes into account pay-level-domains to spread lookups
+ * to same pld across duration of crawl round.
+ * 
+ * @author aharth
+ */
 public class FetchQueue {
 	private static final long serialVersionUID = 1L;
 
@@ -42,7 +53,7 @@ public class FetchQueue {
 	public void setRedir(URI from, URI to) {
 		_redirs.put(from, to);
 		
-		// fetch again
+		// fetch again, this time redirects are taken into account
 		add(from);
 	}
 		
@@ -127,8 +138,6 @@ public class FetchQueue {
 	}
 	
 	public synchronized void add(URI u) {
-		_log.fine("adding entry");
-
 		String pld = _tldm.getPLD(u);
 		if (pld != null) {	
 			Queue<URI> q = _activeM.get(pld);
@@ -140,8 +149,6 @@ public class FetchQueue {
 		} else {
 			_log.info("pld is null " + u);
 		}
-		
-		_log.fine("adding exit");
 	}
 	
 	public String toString() {
