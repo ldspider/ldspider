@@ -60,6 +60,8 @@ public class LookupThread implements Runnable {
 					try {
 						HttpResponse hres = _hclient.connect(hget);
 
+						HttpEntity hen = hres.getEntity();
+
 						int status = hres.getStatusLine().getStatusCode();
 
 						_eh.handleStatus(lu, status);
@@ -67,15 +69,14 @@ public class LookupThread implements Runnable {
 						_log.info("lookup on " + lu + " status " + status);
 
 						if (status == HttpStatus.SC_OK) {
-
-							HttpEntity hen = hres.getEntity();
-
 							if (_ff.fetchOk(lu, status, hen)) {
 								InputStream is = hen.getContent();
 
 								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
 								
-								is.close();
+								if (hen != null) {
+									hen.consumeContent();
+								}
 							} else {
 								_log.info("not allowed " + lu);
 								hget.abort();
@@ -89,9 +90,11 @@ public class LookupThread implements Runnable {
 							_q.setRedir(lu, to);
 							lu = to;
 
-							HttpEntity hen = hres.getEntity();
-							hen.consumeContent();
+							if (hen != null) {
+								hen.consumeContent();
+							}
 						} else {
+							_log.info("status code " + status + " for " + lu);
 							hget.abort();
 							_q.setSeen(lu);
 						}

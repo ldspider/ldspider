@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -34,11 +35,14 @@ public class Robot {
 	public Robot(ConnectionManager cm, String host) {
     	try {
     		URI u = new URI( "http://" + host + "/robots.txt" );
-			HttpResponse hres = cm.connect(u);
-			
+			HttpGet hget = new HttpGet(u);
+
+			HttpResponse hres = cm.connect(hget);
+			HttpEntity hen = hres.getEntity();
+
 			int status = hres.getStatusLine().getStatusCode();
-			if (status == 200) {
-				HttpEntity hen = hres.getEntity();
+			
+			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {
 					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT);
 					String content = EntityUtils.toString(hen);
@@ -51,6 +55,10 @@ public class Robot {
 				_log.info("no robots.txt for " + host);
 				_nrc = null;
 			}
+			
+    		if (hen != null) {
+    			hen.consumeContent();
+    		}
 		} catch (NoRobotException e) {
 			_log.fine(e.getMessage());
 			_nrc = null;

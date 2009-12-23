@@ -1,8 +1,10 @@
 package com.ontologycentral.ldspider;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
 
@@ -20,6 +22,8 @@ import com.ontologycentral.ldspider.robot.Robots;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
+	Logger _log = Logger.getLogger(this.getClass().getName());
+
 	LookupManager _lm;
 	Callback _output;
 	LinkFilter _links;
@@ -51,10 +55,14 @@ public class Crawler {
 		
 	    try {
 		    TldManager.init(_cm);
-		
 		} catch (URISyntaxException e) {
+			_log.info(e.getMessage());
 		    e.printStackTrace();
+		} catch (IOException e) {
+			_log.info(e.getMessage());
+			e.printStackTrace();
 		}
+		
 	    Robots robots = new Robots(_cm);
 		
 		_lm = new LookupManager(_cm, robots);
@@ -94,6 +102,6 @@ public class Crawler {
 	}
 	
 	public void close() {
-		;
+		_cm.shutdown();
 	}
 }

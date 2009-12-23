@@ -66,8 +66,8 @@ public class ConnectionManager {
     	_client.addRequestInterceptor(new RequestAcceptEncoding());
     	_client.addResponseInterceptor(new ResponseGzipUncompress());
 
-    	//check if we have a proxy
-    	if(proxyHost != null) {
+    	// check if we have a proxy
+    	if (proxyHost != null) {
     		HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
     		_client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
     	}
@@ -79,24 +79,9 @@ public class ConnectionManager {
     	}
     }
 
-    public HttpResponse connect(URI uri) throws ClientProtocolException, IOException{
-    	HttpGet get = new HttpGet(uri);
-
-    	return _client.execute(get);
-    }
-
-
-    public void shutdow() {
+    public void shutdown() {
     	_client.getConnectionManager().shutdown();
 
-    }
-
-    public HttpResponse connect(URI lu, Header[] headers) throws ClientProtocolException, IOException {
-    	HttpGet get = new HttpGet(lu);
-    	get.setHeaders(headers);
-
-
-    	return _client.execute(get);
     }
 
     public HttpResponse connect(HttpGet get) throws ClientProtocolException, IOException {
