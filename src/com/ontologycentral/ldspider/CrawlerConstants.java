@@ -10,10 +10,12 @@ public class CrawlerConstants {
 		new BasicHeader("User-Agent", USERAGENT),	
 	};
 	
-	public static final int CONNECTION_TIMEOUT = 1000;
-	public static final int SOCKET_TIMEOUT = 500;
+	public static final int CONNECTION_TIMEOUT = 2000;
+	public static final int SOCKET_TIMEOUT = 1000;
 
 	public static final int MAX_CONNECTIONS = 100;
+	
+	public static final int RETRIES = 0;
 	
 	// expire pages after (ms)
 	public final static long EXPIRES_MINUTE = 60*1000;

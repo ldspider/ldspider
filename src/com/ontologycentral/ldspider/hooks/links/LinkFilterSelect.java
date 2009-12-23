@@ -1,20 +1,22 @@
 package com.ontologycentral.ldspider.hooks.links;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 public class LinkFilterSelect extends LinkFilterDefault{
-	
+	Logger _log = Logger.getLogger(this.getClass().getName());
+
 	private List<Node> _predicates;
 	private boolean _isAllowRule;
 
 	public LinkFilterSelect(List<Node> linkPredicates, boolean isAllowRule, ErrorHandler eh) {
 		super(eh);
 		_predicates =linkPredicates;
-		System.err.println(linkPredicates);
+		_log.info("link predicate is " + linkPredicates);
 		_isAllowRule = isAllowRule;
 	}
 
@@ -34,26 +36,20 @@ public class LinkFilterSelect extends LinkFilterDefault{
 	 *      F         F       T
 	 */
 	public void processStatement(Node[] nx) {
-	    
-	    if(_predicates.size()==0){
-		//no predicates specified
-		super.processStatement(nx);
-		System.out.println("Select link from "+nx[1]);
-	    }
-	    if(_isAllowRule == _predicates.contains(nx[1])){
-		super.processStatement(nx);
-		System.out.println("Select link from "+nx[1]);
-	    }
-	    else{
-		return;
-	    }
-	    
-	    
-	}
-	
-	public static void main(String[] args) {
-	    System.out.println(true == true);
-	    System.out.println(true == false);
-	    System.out.println(false == false);
+
+		if(_predicates.size()==0) {
+			//no predicates specified
+			super.processStatement(nx);
+			_log.info("Select link from "+nx[1]);
+		}
+		
+		if(_isAllowRule == _predicates.contains(nx[1])){
+			super.processStatement(nx);
+			_log.info("Select link from "+nx[1]);
+		} else {
+			return;
+		}
+
+
 	}
 }

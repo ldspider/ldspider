@@ -1,13 +1,11 @@
 package com.ontologycentral.ldspider;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.semanticweb.yars.nx.parser.Callback;
+
 import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
@@ -30,7 +28,26 @@ public class Crawler {
 	private ConnectionManager _cm;
 	
 	public Crawler() {
-	    _cm = new ConnectionManager(null, 0);
+		String phost = null;
+		int pport = 0;		
+		String puser = null;
+		String ppassword = null;
+		
+		if (System.getProperties().get("http.proxyHost") != null) {
+			phost = System.getProperties().get("http.proxyHost").toString();
+		}
+		if (System.getProperties().get("http.proxyPort") != null) {
+			pport = Integer.parseInt(System.getProperties().get("http.proxyPort").toString());
+		}
+		
+		if (System.getProperties().get("http.proxyUser") != null) {
+			puser = System.getProperties().get("http.proxyUser").toString();
+		}
+		if (System.getProperties().get("http.proxyPassword") != null) {
+			ppassword = System.getProperties().get("http.proxyPassword").toString();
+		}
+		
+	    _cm = new ConnectionManager(phost, pport, puser, ppassword, CrawlerConstants.RETRIES);
 		
 	    try {
 		    TldManager.init(_cm);

@@ -39,10 +39,6 @@ public class FetchQueue {
 		_frontier = new HashSet<URI>();
 	}
 	
-//	public void setContentType(URI u, String ct) {
-//		_contype.put(u, ct);
-//	}
-
 	public void setRedir(URI from, URI to) {
 		_redirs.put(from, to);
 		
@@ -115,6 +111,8 @@ public class FetchQueue {
 	public synchronized URI poll() {
 		URI next = null;
 		
+		_log.fine("polling entry");
+		
 		Queue<URI> q = _activeQ.poll();
 		if (q != null) {
 			next = q.poll();
@@ -122,11 +120,15 @@ public class FetchQueue {
 				_activeQ.add(q);
 			}
 		}
-		
+
+		_log.fine("polling exit");
+
 		return next;
 	}
 	
 	public synchronized void add(URI u) {
+		_log.fine("adding entry");
+
 		String pld = _tldm.getPLD(u);
 		if (pld != null) {	
 			Queue<URI> q = _activeM.get(pld);
@@ -138,6 +140,8 @@ public class FetchQueue {
 		} else {
 			_log.info("pld is null " + u);
 		}
+		
+		_log.fine("adding exit");
 	}
 	
 	public String toString() {

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.apache.http.client.HttpClient;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.Callbacks;
 
@@ -37,10 +36,6 @@ public class LookupManager {
 		_robots = robots;
 	}
 	
-//	public HttpClient getHttpClient() {
-//		return _hc;
-//	}
-	
 	/**
 	 * Fetch the list of URIs in the initial queue
 	 * 
@@ -54,12 +49,6 @@ public class LookupManager {
 	 * @return
 	 */
 	public void fetch(final FetchQueue queue, final int rounds, int threads, Callback content, LinkFilter links, FetchFilter ff, ErrorHandler eh) {
-//		if (_linkSelect == null) {
-//		    _linkSelect = new CallbackDummy();			
-//		}
-		//call.startDocument();
-//		_linkSelect.startDocument();
-		
 		for (int curRound = 0 ; curRound <= rounds; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
 
@@ -91,10 +80,5 @@ public class LookupManager {
 			}
 			queue.schedule();
 		}
-		
-		//call.endDocument();
-//		cselect.endDocument();
-		
-		//return eh;
 	}
 }

@@ -140,7 +140,7 @@ public class TldManager {
 		return parts[1] + "." + parts[2] + "." + parts[3];
 	    }
 	}catch(Exception e) {
-	    System.err.println("error: " + e.getMessage() + url);
+	    _log.info("error: " + e.getMessage() + url);
 	}
 
 	return null;

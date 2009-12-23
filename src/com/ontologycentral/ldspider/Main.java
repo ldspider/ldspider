@@ -2,6 +2,9 @@ package com.ontologycentral.ldspider;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -46,7 +49,7 @@ public class Main {
 		Option uri  = OptionBuilder.withArgName( "uri")
 		.hasArgs(1)
 		.withDescription( "uri of an instance" )
-		.create( "uri" );
+		.create( "u" );
 		uri.setRequired(true);
 		input.addOption(uri);
 		options.addOptionGroup(input);
@@ -63,6 +66,24 @@ public class Main {
 		.create( "r" );
 		options.addOption(rounds);
 
+		Option output  = OptionBuilder.withArgName( "file name")
+		.hasArgs(1)
+		.withDescription( "name of NQ file with output " )
+		.create( "o" );
+		options.addOption(output);
+		
+//		Option useragent  = OptionBuilder.withArgName( "user agent")
+//		.hasArgs(1)
+//		.withDescription( "user agent" )
+//		.create( "a" );
+//		options.addOption(useragent);
+		
+//		Option error  = OptionBuilder.withArgName( "error")
+//		.hasArgs(1)
+//		.withDescription( "error log file" )
+//		.create( "e" );
+//		input.addOption(error);
+
 
 		Option help0 = new Option("h", "help",false,"print help");
 		options.addOption(help0);
@@ -75,8 +96,8 @@ public class Main {
 			if (cmd.hasOption("h")&& cmd.hasOption("help")) {
 				formatter.printHelp(80," ","Life lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
-			}else if(!cmd.hasOption("s") && !cmd.hasOption("uri")){
-				formatter.printHelp(80," ","ERROR: Missing required option: s or uri \n", options,"\nError occured! Please see the error message above",true );
+			}else if(!cmd.hasOption("s") && !cmd.hasOption("u")){
+				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
 				System.exit(-1);    
 			}
 
@@ -101,12 +122,12 @@ public class Main {
 			File seedList = new File(cmd.getOptionValue("s"));
 			if(!seedList.exists()) throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
 			seeds = readSeeds(seedList);
-		}else if(cmd.hasOption("uri")){
+		}else if(cmd.hasOption("u")){
 			seeds = new HashSet<URI>();
 			try {
-				seeds.add(new URL(cmd.getOptionValue("uri").trim()).toURI());
+				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
 			} catch (Exception e) {
-				_log.log(Level.WARNING,"Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("uri"));
+				_log.log(Level.WARNING,"Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
 				System.exit(-1);
 			}
 		}
@@ -120,13 +141,19 @@ public class Main {
 
 		//start the crawl
 		long time = System.currentTimeMillis();
+		
+		OutputStream os = System.out;
+		
+		if (cmd.hasOption("o")) {
+			os = new FileOutputStream(cmd.getOptionValue("o"));
+		}
 
 		
 		Crawler c = new Crawler();
 
 		ErrorHandler eh = new ErrorHandlerLogger();
 		c.setErrorHandler(eh);
-		c.setOutputCallback(new CallbackNQOutputStream(System.out));
+		c.setOutputCallback(new CallbackNQOutputStream(os));
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
@@ -137,6 +164,12 @@ public class Main {
 		}
 
 		long time1 = System.currentTimeMillis();
+		
+		try {
+			os.close();
+		} catch (IOException e) {
+			_log.log(Level.WARNING, "could not close output stream: " + e.getMessage());
+		}
 
 		System.err.println("time elapsed " + (time1-time) + " ms");
 	}

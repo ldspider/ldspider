@@ -2,6 +2,7 @@ package com.ontologycentral.ldspider.hooks.links;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,7 +22,7 @@ public class LinkFilterDefault implements LinkFilter {
 	ErrorHandler _eh;
 	
 	public LinkFilterDefault(ErrorHandler eh) {
-		_links = new HashSet<URI>();
+		_links = Collections.synchronizedSet(new HashSet<URI>());
 		_eh = eh;
 	}
 	

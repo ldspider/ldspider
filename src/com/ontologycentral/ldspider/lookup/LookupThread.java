@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
@@ -19,7 +20,7 @@ import com.ontologycentral.ldspider.queue.FetchQueue;
 import com.ontologycentral.ldspider.robot.Robots;
 
 public class LookupThread implements Runnable {
-	Logger _log = Logger.getLogger(this.getClass().getName());
+	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	FetchQueue _q;
 	Callbacks _cbs;
@@ -65,7 +66,7 @@ public class LookupThread implements Runnable {
 
 						_log.info("lookup on " + lu + " status " + status);
 
-						if (status == 200) {
+						if (status == HttpStatus.SC_OK) {
 
 							HttpEntity hen = hres.getEntity();
 
@@ -73,18 +74,20 @@ public class LookupThread implements Runnable {
 								InputStream is = hen.getContent();
 
 								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
+								
+								is.close();
 							} else {
 								_log.info("not allowed " + lu);
 								hget.abort();
 							}
 							_q.setSeen(lu);
-					} else if (status == 303) {
-						Header[] loc = hres.getHeaders("location");
-						_log.info("redirecting to " + loc[0].getValue());
-						URI to = new URI(loc[0].getValue());
+						} else if (status == HttpStatus.SC_SEE_OTHER) {
+							Header[] loc = hres.getHeaders("location");
+							_log.info("redirecting to " + loc[0].getValue());
+							URI to = new URI(loc[0].getValue());
 
-						_q.setRedir(lu, to);
-						lu = to;
+							_q.setRedir(lu, to);
+							lu = to;
 
 							HttpEntity hen = hres.getEntity();
 							hen.consumeContent();
