@@ -25,15 +25,13 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
+
 public class ConnectionManager {
 
     private final static Logger _log = Logger.getLogger(ConnectionManager.class.getName());
     
-    //private HttpHost _proxy = null;
-    private int MAX_CONNECTION = 100;
     private DefaultHttpClient _client;
-    private Integer SOCKET_TIMEOUT = 500;
-    private Integer CONNECTION_TIMEOUT = 1000;
 
     
     public ConnectionManager(String proxyHost, int proxyPort, String puser, String ppassword, int retries) {
@@ -57,11 +55,11 @@ public class ConnectionManager {
     	HttpClientParams.setRedirecting(params, false);
 
     	//connection params 
-    	params.setParameter(CoreConnectionPNames.SO_TIMEOUT, SOCKET_TIMEOUT);
+    	params.setParameter(CoreConnectionPNames.SO_TIMEOUT, CrawlerConstants.SOCKET_TIMEOUT);
     	params.setParameter(CoreConnectionPNames.TCP_NODELAY, true);
-    	params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, CONNECTION_TIMEOUT);
+    	params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, CrawlerConstants.CONNECTION_TIMEOUT);
 
-    	ConnManagerParams.setMaxTotalConnections(params, MAX_CONNECTION);
+    	ConnManagerParams.setMaxTotalConnections(params, CrawlerConstants.MAX_CONNECTIONS);
     	ClientConnectionManager cm = new ThreadSafeClientConnManager(params, supportedSchemes);
 
     	_client = new DefaultHttpClient(cm, params);
