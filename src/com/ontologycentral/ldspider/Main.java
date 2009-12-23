@@ -149,7 +149,7 @@ public class Main {
 		}
 
 		
-		Crawler c = new Crawler();
+		Crawler c = new Crawler(threads);
 
 		ErrorHandler eh = new ErrorHandlerLogger();
 		c.setErrorHandler(eh);
@@ -157,7 +157,7 @@ public class Main {
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
-		c.evaluate(seeds, rounds, threads);
+		c.evaluate(seeds, rounds);
 
 		for (Throwable t : eh.getErrors()) {
 			System.err.println(t.getMessage());

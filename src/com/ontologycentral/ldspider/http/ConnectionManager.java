@@ -1,10 +1,8 @@
 package com.ontologycentral.ldspider.http;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.logging.Logger;
 
-import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -34,7 +32,7 @@ public class ConnectionManager {
     private DefaultHttpClient _client;
 
     
-    public ConnectionManager(String proxyHost, int proxyPort, String puser, String ppassword, int retries) {
+    public ConnectionManager(String proxyHost, int proxyPort, String puser, String ppassword, int connections) {
     	//geeneral setup
     	SchemeRegistry supportedSchemes = new SchemeRegistry();
 
@@ -59,7 +57,7 @@ public class ConnectionManager {
     	params.setParameter(CoreConnectionPNames.TCP_NODELAY, true);
     	params.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, CrawlerConstants.CONNECTION_TIMEOUT);
 
-    	ConnManagerParams.setMaxTotalConnections(params, CrawlerConstants.MAX_CONNECTIONS);
+    	ConnManagerParams.setMaxTotalConnections(params, connections);
     	ClientConnectionManager cm = new ThreadSafeClientConnManager(params, supportedSchemes);
 
     	_client = new DefaultHttpClient(cm, params);
@@ -70,11 +68,13 @@ public class ConnectionManager {
     	if (proxyHost != null) {
     		HttpHost proxy = new HttpHost(proxyHost, proxyPort, "http");
     		_client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
-    	}
-    	
+    	}	
+    }
+    
+    public void setRetries(int no) {
     	//set the retry handler
-    	if (retries > 0) {
-    		HttpRequestRetryHandler retryHandler = new HttpRequestRetryHandler(retries);
+    	if (no > 0) {
+    		HttpRequestRetryHandler retryHandler = new HttpRequestRetryHandler(no);
     		_client.setHttpRequestRetryHandler(retryHandler);
     	}
     }

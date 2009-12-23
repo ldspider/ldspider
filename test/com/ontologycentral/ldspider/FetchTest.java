@@ -23,7 +23,7 @@ public static void main(String[] args) throws URISyntaxException {
 	seeds.add(new URI("http://ld2sd.deri.org/dady/publisher/test-dataset.rdf"));
 	
 	
-	Crawler c = new Crawler();
+	Crawler c = new Crawler(1);
 	
 	ErrorHandler eh = new ErrorHandlerLogger();
 	c.setErrorHandler(eh);
@@ -32,11 +32,11 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setOutputCallback(nc);
 	c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 	c.setFetchFilter(new FetchFilterRdfXml(eh));
-	c.evaluate(seeds, 0, 1);
+	c.evaluate(seeds, 0);
 	c=null;
 	nc=null;
 	
-	c = new Crawler();
+	c = new Crawler(1);
 	
 	eh = new ErrorHandlerLogger();
 	c.setErrorHandler(eh);
@@ -45,7 +45,7 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setOutputCallback(nc);
 	c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 	c.setFetchFilter(new FetchFilterRdfXml(eh));
-	c.evaluate(seeds, 0, 1);
+	c.evaluate(seeds, 0);
 	
 	
 	System.out.println(nc.getContent());
