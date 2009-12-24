@@ -104,6 +104,10 @@ public class Crawler {
 		_links = links;
 	}
 	
+	public void evaluate(Collection<URI> seeds, int rounds) {
+		evaluate(seeds, rounds, CrawlerConstants.DEFAULT_NB_URIS);
+	}
+	
 	public void evaluate(Collection<URI> seeds, int rounds, int maxuris) {
 		FetchQueue q = new FetchQueue(TldManager.getInstance());
 

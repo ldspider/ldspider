@@ -147,11 +147,15 @@ public class FetchQueue {
 	}
 	
 	public void put(URI u) {
+		if (u == null || u.getScheme() == null) {
+			return;
+		}
+		
 		if (!(u.getScheme().equals("http"))) {
 			_log.info(u.getScheme() + " != http, skipping " + u);
 			return;
 		}
-		
+
 		_frontier.add(u.normalize());
 	}
 	
