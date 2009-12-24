@@ -26,4 +26,8 @@ public class CrawlerConstants {
 	// default values
 	public static final int DEFAULT_NB_THREADS = 2;
 	public static final int DEFAULT_NB_ROUNDS = 2;
+	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
+	
+	// avoid hammering plds
+	public static final long DELAY = 500;
 }

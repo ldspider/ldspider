@@ -45,7 +45,11 @@ public class LinkFilterDefault implements LinkFilter {
 					URI u = new URI(nx[i].toString());
 					_links.add(u);
 				} catch (URISyntaxException e) {
-					_eh.handleError(e);
+					try {
+						_eh.handleError(new URI(nx[4].toString()), e);
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		}

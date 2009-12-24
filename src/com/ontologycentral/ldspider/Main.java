@@ -71,7 +71,13 @@ public class Main {
 		.withDescription( "name of NQ file with output " )
 		.create( "o" );
 		options.addOption(output);
-		
+
+		Option maxuris  = OptionBuilder.withArgName( "max no uris")
+		.hasArgs(1)
+		.withDescription( "max no of uris per pld per round" )
+		.create( "m" );
+		options.addOption(maxuris);
+
 //		Option useragent  = OptionBuilder.withArgName( "user agent")
 //		.hasArgs(1)
 //		.withDescription( "user agent" )
@@ -134,10 +140,14 @@ public class Main {
 
 		int rounds = CrawlerConstants.DEFAULT_NB_ROUNDS;
 		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
+		int maxuris = CrawlerConstants.DEFAULT_NB_URIS;
+		
 		if(cmd.hasOption("r")) 
 			rounds = Integer.valueOf(cmd.getOptionValue("r"));
 		if(cmd.hasOption("t")) 
 			threads = Integer.valueOf(cmd.getOptionValue("t"));
+		if(cmd.hasOption("m")) 
+			maxuris = Integer.valueOf(cmd.getOptionValue("m"));
 
 		//start the crawl
 		long time = System.currentTimeMillis();
@@ -157,11 +167,12 @@ public class Main {
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
-		c.evaluate(seeds, rounds);
+		c.evaluate(seeds, rounds, maxuris);
 
-		for (Throwable t : eh.getErrors()) {
-			System.err.println(t.getMessage());
-		}
+		System.err.println(eh);
+//		for (Throwable t : eh.getErrors()) {
+//			System.err.println(t.getMessage());
+//		}
 
 		long time1 = System.currentTimeMillis();
 		

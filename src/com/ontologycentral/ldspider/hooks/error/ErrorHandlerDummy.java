@@ -5,14 +5,6 @@ import java.util.List;
 
 public class ErrorHandlerDummy implements ErrorHandler {
 
-	public List<Throwable> getErrors() {
-		return null;
-	}
-
-	public void handleError(Throwable e) {
-		;
-	}
-
 	public void handleError(URI u, Throwable e) {
 		;
 	}

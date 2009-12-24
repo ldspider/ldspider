@@ -2,6 +2,7 @@ package com.ontologycentral.ldspider.hooks.error;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,14 +11,14 @@ import java.util.logging.Logger;
 public class ErrorHandlerLogger implements ErrorHandler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	List<Throwable> _errors;
+	List<URIThrowable> _errors;
 	
 	Map<Integer, Integer> _status;
 	
 	public ErrorHandlerLogger() {
-		_errors = new ArrayList<Throwable>();
+		_errors = Collections.synchronizedList(new ArrayList<URIThrowable>());
 		
-		_status = new HashMap<Integer, Integer>();
+		_status = Collections.synchronizedMap(new HashMap<Integer, Integer>());
 	}
 
 	public void handleError(Throwable e) {
@@ -40,12 +41,16 @@ public class ErrorHandlerLogger implements ErrorHandler {
 //		}
 		_log.info(e.getMessage() + ": " + u);
 		
-		_errors.add(e);
+		URIThrowable ut = new URIThrowable();
+		ut._u = u;
+		ut._e = e;
+		
+		_errors.add(ut);
 	}
 
-	public List<Throwable> getErrors() {
-		return _errors;
-	}
+//	public List<Throwable> getErrors() {
+//		return _errors;
+//	}
 	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
@@ -56,4 +61,9 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		
 		return sb.toString();
 	}
+}
+
+class URIThrowable {
+	URI _u;
+	Throwable _e;
 }

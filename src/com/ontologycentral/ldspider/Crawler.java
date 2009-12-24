@@ -104,14 +104,14 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluate(Collection<URI> seeds, int rounds) {
+	public void evaluate(Collection<URI> seeds, int rounds, int maxuris) {
 		FetchQueue q = new FetchQueue(TldManager.getInstance());
 
 		for (URI u : seeds) {
 			q.put(u);
 		}
 		
-		q.schedule();
+		q.schedule(maxuris);
 		
 		for (int curRound = 0 ; curRound <= rounds; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
@@ -142,7 +142,7 @@ public class Crawler {
 					q.put(u);
 				}
 			}
-			q.schedule();
+			q.schedule(maxuris);
 		}
 	}
 	

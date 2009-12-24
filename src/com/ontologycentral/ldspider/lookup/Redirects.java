@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class Redirects {
 	Map<URI, URI> _map;
 	
 	public Redirects() {
-		_map = new Hashtable<URI, URI>();
+		_map = Collections.synchronizedMap(new Hashtable<URI, URI>());
 	}
 	
 	public Redirects(Iterator<Node[]> nxp) {
