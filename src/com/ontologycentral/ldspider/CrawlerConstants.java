@@ -17,12 +17,6 @@ public class CrawlerConstants {
 	
 	public static final int RETRIES = 0;
 	
-	// expire pages after (ms)
-	public final static long EXPIRES_MINUTE = 60*1000;
-	public final static long EXPIRES_HOUR = 60*EXPIRES_MINUTE;
-	public final static long EXPIRES_DAY = 24*EXPIRES_HOUR;
-	public final static long EXPIRES_WEEK = 7*EXPIRES_DAY;
-	
 	// default values
 	public static final int DEFAULT_NB_THREADS = 2;
 	public static final int DEFAULT_NB_ROUNDS = 2;

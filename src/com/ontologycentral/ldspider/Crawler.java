@@ -112,7 +112,7 @@ public class Crawler {
 		FetchQueue q = new FetchQueue(TldManager.getInstance());
 
 		for (URI u : seeds) {
-			q.put(u);
+			q.addFrontier(u);
 		}
 		
 		q.schedule(maxuris);
@@ -128,6 +128,7 @@ public class Crawler {
 			}
 
 			_log.info("Starting threads round " + curRound + " with " + q.size() + " uris");
+			_log.info(q.toString());
 			
 			for (Thread t : ts) {
 				t.start();
@@ -143,7 +144,7 @@ public class Crawler {
 
 			for (URI u : _links.getLinks()) {
 				if (q.getSeen(u) == false) {
-					q.put(u);
+					q.addFrontier(u);
 				}
 			}
 			q.schedule(maxuris);

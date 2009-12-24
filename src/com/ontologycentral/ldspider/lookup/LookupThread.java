@@ -87,7 +87,7 @@ public class LookupThread implements Runnable {
 							_log.info("redirecting to " + loc[0].getValue());
 							URI to = new URI(loc[0].getValue());
 
-							_q.setRedir(lu, to);
+							_q.setRedirect(lu, to);
 							lu = to;
 
 							if (hen != null) {

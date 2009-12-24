@@ -29,8 +29,11 @@ public class TldManager {
 
     public TldManager(InputStream is) throws IOException {
     	TLDs = new HashMap<String, Tld>();
+    	
     	if (is != null) {
     		readList(is);
+    	} else {
+    		throw new IOException("input stream is null");
     	}
     }
 
@@ -169,8 +172,7 @@ public class TldManager {
     			tld = newTldM.group(1);
     			current = new Tld(tld);
     			TLDs.put(tld, current);
-    		}
-    		else if(current!=null){
+    		} else if(current!=null){
     			// if line is stating that suffix can be one-level
     			// e.g. "ie"
     			if (line.equals(tld)) {
