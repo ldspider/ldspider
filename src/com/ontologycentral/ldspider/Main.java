@@ -29,6 +29,7 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.lookup.CommonLog;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -72,6 +73,12 @@ public class Main {
 		.create( "o" );
 		options.addOption(output);
 
+		Option log = OptionBuilder.withArgName( "common log file name")
+		.hasArgs(1)
+		.withDescription( "name of common log file" )
+		.create( "l" );
+		options.addOption(log);
+
 		Option maxuris  = OptionBuilder.withArgName( "max no uris")
 		.hasArgs(1)
 		.withDescription( "max no of uris per pld per round" )
@@ -102,7 +109,7 @@ public class Main {
 			if (cmd.hasOption("h")&& cmd.hasOption("help")) {
 				formatter.printHelp(80," ","Life lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
-			}else if(!cmd.hasOption("s") && !cmd.hasOption("u")){
+			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
 				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
 				System.exit(-1);    
 			}
@@ -167,12 +174,20 @@ public class Main {
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
+		try {
+			c.setCommonLog(new CommonLog(cmd.getOptionValue("l")));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+
 		c.evaluate(seeds, rounds, maxuris);
 
 		System.err.println(eh);
 //		for (Throwable t : eh.getErrors()) {
 //			System.err.println(t.getMessage());
 //		}
+		
+		c.close();
 
 		long time1 = System.currentTimeMillis();
 		

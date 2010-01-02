@@ -16,6 +16,7 @@ import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.http.ConnectionManager;
+import com.ontologycentral.ldspider.http.Headers;
 import com.ontologycentral.ldspider.queue.FetchQueue;
 import com.ontologycentral.ldspider.robot.Robots;
 
@@ -30,14 +31,16 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
+	CommonLog _clog;
 
-	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh,  FetchFilter ff) {
+	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff, CommonLog clog) {
 		_hclient = hc;
 		_q = q;
 		_cbs = cbs;
 		_robots = robots;
 		_ff = ff;
 		_eh = eh;
+		_clog = clog;
 	}
 	
 	public void run() {
@@ -101,6 +104,8 @@ public class LookupThread implements Runnable {
 							hget.abort();
 							_q.setSeen(lu);
 						}
+						
+						_clog.common(lu.getHost(), lu.getPath(), status, hen.getContentLength());		
 					} catch (Exception e) {
 						hget.abort();
 						_eh.handleError(lu, e);

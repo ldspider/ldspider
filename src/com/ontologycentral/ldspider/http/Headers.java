@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.lookup;
+package com.ontologycentral.ldspider.http;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -74,7 +74,7 @@ public class Headers {
 			}			
 		}
 		
-		BNode bNode = new BNode("HEADER" + uri.hashCode()+System.currentTimeMillis());
+		BNode bNode = new BNode("header" + uri.hashCode()+ "-" + System.currentTimeMillis());
 		
 		Resource ruri = new Resource(uri.toString());
 		
@@ -87,7 +87,8 @@ public class Headers {
 		for (int i = 0; i < headerFields.length; i++) {
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
 				cbs.processStatement(new Node[] {
-						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(Literal.escapeForNx(headerFields[i].getValue())), ruri });
+						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(Literal.escapeForNx(headerFields[i].getValue())), ruri
+					});
 			}
 		}		
 	}

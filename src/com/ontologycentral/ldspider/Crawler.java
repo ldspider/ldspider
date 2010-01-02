@@ -19,6 +19,7 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.http.ConnectionManager;
+import com.ontologycentral.ldspider.lookup.CommonLog;
 import com.ontologycentral.ldspider.lookup.LookupThread;
 import com.ontologycentral.ldspider.queue.FetchQueue;
 import com.ontologycentral.ldspider.queue.UriSrc;
@@ -33,6 +34,7 @@ public class Crawler {
 	ErrorHandler _eh;
 	FetchFilter _ff;
 	ConnectionManager _cm;
+	CommonLog _clog = null;
 	
 	Robots _robots;
 	UriSrc _urisrc;
@@ -88,6 +90,10 @@ public class Crawler {
 		_ff = new FetchFilterAllow();
 	}
 	
+	public void setCommonLog(CommonLog cl) throws IOException {
+		_clog = cl;
+	}
+	
 	public void setFetchFilter(FetchFilter ff) {
 		_ff = ff;
 	}
@@ -123,7 +129,7 @@ public class Crawler {
 			Callbacks cbs = new Callbacks(new Callback[] { _output, _links } );
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, q, cbs, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, q, cbs, _robots, _eh, _ff, _clog);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
@@ -153,5 +159,10 @@ public class Crawler {
 	
 	public void close() {
 		_cm.shutdown();
+		try {
+			_clog.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
