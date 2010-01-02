@@ -21,19 +21,67 @@ import org.apache.http.client.methods.HttpGet;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
 public class TldManager {
-    private static TldManager _tldm;
-
+    private static TldManager _tldm = null;
+    
     private static Logger _log = Logger.getLogger(TldManager.class.getName());
 
     HashMap<String, Tld> TLDs = null;	// map of tlds to their properties
 
     public TldManager(InputStream is) throws IOException {
+    	if (_tldm != null) {
+    		return;
+    	}
+
     	TLDs = new HashMap<String, Tld>();
     	
     	if (is != null) {
     		readList(is);
     	} else {
     		throw new IOException("input stream is null");
+    	}
+    }
+    
+
+    public TldManager(ConnectionManager cm) throws URISyntaxException, IOException {
+    	if (_tldm != null) {
+    		return;
+    	}
+    	
+    	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
+    	HttpResponse hres;
+    	try {
+    		HttpGet hget = new HttpGet(tu);
+    		hres = cm.connect(hget);
+
+    		int status = hres.getStatusLine().getStatusCode();
+    		HttpEntity hen = hres.getEntity();
+
+    		if (status == HttpStatus.SC_OK) {
+    			if (hen != null) {
+    				_tldm = new TldManager(hen.getContent());
+    				hen.consumeContent();
+    			} else {
+    				_log.info("hen == null?");
+    				_tldm = null;
+    			}
+    		} else {
+    			_log.info("status " + status + " for " + tu);
+    			_tldm = null;
+    		}
+
+    		if (hen != null) {
+    			hen.consumeContent();
+    		}
+    	} catch (ClientProtocolException e) {
+    		_log.info(e.getMessage());
+    	} catch (IOException e) {
+    		_log.info(e.getMessage());
+    	}finally{
+    		if(_tldm == null){
+    			//read from local file 
+    			_log.info("read tld.dat from local file");
+    			_tldm = new TldManager(TldManager.class.getResourceAsStream("tld.dat"));
+    		}
     	}
     }
 
@@ -147,12 +195,6 @@ public class TldManager {
     	return null;
     }
 
-    // read list of rules from file
-    public void readList(String file) throws IOException {
-    	readList(new FileInputStream(file));
-    }
-
-
     private void readList(InputStream is) throws IOException {
     	BufferedReader in = new BufferedReader(new InputStreamReader(is));
     	String line;
@@ -212,48 +254,7 @@ public class TldManager {
     	}		
     }
 
-    public static void init(ConnectionManager cm) throws URISyntaxException, IOException{
-    	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
-    	HttpResponse hres;
-    	try {
-    		HttpGet hget = new HttpGet(tu);
-    		hres = cm.connect(hget);
-
-    		int status = hres.getStatusLine().getStatusCode();
-    		HttpEntity hen = hres.getEntity();
-
-    		if (status == HttpStatus.SC_OK) {
-    			if (hen != null) {
-    				_tldm = new TldManager(hen.getContent());
-    				hen.consumeContent();
-    			} else {
-    				_log.info("hen == null?");
-    				_tldm = null;
-    			}
-    		} else {
-    			_log.info("status " + status + " for " + tu);
-    			_tldm = null;
-    		}
-
-    		if (hen != null) {
-    			hen.consumeContent();
-    		}
-    	} catch (ClientProtocolException e) {
-			_log.info(e.getMessage());
-    	} catch (IOException e) {
-			_log.info(e.getMessage());
-    	}finally{
-    		if(_tldm == null){
-    			//read from local file 
-    			_log.info("read tld.dat from local file");
-    			_tldm = new TldManager(TldManager.class.getResourceAsStream("tld.dat"));
-    		}
-    	}
-
-    }
-
     public static TldManager getInstance() {
     	return _tldm;
     }
 }
-

@@ -44,6 +44,10 @@ public class FetchQueue {
 	 * @param maxuris - cut off number of uris per pld
 	 */
 	public void schedule(int maxuris) {	
+		_log.info("start scheduling...");
+
+		long time = System.currentTimeMillis();
+
 		_queues = new HashMap<String, Queue<URI>>();
 
 		for (URI u : _frontier) {
@@ -73,6 +77,8 @@ public class FetchQueue {
 		_time = System.currentTimeMillis();
 		
 		_frontier = new HashSet<URI>();
+		
+		_log.info("scheduling done in " + (_time - time) + " ms");
 	}
 	
 	/**
@@ -100,10 +106,15 @@ public class FetchQueue {
 		_frontier.add(u);
 	}
 
-	private URI normalise(URI u) throws URISyntaxException {
+	public URI normalise(URI u) throws URISyntaxException {
+		String path = u.getPath();
+		if (path == null || path.length() == 0) {
+			path = "/";
+		}
+		
 		URI norm = new URI(u.getScheme(),
 				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
-				u.getPath(), u.getQuery(),
+				path, u.getQuery(),
 				u.getFragment());
 
 		return norm.normalize();
@@ -151,7 +162,7 @@ public class FetchQueue {
 			} else {
 				empty++;
 			}
-		} while (next == null && empty < _queues.size());
+		} while (next == null && empty <= _queues.size());
 
 		return next;
 	}
@@ -175,7 +186,7 @@ public class FetchQueue {
 	 * 
 	 * @param u
 	 */
-	private synchronized void add(URI u) {
+	synchronized void add(URI u) {
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {
@@ -190,11 +201,7 @@ public class FetchQueue {
 				q = new ConcurrentLinkedQueue<URI>();
 				_queues.put(pld, q);
 			}
-			if (!q.contains(u)) {
-				q.add(u);
-			}
-		} else {
-			_log.info("pld is null " + u);
+			q.add(u);
 		}
 	}
 

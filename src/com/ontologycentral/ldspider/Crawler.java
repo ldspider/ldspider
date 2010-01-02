@@ -21,7 +21,6 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.lookup.LookupThread;
 import com.ontologycentral.ldspider.queue.FetchQueue;
-import com.ontologycentral.ldspider.queue.UriSrc;
 import com.ontologycentral.ldspider.robot.Robots;
 import com.ontologycentral.ldspider.tld.TldManager;
 
@@ -35,7 +34,9 @@ public class Crawler {
 	ConnectionManager _cm;
 	
 	Robots _robots;
-	UriSrc _urisrc;
+	TldManager _tldm;
+	
+	//UriSrc _urisrc;
 	
 	int _threads;
 	
@@ -44,7 +45,7 @@ public class Crawler {
 	}
 	
 	public Crawler(int threads) {
-		_urisrc = new UriSrc();
+		//_urisrc = new UriSrc();
 
 		_threads = threads;
 		
@@ -71,7 +72,7 @@ public class Crawler {
 	    _cm.setRetries(CrawlerConstants.RETRIES);
 	    
 	    try {
-		    TldManager.init(_cm);
+		    _tldm = new TldManager(_cm);
 		} catch (URISyntaxException e) {
 			_log.info(e.getMessage());
 		    e.printStackTrace();
@@ -109,7 +110,7 @@ public class Crawler {
 	}
 	
 	public void evaluate(Collection<URI> seeds, int rounds, int maxuris) {
-		FetchQueue q = new FetchQueue(TldManager.getInstance());
+		FetchQueue q = new FetchQueue(_tldm);
 
 		for (URI u : seeds) {
 			q.addFrontier(u);
