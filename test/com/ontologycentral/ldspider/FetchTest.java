@@ -25,7 +25,7 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	Crawler c = new Crawler(1);
 	
-	ErrorHandler eh = new ErrorHandlerLogger();
+	ErrorHandler eh = new ErrorHandlerLogger(null);
 	c.setErrorHandler(eh);
 	
 	NodeCollector nc = new NodeCollector();
@@ -38,7 +38,7 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	c = new Crawler(1);
 	
-	eh = new ErrorHandlerLogger();
+	eh = new ErrorHandlerLogger(null);
 	c.setErrorHandler(eh);
 	
 	nc = new NodeCollector();
