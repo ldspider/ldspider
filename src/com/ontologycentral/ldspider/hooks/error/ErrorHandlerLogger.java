@@ -72,6 +72,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 
 			try {
 				_logger.write(sb.toString());
+				_logger.flush();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
