@@ -50,7 +50,7 @@ public class Redirects {
 				URI to = new URI(from.getScheme(), null, from.getAuthority(), from.getPort(), from.getPath(), from.getQuery(), null);
 				return to;
 			} catch (URISyntaxException e) {
-				e.printStackTrace();
+				_log.info(e.getMessage() + " " + from);
 			}			
 		}
 

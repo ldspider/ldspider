@@ -91,11 +91,13 @@ public class FetchQueue {
 		}
 		
 		try {
-			_frontier.add(normalise(u));
+			u = normalise(u);
 		} catch (URISyntaxException e) {
 			_log.info(u +  " not parsable, skipping " + u);
 			return;
 		}
+		
+		_frontier.add(u);
 	}
 
 	private URI normalise(URI u) throws URISyntaxException {
@@ -161,6 +163,7 @@ public class FetchQueue {
 			_log.info(to +  " not parsable, skipping " + to);
 			return;
 		}
+		
 		_redirs.put(from, to);
 		
 		// fetch again, this time redirects are taken into account

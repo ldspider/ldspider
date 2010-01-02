@@ -46,14 +46,21 @@ public class LookupThread implements Runnable {
 		URI u = _q.poll();
 
 		while (u != null) {
+			long time = System.currentTimeMillis();
+			
 			URI lu = _q.getRedirects().getRedir(u);
 
 			if (u != lu) {
 				_log.info("redir from " + u + " to " + lu);
 			}
 
+			long time1 = System.currentTimeMillis();
+			long time2 = System.currentTimeMillis();
+			
 			if (_robots.accessOk(lu)) {
 				if (!_q.getSeen(lu)) {
+					time2 = System.currentTimeMillis();
+
 					HttpGet hget = new HttpGet(lu);
 					hget.setHeaders(CrawlerConstants.HEADERS);
 
@@ -110,8 +117,14 @@ public class LookupThread implements Runnable {
 			} else {
 				_log.info("access denied per robots.txt for " + u);
 			}
+			
+			long time3 = System.currentTimeMillis();
 
 			u = _q.poll();
+			
+			long time4 = System.currentTimeMillis();
+
+			_log.info((time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup, " + (time4-time3) + " ms for queue poll");
 		}
 	}
 }
