@@ -91,16 +91,20 @@ public class FetchQueue {
 		}
 		
 		try {
-			URI norm = new URI(u.getScheme(),
-			        u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
-			        u.getPath(), u.getQuery(),
-			        u.getFragment());
-			
-			_frontier.add(norm.normalize());
+			_frontier.add(normalise(u));
 		} catch (URISyntaxException e) {
 			_log.info(u +  " not parsable, skipping " + u);
 			return;
 		}
+	}
+
+	private URI normalise(URI u) throws URISyntaxException {
+		URI norm = new URI(u.getScheme(),
+				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
+				u.getPath(), u.getQuery(),
+				u.getFragment());
+
+		return norm.normalize();
 	}
 	
 	/**
@@ -151,6 +155,12 @@ public class FetchQueue {
 	}
 	
 	public void setRedirect(URI from, URI to) {
+		try {
+			to = normalise(to);
+		} catch (URISyntaxException e) {
+			_log.info(to +  " not parsable, skipping " + to);
+			return;
+		}
 		_redirs.put(from, to);
 		
 		// fetch again, this time redirects are taken into account
@@ -163,6 +173,13 @@ public class FetchQueue {
 	 * @param u
 	 */
 	private synchronized void add(URI u) {
+		try {
+			u = normalise(u);
+		} catch (URISyntaxException e) {
+			_log.info(u +  " not parsable, skipping " + u);
+			return;
+		}
+
 		String pld = _tldm.getPLD(u);
 		if (pld != null) {	
 			Queue<URI> q = _queues.get(pld);
