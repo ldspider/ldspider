@@ -73,12 +73,13 @@ public class Crawler {
 	    
 	    try {
 		    _tldm = new TldManager(_cm);
-		} catch (URISyntaxException e) {
-			_log.info(e.getMessage());
-		    e.printStackTrace();
-		} catch (IOException e) {
-			_log.info(e.getMessage());
-			e.printStackTrace();
+		} catch (Exception e) {
+			_log.info("cannot get tld file online " + e.getMessage());
+			try {
+				_tldm = new TldManager();
+			} catch (IOException e1) {
+				_log.info("cannot get tld file locally " + e.getMessage());
+			}
 		}
 		
 	    _robots = new Robots(_cm);

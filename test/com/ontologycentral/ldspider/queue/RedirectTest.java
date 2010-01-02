@@ -8,7 +8,7 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 public class RedirectTest extends TestCase {
 	public void testNormalise() throws Exception {
-		TldManager tldm = new TldManager(TldManager.class.getResourceAsStream("tld.dat"));
+		TldManager tldm = new TldManager();
 		
 		FetchQueue fq = new FetchQueue(tldm);
 		

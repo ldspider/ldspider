@@ -22,4 +22,11 @@ public class NormaliseTest extends TestCase {
 		URI u = new URI("http://harth.org");
 		System.out.println(fq.normalise(u));
 	}
+	
+	public void testNormalise2() throws Exception {
+		FetchQueue fq = new FetchQueue(null);
+		
+		URI u = new URI("http://www.mademan.com/chickipedia/Special:URIResolver/angela_merkel");
+		System.out.println(fq.normalise(u));
+	}
 }

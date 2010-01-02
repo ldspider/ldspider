@@ -1,7 +1,6 @@
 package com.ontologycentral.ldspider.tld;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,17 +20,16 @@ import org.apache.http.client.methods.HttpGet;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
 public class TldManager {
-    private static TldManager _tldm = null;
-    
     private static Logger _log = Logger.getLogger(TldManager.class.getName());
 
     HashMap<String, Tld> TLDs = null;	// map of tlds to their properties
 
-    public TldManager(InputStream is) throws IOException {
-    	if (_tldm != null) {
-    		return;
-    	}
-
+    public TldManager() throws IOException {
+		read(TldManager.class.getResourceAsStream("tld.dat"));
+    }
+    	
+    	
+    public void read(InputStream is) throws IOException {
     	TLDs = new HashMap<String, Tld>();
     	
     	if (is != null) {
@@ -43,10 +41,6 @@ public class TldManager {
     
 
     public TldManager(ConnectionManager cm) throws URISyntaxException, IOException {
-    	if (_tldm != null) {
-    		return;
-    	}
-    	
     	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
     	HttpResponse hres;
     	try {
@@ -58,15 +52,10 @@ public class TldManager {
 
     		if (status == HttpStatus.SC_OK) {
     			if (hen != null) {
-    				_tldm = new TldManager(hen.getContent());
-    				hen.consumeContent();
-    			} else {
-    				_log.info("hen == null?");
-    				_tldm = null;
+    				read(hen.getContent());
     			}
     		} else {
     			_log.info("status " + status + " for " + tu);
-    			_tldm = null;
     		}
 
     		if (hen != null) {
@@ -76,12 +65,6 @@ public class TldManager {
     		_log.info(e.getMessage());
     	} catch (IOException e) {
     		_log.info(e.getMessage());
-    	}finally{
-    		if(_tldm == null){
-    			//read from local file 
-    			_log.info("read tld.dat from local file");
-    			_tldm = new TldManager(TldManager.class.getResourceAsStream("tld.dat"));
-    		}
     	}
     }
 
@@ -188,8 +171,9 @@ public class TldManager {
     		if (current.getExcptnlThreeLvlDomains().contains(parts[1] + "." + parts[2] + "." + parts[3])) {
     			return parts[1] + "." + parts[2] + "." + parts[3];
     		}
-    	}catch(Exception e) {
-    		_log.info("error: " + e.getMessage() + url);
+    	} catch(Exception e) {
+    		_log.info("error: " + e.getMessage() + " " + url);
+    		e.printStackTrace();
     	}
 
     	return null;
@@ -252,9 +236,5 @@ public class TldManager {
     			}
     		}
     	}		
-    }
-
-    public static TldManager getInstance() {
-    	return _tldm;
     }
 }
