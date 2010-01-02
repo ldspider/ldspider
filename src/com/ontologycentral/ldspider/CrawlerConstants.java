@@ -11,7 +11,7 @@ public class CrawlerConstants {
 	};
 	
 	public static final int CONNECTION_TIMEOUT = 2000;
-	public static final int SOCKET_TIMEOUT = 1000;
+	public static final int SOCKET_TIMEOUT = 2000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
