@@ -31,16 +31,13 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	CommonLog _clog;
-
-	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff, CommonLog clog) {
+	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff) {
 		_hclient = hc;
 		_q = q;
 		_cbs = cbs;
 		_robots = robots;
 		_ff = ff;
 		_eh = eh;
-		_clog = clog;
 	}
 	
 	public void run() {
@@ -66,8 +63,6 @@ public class LookupThread implements Runnable {
 						HttpEntity hen = hres.getEntity();
 
 						int status = hres.getStatusLine().getStatusCode();
-
-						_eh.handleStatus(lu, status);
 
 						_log.info("lookup on " + lu + " status " + status);
 
@@ -105,7 +100,7 @@ public class LookupThread implements Runnable {
 							_q.setSeen(lu);
 						}
 						
-						_clog.common(lu.getHost(), lu.getPath(), status, hen.getContentLength());		
+						_eh.handleStatus(lu, status, hen.getContentLength());
 					} catch (Exception e) {
 						hget.abort();
 						_eh.handleError(lu, e);

@@ -75,27 +75,6 @@ public class FetchQueue {
 	}
 	
 	/**
-	 * Add URI directly to queues.
-	 * 
-	 * @param u
-	 */
-	public synchronized void add(URI u) {
-		String pld = _tldm.getPLD(u);
-		if (pld != null) {	
-			Queue<URI> q = _queues.get(pld);
-			if (q == null) {
-				q = new ConcurrentLinkedQueue<URI>();
-				_queues.put(pld, q);
-			}
-			if (!_seen.contains(u) && !q.contains(u)) {
-				q.add(u);
-			}
-		} else {
-			_log.info("pld is null " + u);
-		}
-	}
-
-	/**
 	 * Add URI to frontier
 	 * 
 	 * @param u
@@ -166,7 +145,28 @@ public class FetchQueue {
 		// fetch again, this time redirects are taken into account
 		add(from);
 	}
-		
+	
+	/**
+	 * Add URI directly to queues.
+	 * 
+	 * @param u
+	 */
+	private synchronized void add(URI u) {
+		String pld = _tldm.getPLD(u);
+		if (pld != null) {	
+			Queue<URI> q = _queues.get(pld);
+			if (q == null) {
+				q = new ConcurrentLinkedQueue<URI>();
+				_queues.put(pld, q);
+			}
+			if (!q.contains(u)) {
+				q.add(u);
+			}
+		} else {
+			_log.info("pld is null " + u);
+		}
+	}
+
 	public Redirects getRedirects() {
 		return _redirs;
 	}

@@ -29,7 +29,6 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
-import com.ontologycentral.ldspider.lookup.CommonLog;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -168,18 +167,12 @@ public class Main {
 		
 		Crawler c = new Crawler(threads);
 
-		ErrorHandler eh = new ErrorHandlerLogger();
+		ErrorHandler eh = new ErrorHandlerLogger(cmd.getOptionValue("l"));
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
-		try {
-			c.setCommonLog(new CommonLog(cmd.getOptionValue("l")));
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-
 		c.evaluate(seeds, rounds, maxuris);
 
 		System.err.println(eh);

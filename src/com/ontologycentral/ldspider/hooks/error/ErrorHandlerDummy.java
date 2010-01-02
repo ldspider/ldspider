@@ -9,7 +9,11 @@ public class ErrorHandlerDummy implements ErrorHandler {
 		;
 	}
 
-	public void handleStatus(URI u, int status) {
+	public void handleStatus(URI u, int status, long contentLength) {
+		;
+	}
+	
+	public void close() {
 		;
 	}
 }
