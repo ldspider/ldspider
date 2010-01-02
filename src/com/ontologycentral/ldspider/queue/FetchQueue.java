@@ -87,7 +87,9 @@ public class FetchQueue {
 				q = new ConcurrentLinkedQueue<URI>();
 				_queues.put(pld, q);
 			}
-			q.add(u);
+			if (!q.contains(u)) {
+				q.add(u);
+			}
 		} else {
 			_log.info("pld is null " + u);
 		}
