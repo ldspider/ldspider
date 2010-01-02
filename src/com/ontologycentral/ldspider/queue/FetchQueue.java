@@ -62,7 +62,7 @@ public class FetchQueue {
 				for (URI u: q) {
 					nq.add(u);
 					n++;
-					if (n > maxuris) {
+					if (n >= maxuris) {
 						break;
 					}
 				}
