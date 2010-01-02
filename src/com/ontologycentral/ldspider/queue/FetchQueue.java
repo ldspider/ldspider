@@ -1,6 +1,7 @@
 package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -88,8 +89,18 @@ public class FetchQueue {
 			_log.info(u.getScheme() + " != http, skipping " + u);
 			return;
 		}
-
-		_frontier.add(u.normalize());
+		
+		try {
+			URI norm = new URI(u.getScheme(),
+			        u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
+			        u.getPath(), u.getQuery(),
+			        u.getFragment());
+			
+			_frontier.add(norm.normalize());
+		} catch (URISyntaxException e) {
+			_log.info(u +  " not parsable, skipping " + u);
+			return;
+		}
 	}
 	
 	/**
