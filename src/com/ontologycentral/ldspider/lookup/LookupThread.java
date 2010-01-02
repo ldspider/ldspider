@@ -68,6 +68,9 @@ public class LookupThread implements Runnable {
 
 						_log.info("lookup on " + lu + " status " + status);
 
+						// write headers in RDF
+						Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
+						
 						if (status == HttpStatus.SC_OK) {
 							if (_ff.fetchOk(lu, status, hen)) {
 								InputStream is = hen.getContent();
