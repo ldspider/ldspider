@@ -96,6 +96,15 @@ public class ErrorHandlerLogger implements ErrorHandler {
 //		return _errors;
 //	}
 	
+	public long lookups() {
+		long size = 0;
+		for (Integer i : _status.values()) {
+			size += i;
+		}
+
+		return size;
+	}
+	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		

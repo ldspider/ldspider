@@ -15,4 +15,8 @@ public class ErrorHandlerDummy implements ErrorHandler {
 	public void close() {
 		;
 	}
+
+	public long lookups() {
+		return 0;
+	}
 }

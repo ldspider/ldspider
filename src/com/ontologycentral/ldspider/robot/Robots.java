@@ -31,8 +31,6 @@ public class Robots {
 		_robots = new HashMap<String, Robot>();
 		_eh = eh;
 	}
-	
-    
 
     public boolean accessOk(URI uri) {
     	String host = uri.getAuthority();
@@ -49,14 +47,6 @@ public class Robots {
     		}
     	}
     	
-		URL url = null;
-		try {
-			url = uri.toURL();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-			return false;
-		}
-		
-    	return r.isUrlAllowed(url);
+    	return r.isUriAllowed(uri);
     }
 }

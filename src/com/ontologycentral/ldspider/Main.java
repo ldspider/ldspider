@@ -178,7 +178,8 @@ public class Main {
 
 		System.err.println(eh);
 //		for (Throwable t : eh.getErrors()) {
-//			System.err.println(t.getMessage());
+//			System.err.println(t.getMessage());		// TODO Auto-generated method stub
+
 //		}
 		
 		c.close();
@@ -191,7 +192,7 @@ public class Main {
 			_log.log(Level.WARNING, "could not close output stream: " + e.getMessage());
 		}
 
-		System.err.println("time elapsed " + (time1-time) + " ms");
+		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec" );
 	}
 
 	/**

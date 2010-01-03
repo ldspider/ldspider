@@ -136,11 +136,9 @@ public class LookupThread implements Runnable {
 			
 			long time3 = System.currentTimeMillis();
 
-			u = _q.poll();
-			
-			long time4 = System.currentTimeMillis();
+			_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 
-			_log.info((time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup, " + (time4-time3) + " ms for queue poll");
+			u = _q.poll();
 		}
 	}
 }

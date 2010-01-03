@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -27,7 +26,8 @@ public class FetchQueue {
 	Redirects _redirs;
 
 	Map<String, Queue<URI>> _queues;
-	Iterator<String> _current;
+	Queue<String> _current;
+
 	long _time;
 		
 	public FetchQueue(TldManager tldm) {
@@ -36,6 +36,8 @@ public class FetchQueue {
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
 		_redirs = new Redirects();
 		_frontier = Collections.synchronizedSet(new HashSet<URI>());
+		
+		_current = new ConcurrentLinkedQueue<String>();
 	}
 	
 	/**
@@ -72,7 +74,7 @@ public class FetchQueue {
 			}
 		}
 		
-		_current = _queues.keySet().iterator();
+		_current.addAll(_queues.keySet());
 		
 		_time = System.currentTimeMillis();
 		
@@ -141,7 +143,7 @@ public class FetchQueue {
 		int empty = 0;
 				
 		do {	
-			if (!_current.hasNext()) {
+			if (_current.isEmpty()) {
 				long time1 = System.currentTimeMillis();
 				
 				if ((time1 - _time) < CrawlerConstants.DELAY) {
@@ -157,10 +159,10 @@ public class FetchQueue {
 
 				_time = System.currentTimeMillis();
 				
-				_current = _queues.keySet().iterator();
+				_current.addAll(_queues.keySet());
 			}
 
-			String pld = _current.next();
+			String pld = _current.poll();
 			Queue<URI> q = _queues.get(pld);
 			
 			if (q != null && !q.isEmpty()) {
@@ -168,7 +170,7 @@ public class FetchQueue {
 			} else {
 				empty++;
 			}
-		} while (next == null && empty < _queues.size()); // && size() > 0);
+		} while (next == null && empty < _queues.size());
 
 		return next;
 	}
@@ -206,6 +208,7 @@ public class FetchQueue {
 			if (q == null) {
 				q = new ConcurrentLinkedQueue<URI>();
 				_queues.put(pld, q);
+				_current.add(pld);
 			}
 			q.add(u);
 		}
