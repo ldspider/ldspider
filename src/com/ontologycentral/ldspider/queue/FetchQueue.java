@@ -183,6 +183,11 @@ public class FetchQueue {
 			return;
 		}
 		
+		if (from.equals(to)) {
+			_log.info("redirected to same uri " + from);
+			return;
+		}
+		
 		_redirs.put(from, to);
 		
 		// fetch again, this time redirects are taken into account
