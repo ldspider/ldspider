@@ -51,7 +51,7 @@ public class FetchQueue {
 		_queues = new HashMap<String, Queue<URI>>();
 
 		for (URI u : _frontier) {
-			add(u);
+			addDirectly(u);
 		}
 
 		for (String pld : _queues.keySet()) {
@@ -112,6 +112,10 @@ public class FetchQueue {
 			path = "/";
 		}
 		
+		if (u.getHost() == null) {
+			throw new URISyntaxException("no host in ", u.toString());
+		}
+		
 		URI norm = new URI(u.getScheme(),
 				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
 				path, u.getQuery(),
@@ -162,7 +166,7 @@ public class FetchQueue {
 			} else {
 				empty++;
 			}
-		} while (next == null && empty <= _queues.size());
+		} while (next == null && empty < _queues.size()); // && size() > 0);
 
 		return next;
 	}
@@ -178,7 +182,7 @@ public class FetchQueue {
 		_redirs.put(from, to);
 		
 		// fetch again, this time redirects are taken into account
-		add(from);
+		addDirectly(from);
 	}
 	
 	/**
@@ -186,7 +190,7 @@ public class FetchQueue {
 	 * 
 	 * @param u
 	 */
-	synchronized void add(URI u) {
+	synchronized void addDirectly(URI u) {
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {

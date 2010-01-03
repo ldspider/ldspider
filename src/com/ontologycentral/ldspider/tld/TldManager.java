@@ -76,6 +76,10 @@ public class TldManager {
     	}
     	try {
     		String host = url.getHost();
+    		if (host == null) {
+        		_log.fine("no host for " + url);
+    			return null;
+    		}
     		String[] parts = host.split("\\.");
     		if (parts.length == 2) {
     			return host;
