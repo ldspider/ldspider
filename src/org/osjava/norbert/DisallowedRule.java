@@ -48,7 +48,7 @@ class DisallowedRule extends AbstractRule {
         }
         boolean test = query.startsWith( super.getPath() );
         if(!test) {
-            return Boolean.FALSE;
+            return null;
         } else {
             return Boolean.FALSE;
         }
