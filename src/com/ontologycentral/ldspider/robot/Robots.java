@@ -7,8 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.apache.http.client.HttpClient;
-
+import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
 
@@ -24,11 +23,13 @@ public class Robots {
 	Map<String, Robot> _robots;
 
 	private ConnectionManager _cm;
+	private ErrorHandler _eh;
 
 	
-	public Robots(ConnectionManager cm) {
+	public Robots(ConnectionManager cm, ErrorHandler eh) {
 		_cm = cm;
 		_robots = new HashMap<String, Robot>();
+		_eh = eh;
 	}
 	
     
@@ -42,7 +43,7 @@ public class Robots {
     		if (_robots.containsKey(host)) {
     			r = _robots.get(host);
     		} else {
-    			r = new Robot(_cm, host);
+    			r = new Robot(_cm, _eh, host);
     			
     			_robots.put(host, r);
     		}

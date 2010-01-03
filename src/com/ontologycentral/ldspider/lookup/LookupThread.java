@@ -1,7 +1,9 @@
 package com.ontologycentral.ldspider.lookup;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 import org.apache.http.Header;
@@ -9,6 +11,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
+import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
@@ -77,17 +80,19 @@ public class LookupThread implements Runnable {
 						Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
 						
 						if (status == HttpStatus.SC_OK) {
-							if (_ff.fetchOk(lu, status, hen)) {
-								InputStream is = hen.getContent();
+							if (hen != null) {
+								if (_ff.fetchOk(lu, status, hen)) {
+									InputStream is = hen.getContent();
 
-								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
-								
-								if (hen != null) {
+									RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
+
 									hen.consumeContent();
+								} else {
+									_log.info("not allowed " + lu);
+									hget.abort();
 								}
 							} else {
-								_log.info("not allowed " + lu);
-								hget.abort();
+								_log.info("HttpEntity for " + lu + " is null");
 							}
 							_q.setSeen(lu);
 						} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
@@ -107,7 +112,17 @@ public class LookupThread implements Runnable {
 							_q.setSeen(lu);
 						}
 						
-						_eh.handleStatus(lu, status, hen.getContentLength());
+						if (hen != null) {
+							_eh.handleStatus(lu, status, hen.getContentLength());
+						} else {
+							_eh.handleStatus(lu, status, -1);							
+						}
+					} catch (ParseException e) {
+						hget.abort();
+						_eh.handleError(lu, e);
+					} catch (URISyntaxException e) {
+						hget.abort();
+						_eh.handleError(lu, e);
 					} catch (Exception e) {
 						hget.abort();
 						_eh.handleError(lu, e);

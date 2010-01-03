@@ -2,7 +2,6 @@ package com.ontologycentral.ldspider;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -81,11 +80,12 @@ public class Crawler {
 				_log.info("cannot get tld file locally " + e.getMessage());
 			}
 		}
-		
-	    _robots = new Robots(_cm);
+
+		_eh = new ErrorHandlerDummy();
+
+	    _robots = new Robots(_cm, _eh);
 		
 		_output = new CallbackDummy();
-		_eh = new ErrorHandlerDummy();
 		_links = new LinkFilterDefault(_eh);
 		_ff = new FetchFilterAllow();
 	}

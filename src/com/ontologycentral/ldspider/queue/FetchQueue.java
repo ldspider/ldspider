@@ -43,12 +43,12 @@ public class FetchQueue {
 	 * 
 	 * @param maxuris - cut off number of uris per pld
 	 */
-	public void schedule(int maxuris) {	
+	public synchronized void schedule(int maxuris) {	
 		_log.info("start scheduling...");
 
 		long time = System.currentTimeMillis();
 
-		_queues = new HashMap<String, Queue<URI>>();
+		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 
 		for (URI u : _frontier) {
 			addDirectly(u);
@@ -144,16 +144,18 @@ public class FetchQueue {
 			if (!_current.hasNext()) {
 				long time1 = System.currentTimeMillis();
 				
-				_log.info("queue turnaround in " + (time1-_time) + " ms");
 				if ((time1 - _time) < CrawlerConstants.DELAY) {
 					try {
-						_log.info("delaying queue...");
+						_log.info("delaying queue " + CrawlerConstants.DELAY + " ms ...");
 						Thread.sleep(CrawlerConstants.DELAY);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
-				_time = time1;
+				
+				_log.info("queue turnaround in " + (time1-_time) + " ms");
+
+				_time = System.currentTimeMillis();
 				
 				_current = _queues.keySet().iterator();
 			}

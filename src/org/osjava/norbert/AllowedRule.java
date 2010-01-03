@@ -45,11 +45,11 @@ class AllowedRule extends AbstractRule {
     public Boolean isAllowed(String query) {
         if("".equals(super.getPath())) {
             // What does the spec say here? Until I know, I'll just ignore this.
-            return null;
+            return Boolean.FALSE;
         }
         boolean test = query.startsWith( super.getPath() );
         if(!test) {
-            return null;
+            return Boolean.FALSE;
         } else {
             return Boolean.TRUE;
         }

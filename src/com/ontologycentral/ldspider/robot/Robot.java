@@ -10,15 +10,13 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.osjava.norbert.NoRobotClient;
 import org.osjava.norbert.NoRobotException;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
 /**
@@ -32,7 +30,7 @@ public class Robot {
 
 	NoRobotClient _nrc = null;
 	
-	public Robot(ConnectionManager cm, String host) {
+	public Robot(ConnectionManager cm, ErrorHandler eh, String host) {
     	try {
     		URI u = new URI( "http://" + host + "/robots.txt" );
 			HttpGet hget = new HttpGet(u);
@@ -50,16 +48,20 @@ public class Robot {
 					_nrc.parse(content, new URL("http://" + host + "/"));
 				} else {
 					_nrc = null;
+					_log.info("HttpEntity for " + u + " is null");
 				}
 			} else {
 				_log.info("no robots.txt for " + host);
 				_nrc = null;
 			}
 			
-    		if (hen != null) {
-    			hen.consumeContent();
-    		}
-		} catch (NoRobotException e) {
+			if (hen != null) {
+				hen.consumeContent();
+				eh.handleStatus(u, status, hen.getContentLength());
+			} else {
+				eh.handleStatus(u, status, -1);				
+			}
+ 		} catch (NoRobotException e) {
 			_log.fine(e.getMessage());
 			_nrc = null;
 		} catch (URISyntaxException e) {

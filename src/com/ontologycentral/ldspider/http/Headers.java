@@ -9,7 +9,6 @@ import org.semanticweb.yars.nx.BNode;
 import org.semanticweb.yars.nx.Literal;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.NumericLiteral;
-import org.semanticweb.yars.nx.Quad;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.util.Callbacks;
 
@@ -81,7 +80,7 @@ public class Headers {
 		cbs.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri } );
 		cbs.processStatement(new Node[] { bNode,
 				           new Resource(httpNS+"responseCode"),
-				           new NumericLiteral(new Integer(status)),
+				           new NumericLiteral(Integer.valueOf(status)),
 				           ruri } );
 		
 		for (int i = 0; i < headerFields.length; i++) {

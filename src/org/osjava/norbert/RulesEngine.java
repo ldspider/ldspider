@@ -77,7 +77,7 @@ class RulesEngine {
             }
         }
 
-        return null;
+        return Boolean.FALSE;
     }
 
     public boolean isEmpty() {

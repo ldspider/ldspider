@@ -243,6 +243,7 @@ public class NoRobotClient {
             buffer.append("\n");
         }
         in.close();
+        rdr.close();
         return buffer.toString();
     }
 

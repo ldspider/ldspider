@@ -39,7 +39,7 @@ public class PerformanceTest extends TestCase {
 		
 		br.close();
 		
-		fq.schedule(10000);
+		fq.schedule(Integer.MAX_VALUE);
 		
 		int size = fq.size();
 		

@@ -140,6 +140,7 @@ public class Main {
 				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
 			} catch (Exception e) {
 				_log.log(Level.WARNING,"Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
+				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
