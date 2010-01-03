@@ -1,6 +1,5 @@
 package com.ontologycentral.ldspider.lookup;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -85,7 +84,8 @@ public class LookupThread implements Runnable {
 									InputStream is = hen.getContent();
 
 									RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
-
+									rxp = null;
+									
 									hen.consumeContent();
 								} else {
 									_log.info("not allowed " + lu);
