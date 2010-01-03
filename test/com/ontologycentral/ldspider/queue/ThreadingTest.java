@@ -12,19 +12,21 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 
 public class ThreadingTest extends TestCase {
+	public static int THREADS = 64;
+	
 	public void testThreading() throws Exception {
 		TldManager tldm = new TldManager();
 		
 		FetchQueue fq = new FetchQueue(tldm);
 
-		Thread[] ts = new Thread[12];
+		Thread[] ts = new Thread[THREADS];
 		
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < THREADS; i++) {
 			ts[i] = new Thread(new Worker(fq));
 			ts[i].start();
 		}
 		
-		for (int i = 0; i < 12; i++) {
+		for (int i = 0; i < THREADS; i++) {
 			ts[i].join();
 		}
 	}	
@@ -52,6 +54,8 @@ class Worker implements Runnable {
 				URI u = new URI(line);
 
 				_fq.addFrontier(u);
+				
+				_fq.getSeen(u);
 
 				line = br.readLine();
 			}
