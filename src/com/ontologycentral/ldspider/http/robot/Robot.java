@@ -61,6 +61,7 @@ public class Robot {
 				hen.consumeContent();
 				eh.handleStatus(u, status, hen.getContentLength());
 			} else {
+				hget.abort();
 				eh.handleStatus(u, status, -1);				
 			}
 		} catch (URISyntaxException e) {
