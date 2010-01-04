@@ -142,7 +142,7 @@ public class FetchQueue {
 		URI next = null;
 
 		int empty = 0;
-				
+
 		do {	
 			if (_current.isEmpty()) {
 				long time1 = System.currentTimeMillis();
@@ -195,6 +195,9 @@ public class FetchQueue {
 		}
 		
 		_redirs.put(from, to);
+		
+		// allow to poll from again from queue
+		_seen.remove(from);
 		
 		// fetch again, this time redirects are taken into account
 		addDirectly(from);
