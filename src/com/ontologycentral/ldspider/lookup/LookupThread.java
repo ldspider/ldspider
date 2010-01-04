@@ -79,6 +79,8 @@ public class LookupThread implements Runnable {
 						Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
 						
 						if (status == HttpStatus.SC_OK) {
+							_q.setSeen(lu);
+							
 							if (hen != null) {
 								if (_ff.fetchOk(lu, status, hen)) {
 									InputStream is = hen.getContent();
@@ -94,7 +96,6 @@ public class LookupThread implements Runnable {
 							} else {
 								_log.info("HttpEntity for " + lu + " is null");
 							}
-							_q.setSeen(lu);
 						} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
 							// treating all redirects the same but shouldn't: 301 -> rename context URI, 302 -> keep original context URI, 303 -> spec inconclusive
 							Header[] loc = hres.getHeaders("location");
@@ -107,9 +108,9 @@ public class LookupThread implements Runnable {
 								hen.consumeContent();
 							}
 						} else {
+							_q.setSeen(lu);
 							_log.info("status code " + status + " for " + lu);
 							hget.abort();
-							_q.setSeen(lu);
 						}
 						
 						if (hen != null) {
