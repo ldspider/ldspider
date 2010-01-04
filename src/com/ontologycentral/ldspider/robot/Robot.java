@@ -91,7 +91,7 @@ public class Robot {
 		    // check if the rules are for all user agents or if not, if
 		    // there is a rule for MultiCrawler
 	    		if (line.startsWith("user-agent")) {
-	    			//get the agend name
+	    			//get the agent name
 	    			line = line.substring(line.indexOf(":")+1).trim();
 	       			matcher = pattern.matcher(line);
 	    			if(mcAgent && line.equals("*")) {

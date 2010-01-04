@@ -53,7 +53,9 @@ public class FetchQueue {
 		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 
 		for (URI u : _frontier) {
-			addDirectly(u);
+			if (!getSeen(u)) {
+				addDirectly(u);
+			}
 		}
 
 		for (String pld : _queues.keySet()) {
@@ -172,6 +174,8 @@ public class FetchQueue {
 			}
 		} while (next == null && empty < _queues.size());
 
+		setSeen(next);
+
 		return next;
 	}
 	
@@ -223,7 +227,7 @@ public class FetchQueue {
 		return _redirs;
 	}
 	
-	public boolean getSeen(URI u) {
+	boolean getSeen(URI u) {
 		if (_seen.contains(u)) {
 			return true;
 		}
@@ -239,7 +243,7 @@ public class FetchQueue {
 		return false;
 	}
 	
-	public void setSeen(URI u) {
+	void setSeen(URI u) {
 		_seen.add(u);
 	}
 	

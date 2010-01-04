@@ -60,75 +60,68 @@ public class LookupThread implements Runnable {
 			long time2 = System.currentTimeMillis();
 			
 			if (_robots.accessOk(lu)) {
-				if (!_q.getSeen(lu)) {
-					_q.setSeen(lu);
+				time2 = System.currentTimeMillis();
 
-					time2 = System.currentTimeMillis();
+				HttpGet hget = new HttpGet(lu);
+				hget.setHeaders(CrawlerConstants.HEADERS);
 
-					HttpGet hget = new HttpGet(lu);
-					hget.setHeaders(CrawlerConstants.HEADERS);
+				try {
+					HttpResponse hres = _hclient.connect(hget);
 
-					try {
-						HttpResponse hres = _hclient.connect(hget);
+					HttpEntity hen = hres.getEntity();
 
-						HttpEntity hen = hres.getEntity();
+					int status = hres.getStatusLine().getStatusCode();
 
-						int status = hres.getStatusLine().getStatusCode();
+					_log.info("lookup on " + lu + " status " + status);
 
-						_log.info("lookup on " + lu + " status " + status);
+					// write headers in RDF
+					Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
 
-						// write headers in RDF
-						Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
-						
-						if (status == HttpStatus.SC_OK) {				
-							if (hen != null) {
-								if (_ff.fetchOk(lu, status, hen)) {
-									InputStream is = hen.getContent();
-
-									RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
-									rxp = null;
-									
-									hen.consumeContent();
-								} else {
-									_log.info("not allowed " + lu);
-									hget.abort();
-								}
-							} else {
-								_log.info("HttpEntity for " + lu + " is null");
-							}
-						} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
-							// treating all redirects the same but shouldn't: 301 -> rename context URI, 302 -> keep original context URI, 303 -> spec inconclusive
-							Header[] loc = hres.getHeaders("location");
-							_log.info("redirecting (" + status + ") to " + loc[0].getValue());
-							URI to = new URI(loc[0].getValue());
-
-							_q.setRedirect(lu, to);
-							
-							if (hen != null) {
-								hen.consumeContent();
-							}
-						} else {
-							_log.info("status code " + status + " for " + lu);
-							hget.abort();
-						}
-						
+					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
-							_eh.handleStatus(lu, status, hen.getContentLength());
+							if (_ff.fetchOk(lu, status, hen)) {
+								InputStream is = hen.getContent();
+
+								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
+								rxp = null;
+
+								hen.consumeContent();
+							} else {
+								_log.info("not allowed " + lu);
+								hget.abort();
+							}
 						} else {
-							_eh.handleStatus(lu, status, -1);							
+							_log.info("HttpEntity for " + lu + " is null");
 						}
-					} catch (ParseException e) {
+					} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
+						// treating all redirects the same but shouldn't: 301 -> rename context URI, 302 -> keep original context URI, 303 -> spec inconclusive
+						Header[] loc = hres.getHeaders("location");
+						_log.info("redirecting (" + status + ") to " + loc[0].getValue());
+						URI to = new URI(loc[0].getValue());
+
+						_q.setRedirect(lu, to);
+
+						if (hen != null) {
+							hen.consumeContent();
+						}
+						_log.info("status code " + status + " for " + lu);
 						hget.abort();
-						_eh.handleError(lu, e);
-					} catch (URISyntaxException e) {
-						hget.abort();
-						_eh.handleError(lu, e);
-					} catch (Exception e) {
-						hget.abort();
-						_eh.handleError(lu, e);
 					}
-				} else {
-					_log.info("uri " + u + " seen before");
+
+					if (hen != null) {
+						_eh.handleStatus(lu, status, hen.getContentLength());
+					} else {
+						_eh.handleStatus(lu, status, -1);							
+					}
+				} catch (ParseException e) {
+					hget.abort();
+					_eh.handleError(lu, e);
+				} catch (URISyntaxException e) {
+					hget.abort();
+					_eh.handleError(lu, e);
+				} catch (Exception e) {
+					hget.abort();
+					_eh.handleError(lu, e);
 				}
 			} else {
 				_log.info("access denied per robots.txt for " + u);

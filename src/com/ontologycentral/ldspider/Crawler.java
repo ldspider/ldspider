@@ -145,10 +145,9 @@ public class Crawler {
 			}
 
 			for (URI u : _links.getLinks()) {
-				if (q.getSeen(u) == false) {
-					q.addFrontier(u);
-				}
+				q.addFrontier(u);
 			}
+
 			q.schedule(maxuris);
 		}
 	}
