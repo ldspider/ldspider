@@ -34,11 +34,18 @@ public class Robot {
 	
 	public Robot(ConnectionManager cm, ErrorHandler eh, String host) {
 		_host = host;
-		
-    	try {
-    		URI u = new URI( "http://" + host + "/robots.txt" );
-			HttpGet hget = new HttpGet(u);
 
+		URI u;
+		try {
+			u = new URI( "http://" + host + "/robots.txt" );
+		} catch (URISyntaxException e) {
+			_log.info(e.getMessage() + " for host " + host);
+			return;
+		}
+		
+		HttpGet hget = new HttpGet(u);
+
+    	try {
 			HttpResponse hres = cm.connect(hget);
 			HttpEntity hen = hres.getEntity();
 
@@ -64,12 +71,12 @@ public class Robot {
 				hget.abort();
 				eh.handleStatus(u, status, -1);				
 			}
-		} catch (URISyntaxException e) {
-			_log.fine(e.getMessage());
 		} catch (ClientProtocolException e) {
-			_log.fine(e.getMessage());
+			_log.fine(e.getMessage() + ": " + u);
+			hget.abort();
 		} catch (IOException e) {
-			_log.fine(e.getMessage());
+			_log.fine(e.getMessage() + ": " + u);
+			hget.abort();
 		}
 	}
 	
@@ -124,8 +131,6 @@ public class Robot {
 	 * @return boolean - true if it is allow to crawl this uri, false else
 	 */
 	public boolean isUriAllowed(URI u) {
-		String host = u.getHost();
-
 		try {
 			//if robots.txt is empty or not available ALLOW TO CRAWL
 			if (_robotstxt == null || _robotstxt.length() == 0) {

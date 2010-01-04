@@ -78,11 +78,8 @@ public class LookupThread implements Runnable {
 
 								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
 								rxp = null;
-
-								hen.consumeContent();
 							} else {
 								_log.info("not allowed " + lu);
-								hget.abort();
 							}
 						} else {
 							_log.info("HttpEntity for " + lu + " is null");
@@ -94,18 +91,14 @@ public class LookupThread implements Runnable {
 						URI to = new URI(loc[0].getValue());
 
 						_q.setRedirect(lu, to);
-
-						if (hen != null) {
-							hen.consumeContent();
-						}
-						_log.info("status code " + status + " for " + lu);
-						hget.abort();
 					}
 
 					if (hen != null) {
 						_eh.handleStatus(lu, status, hen.getContentLength());
+						hen.consumeContent();
 					} else {
-						_eh.handleStatus(lu, status, -1);							
+						_eh.handleStatus(lu, status, -1);
+						hget.abort();
 					}
 				} catch (ParseException e) {
 					hget.abort();

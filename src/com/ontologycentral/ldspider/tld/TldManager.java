@@ -14,7 +14,6 @@ import java.util.regex.Pattern;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 
 import com.ontologycentral.ldspider.http.ConnectionManager;
@@ -43,28 +42,23 @@ public class TldManager {
     public TldManager(ConnectionManager cm) throws URISyntaxException, IOException {
     	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
     	HttpResponse hres;
-    	try {
-    		HttpGet hget = new HttpGet(tu);
-    		hres = cm.connect(hget);
 
-    		int status = hres.getStatusLine().getStatusCode();
-    		HttpEntity hen = hres.getEntity();
+    	HttpGet hget = new HttpGet(tu);
+    	hres = cm.connect(hget);
 
-    		if (status == HttpStatus.SC_OK) {
-    			if (hen != null) {
-    				read(hen.getContent());
-    			}
-    		} else {
-    			_log.info("status " + status + " for " + tu);
-    		}
+    	int status = hres.getStatusLine().getStatusCode();
+    	HttpEntity hen = hres.getEntity();
 
+    	if (status == HttpStatus.SC_OK) {
     		if (hen != null) {
-    			hen.consumeContent();
+    			read(hen.getContent());
     		}
-    	} catch (ClientProtocolException e) {
-    		_log.info(e.getMessage());
-    	} catch (IOException e) {
-    		_log.info(e.getMessage());
+    	} else {
+    		_log.info("status " + status + " for " + tu);
+    	}
+
+    	if (hen != null) {
+    		hen.consumeContent();
     	}
     }
 
