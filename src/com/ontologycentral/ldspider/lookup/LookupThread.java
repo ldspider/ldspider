@@ -61,6 +61,8 @@ public class LookupThread implements Runnable {
 			
 			if (_robots.accessOk(lu)) {
 				if (!_q.getSeen(lu)) {
+					_q.setSeen(lu);
+
 					time2 = System.currentTimeMillis();
 
 					HttpGet hget = new HttpGet(lu);
@@ -78,9 +80,7 @@ public class LookupThread implements Runnable {
 						// write headers in RDF
 						Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
 						
-						if (status == HttpStatus.SC_OK) {
-							_q.setSeen(lu);
-							
+						if (status == HttpStatus.SC_OK) {				
 							if (hen != null) {
 								if (_ff.fetchOk(lu, status, hen)) {
 									InputStream is = hen.getContent();
@@ -108,7 +108,6 @@ public class LookupThread implements Runnable {
 								hen.consumeContent();
 							}
 						} else {
-							_q.setSeen(lu);
 							_log.info("status code " + status + " for " + lu);
 							hget.abort();
 						}
