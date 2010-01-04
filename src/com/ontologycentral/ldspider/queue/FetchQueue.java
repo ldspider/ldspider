@@ -168,12 +168,15 @@ public class FetchQueue {
 			
 			if (q != null && !q.isEmpty()) {
 				next = q.poll();
+				if (getSeen(next)) {
+					next = null;
+				} else {
+					setSeen(next);
+				}
 			} else {
 				empty++;
 			}
 		} while (next == null && empty < _queues.size());
-
-		setSeen(next);
 
 		return next;
 	}
