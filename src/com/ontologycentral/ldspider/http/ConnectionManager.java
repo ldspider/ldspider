@@ -33,7 +33,7 @@ public class ConnectionManager {
 
     
     public ConnectionManager(String proxyHost, int proxyPort, String puser, String ppassword, int connections) {
-    	//geeneral setup
+    	// general setup
     	SchemeRegistry supportedSchemes = new SchemeRegistry();
 
     	// Register the "http" and "https" protocol schemes, they are
