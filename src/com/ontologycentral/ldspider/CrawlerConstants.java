@@ -10,8 +10,8 @@ public class CrawlerConstants {
 		new BasicHeader("User-Agent", USERAGENT),	
 	};
 	
-	public static final int CONNECTION_TIMEOUT = 2000;
-	public static final int SOCKET_TIMEOUT = 5000;
+	public static final int CONNECTION_TIMEOUT = 5000;
+	public static final int SOCKET_TIMEOUT = 10000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
