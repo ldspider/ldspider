@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
-import com.ontologycentral.ldspider.lookup.Redirects;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class FetchQueue {
@@ -223,8 +222,15 @@ public class FetchQueue {
 		}
 	}
 
-	public Redirects getRedirects() {
-		return _redirs;
+	public URI handleRedirect(URI from) {
+		URI to = _redirs.getRedir(from);
+		if (from != to) {
+			_log.info("redir from " + from + " to " + to);
+			_seen.add(to);
+			return to;
+		}
+		
+		return from;
 	}
 	
 	boolean getSeen(URI u) {
