@@ -18,13 +18,12 @@
   <target name="dist" depends="prepare">
     <javac destdir="bin"
 	   srcdir="src"
-	   debug="yes"
 	   includes="com/ontologycentral/ldspider/**,org/osjava/norbert/**"
-        source="1.5" target="1.5"
-         >
+           source="1.5" target="1.5">
       <classpath refid="classpath"/>
-      
     </javac>
+
+    <copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy>
 	  	
     <jar jarfile="${dist}/${name}.${version}.jar" basedir="bin">
       <zipfileset src="lib/commons-cli-1.2.jar"/>
