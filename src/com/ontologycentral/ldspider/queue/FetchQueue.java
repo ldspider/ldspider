@@ -145,6 +145,11 @@ public class FetchQueue {
 
 		do {	
 			if (_current.isEmpty()) {
+				// queue is empty, done for this round
+				if (size() == 0) {
+					return null;
+				}
+				
 				long time1 = System.currentTimeMillis();
 				
 				if ((time1 - _time) < CrawlerConstants.DELAY) {
