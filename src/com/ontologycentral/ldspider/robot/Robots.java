@@ -1,8 +1,7 @@
 package com.ontologycentral.ldspider.robot;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -28,7 +27,7 @@ public class Robots {
 	
 	public Robots(ConnectionManager cm, ErrorHandler eh) {
 		_cm = cm;
-		_robots = new HashMap<String, Robot>();
+		_robots = Collections.synchronizedMap(new HashMap<String, Robot>());
 		_eh = eh;
 	}
 
@@ -37,14 +36,12 @@ public class Robots {
 
 		Robot r = null;
 
-    	synchronized (this) {
-    		if (_robots.containsKey(host)) {
-    			r = _robots.get(host);
-    		} else {
-    			r = new Robot(_cm, _eh, host);
+		if (_robots.containsKey(host)) {
+			r = _robots.get(host);
+    	} else {
+    		r = new Robot(_cm, _eh, host);
     			
-    			_robots.put(host, r);
-    		}
+    		_robots.put(host, r);
     	}
     	
     	return r.isUriAllowed(uri);
