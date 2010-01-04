@@ -96,6 +96,8 @@ public class Crawler {
 	
 	public void setErrorHandler(ErrorHandler eh) {
 		_eh = eh;
+		
+		_robots.setErrorHandler(eh);
 	}
 	
 	public void setOutputCallback(Callback cb) {

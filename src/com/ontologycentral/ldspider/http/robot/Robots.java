@@ -30,6 +30,10 @@ public class Robots {
 		_robots = Collections.synchronizedMap(new HashMap<String, Robot>());
 		_eh = eh;
 	}
+	
+	public void setErrorHandler(ErrorHandler eh) {
+		_eh = eh;
+	}
 
     public boolean accessOk(URI uri) {
     	String host = uri.getAuthority();
