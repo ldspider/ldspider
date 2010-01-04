@@ -35,7 +35,7 @@ public class Robots {
 		_eh = eh;
 	}
 
-    public boolean accessOk(URI uri) {
+    public synchronized boolean accessOk(URI uri) {
     	String host = uri.getAuthority();
 
 		Robot r = null;

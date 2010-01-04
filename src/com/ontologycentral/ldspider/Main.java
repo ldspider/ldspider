@@ -156,6 +156,9 @@ public class Main {
 		if(cmd.hasOption("m")) 
 			maxuris = Integer.valueOf(cmd.getOptionValue("m"));
 
+		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " rounds " + rounds);
+		_log.info("seed uri " + seeds);
+		
 		//start the crawl
 		long time = System.currentTimeMillis();
 		
@@ -164,7 +167,6 @@ public class Main {
 		if (cmd.hasOption("o")) {
 			os = new FileOutputStream(cmd.getOptionValue("o"));
 		}
-
 		
 		Crawler c = new Crawler(threads);
 
