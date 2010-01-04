@@ -18,6 +18,15 @@ public class TldTest extends TestCase {
 		System.out.println(tldm.getPLD(u));
 	}
 	
+	public void testQuery() throws Exception {
+		TldManager tldm = new TldManager();
+
+		URI u = new URI("http://www.rkbexplorer.com/sameAs/?uri=http%3A%2F%2Facm.rkbexplorer.com%2Fid%2Fperson-715486-950006ecd385595c1641ecb94ea283a1");
+		
+		System.out.println(u.getQuery());
+		System.out.println(tldm.getPLD(u));
+	}
+	
 	public void testPerformance() throws Exception {
 		long time = System.currentTimeMillis();
 

@@ -4,7 +4,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +66,14 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			sb.append("] ");
 			sb.append("\"GET ");
 			sb.append(u.getPath());
+			if (u.getQuery() != null) {
+				sb.append("?");
+				try {
+					sb.append(URLEncoder.encode(u.getQuery(), "utf-8"));
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+			}
 			sb.append(" HTTP\" ");
 			sb.append(status);
 			sb.append(" ");
