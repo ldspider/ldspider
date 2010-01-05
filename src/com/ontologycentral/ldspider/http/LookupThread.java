@@ -69,8 +69,12 @@ public class LookupThread implements Runnable {
 					HttpEntity hen = hres.getEntity();
 
 					status = hres.getStatusLine().getStatusCode();
-					type = hres.getFirstHeader("Content-Type").getValue();
 
+					Header ct = hres.getFirstHeader("Content-Type");
+					if (ct != null) {
+						type = hres.getFirstHeader("Content-Type").getValue();
+					}
+					
 					_log.info("lookup on " + lu + " status " + status);
 
 					// write headers in RDF

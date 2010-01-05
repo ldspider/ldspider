@@ -4,16 +4,16 @@ import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
 public class CrawlerConstants {
-	public static final String USERAGENT = "webms (http://code.google.com/p/webms/wiki/Robots)";
+	public static final String USERAGENT = "ldspider (http://code.google.com/p/ldspider/wiki/Robots)";
 	public static final Header[] HEADERS = {
 		new BasicHeader("Accept", "application/rdf+xml"),
 		new BasicHeader("User-Agent", USERAGENT),	
 	};
 	
-	public static final int CONNECTION_TIMEOUT = 2000;
-	public static final int SOCKET_TIMEOUT = 4000;
+	public static final int CONNECTION_TIMEOUT = 4000;
+	public static final int SOCKET_TIMEOUT = 8000;
 
-	public static final int MAX_CONNECTIONS_PER_THREAD = 2;
+	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
 	public static final int RETRIES = 0;
 	

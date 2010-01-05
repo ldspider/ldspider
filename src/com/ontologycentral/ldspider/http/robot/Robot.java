@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -50,7 +51,11 @@ public class Robot {
 			HttpEntity hen = hres.getEntity();
 
 			status = hres.getStatusLine().getStatusCode();
-			type = hres.getFirstHeader("Content-Type").getValue();
+			
+			Header ct = hres.getFirstHeader("Content-Type");
+			if (ct != null) {
+				type = hres.getFirstHeader("Content-Type").getValue();
+			}
 
 			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {

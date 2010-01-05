@@ -44,6 +44,20 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	public void handleError(Throwable e) {
 		handleError(null, e);
 	}
+	
+	public void handleError(URI u, Throwable e) {
+		_log.info("ERROR: " + e.getMessage() + ": " + u);
+
+		if (e.getMessage() == null) {
+			e.printStackTrace();
+		}
+		
+		URIThrowable ut = new URIThrowable();
+		ut._u = u;
+		ut._e = e;
+		
+		_errors.add(ut);
+	}
 
 	public void handleStatus(URI u, int status, String type, long duration, long contentLength) {
 		Integer count = _status.get(status);
@@ -86,19 +100,6 @@ public class ErrorHandlerLogger implements ErrorHandler {
 				}
 			}
 		}
-	}
-	
-	public void handleError(URI u, Throwable e) {
-//		if (e.getMessage() == null) {
-//			e.printStackTrace();
-//		}
-		_log.info(e.getMessage() + ": " + u);
-		
-		URIThrowable ut = new URIThrowable();
-		ut._u = u;
-		ut._e = e;
-		
-		_errors.add(ut);
 	}
 
 //	public List<Throwable> getErrors() {
