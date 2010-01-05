@@ -81,14 +81,11 @@ public class Robot {
 			} else {
 				hget.abort();
 			}
-		} catch (IOException ioex) {
-			_log.info(ioex.getMessage() + " " + host);
-			hget.abort();
+		} catch (Exception e) {
+			eh.handleError(u, e);
+			hget.abort();			
 		}
 
-		// just to be on the safe side
-		hget.abort();
-		
 		if (status != 0) {
 			eh.handleStatus(u, status, type, (System.currentTimeMillis()-time1), bytes);
 		}

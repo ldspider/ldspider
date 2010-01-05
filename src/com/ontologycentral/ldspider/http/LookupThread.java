@@ -78,7 +78,7 @@ public class LookupThread implements Runnable {
 					_log.info("lookup on " + lu + " status " + status);
 
 					// write headers in RDF
-					Headers h = new Headers(lu, status, hres.getAllHeaders(), _cbs);
+					Headers.processHeaders(lu, status, hres.getAllHeaders(), _cbs);
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
@@ -108,12 +108,6 @@ public class LookupThread implements Runnable {
 					} else {
 						hget.abort();
 					}
-				} catch (ParseException e) {
-					hget.abort();
-					_eh.handleError(lu, e);
-				} catch (URISyntaxException e) {
-					hget.abort();
-					_eh.handleError(lu, e);
 				} catch (Exception e) {
 					hget.abort();
 					_eh.handleError(lu, e);
@@ -125,9 +119,6 @@ public class LookupThread implements Runnable {
 					_eh.handleStatus(lu, status, type, (time3-time2), bytes);
 				}
 				
-				// just to be on the safe side
-				hget.abort();
-
 				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			} else {
 				_log.info("access denied per robots.txt for " + u);
