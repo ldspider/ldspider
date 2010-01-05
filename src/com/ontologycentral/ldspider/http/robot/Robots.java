@@ -1,6 +1,8 @@
 package com.ontologycentral.ldspider.http.robot;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,19 +24,19 @@ public class Robots {
 	Map<String, Robot> _robots;
 
 	private ConnectionManager _cm;
-	private ErrorHandler _eh;
-
 	
+    private ErrorHandler _eh;
+
 	public Robots(ConnectionManager cm, ErrorHandler eh) {
 		_cm = cm;
+		_eh = eh;
 		_robots = Collections.synchronizedMap(new HashMap<String, Robot>());
-		_eh = eh;
-	}
+	}	
 	
-	public void setErrorHandler(ErrorHandler eh) {
-		_eh = eh;
-	}
-
+    public void setErrorHandler(ErrorHandler eh) {
+        _eh = eh;
+    }
+    
     public boolean accessOk(URI uri) {
     	String host = uri.getAuthority();
 
@@ -48,6 +50,14 @@ public class Robots {
     		_robots.put(host, r);
     	}
     	
-    	return r.isUriAllowed(uri);
+		URL url = null;
+		try {
+			url = uri.toURL();
+		} catch (MalformedURLException e) {
+			_log.info(e.getMessage() + uri);
+			return false;
+		}
+		
+    	return r.isUrlAllowed(url);
     }
 }
