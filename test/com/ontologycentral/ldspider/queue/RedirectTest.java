@@ -35,5 +35,15 @@ public class RedirectTest extends TestCase {
 		URI lu = fq.handleRedirect(u);
 
 		System.out.println(lu);
+		
+		page = new URI("http://dbpedia.org/index.html");
+
+		System.out.println(page.getPath());
+		System.out.println(fq.normalise(page));
+		
+		page = new URI("http://dbpedia.org/bla/index.html");
+
+		System.out.println(page.getPath());
+		System.out.println(fq.normalise(page));
 	}
 }
