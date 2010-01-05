@@ -120,6 +120,9 @@ public class LookupThread implements Runnable {
 				if (status != 0) {
 					_eh.handleStatus(lu, status, type, (time3-time2), bytes);
 				}
+				
+				// just to be on the safe side
+				hget.abort();
 
 				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			} else {
