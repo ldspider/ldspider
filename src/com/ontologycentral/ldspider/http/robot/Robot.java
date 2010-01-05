@@ -71,8 +71,8 @@ public class Robot {
 			}
 
 			if (hen != null) {
-				hen.consumeContent();
 				bytes = hen.getContentLength();
+				hen.consumeContent();
 			} else {
 				hget.abort();
 			}
@@ -81,6 +81,9 @@ public class Robot {
 			hget.abort();
 		}
 
+		// just to be on the safe side
+		hget.abort();
+		
 		if (status != 0) {
 			eh.handleStatus(u, status, type, (System.currentTimeMillis()-time1), bytes);
 		}
