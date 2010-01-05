@@ -7,10 +7,6 @@ public class ErrorHandlerDummy implements ErrorHandler {
 	public void handleError(URI u, Throwable e) {
 		;
 	}
-
-	public void handleStatus(URI u, int status, long contentLength) {
-		;
-	}
 	
 	public void close() {
 		;
@@ -18,5 +14,9 @@ public class ErrorHandlerDummy implements ErrorHandler {
 
 	public long lookups() {
 		return 0;
+	}
+
+	public void handleStatus(URI u, int status, String type, long duration,	long contentLength) {
+		;
 	}
 }

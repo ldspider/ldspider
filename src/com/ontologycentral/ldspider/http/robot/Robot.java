@@ -30,55 +30,64 @@ public class Robot {
 	NoRobotClient _nrc = null;
 	
 	public Robot(ConnectionManager cm, ErrorHandler eh, String host) {
-    		URI u;
-			try {
-				u = new URI( "http://" + host + "/robots.txt" );
-			} catch (URISyntaxException e) {
-				_log.info(e.getMessage() + " " + host);
-				return;
-			}
+		URI u;
+		try {
+			u = new URI( "http://" + host + "/robots.txt" );
+		} catch (URISyntaxException e) {
+			_log.info(e.getMessage() + " " + host);
+			return;
+		}
 
-			HttpGet hget = new HttpGet(u);
+		HttpGet hget = new HttpGet(u);
 
-			try {
-				HttpResponse hres = cm.connect(hget);
-				HttpEntity hen = hres.getEntity();
+		long time1 = System.currentTimeMillis();
+		long bytes = -1;
+		int status = 0;
+		String type = null;
 
-				int status = hres.getStatusLine().getStatusCode();
+		try {
+			HttpResponse hres = cm.connect(hget);
+			HttpEntity hen = hres.getEntity();
 
-				if (status == HttpStatus.SC_OK) {
-					if (hen != null) {
-						_nrc = new NoRobotClient(CrawlerConstants.USERAGENT);
-						String content = EntityUtils.toString(hen);
-						_log.fine(content);
-						try {
-							_nrc.parse(content, new URL("http://" + host + "/"));
-						} catch (NoRobotException e) {
-							_log.info("no robots.txt for " + host);
-						}
-					} else {
-						_nrc = null;
+			status = hres.getStatusLine().getStatusCode();
+			type = hres.getFirstHeader("Content-Type").getValue();
+
+			if (status == HttpStatus.SC_OK) {
+				if (hen != null) {
+					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT);
+					String content = EntityUtils.toString(hen);
+					_log.fine(content);
+					try {
+						_nrc.parse(content, new URL("http://" + host + "/"));
+					} catch (NoRobotException e) {
+						_log.info("no robots.txt for " + host);
 					}
 				} else {
-					_log.info("no robots.txt for " + host);
 					_nrc = null;
 				}
-
-				if (hen != null) {
-					hen.consumeContent();
-					eh.handleStatus(u, status, hen.getContentLength());
-				} else {
-					hget.abort();
-					eh.handleStatus(u, status, -1);
-				}
-			} catch (IOException ioex) {
-				_log.info(ioex.getMessage() + " " + host);
-				 hget.abort();
+			} else {
+				_log.info("no robots.txt for " + host);
+				_nrc = null;
 			}
+
+			if (hen != null) {
+				hen.consumeContent();
+				bytes = hen.getContentLength();
+			} else {
+				hget.abort();
+			}
+		} catch (IOException ioex) {
+			_log.info(ioex.getMessage() + " " + host);
+			hget.abort();
+		}
+
+		if (status != 0) {
+			eh.handleStatus(u, status, type, (System.currentTimeMillis()-time1), bytes);
+		}
 	}
-	
-    public boolean isUrlAllowed(URL uri) {
-    	if (_nrc == null) {
+
+	public boolean isUrlAllowed(URL uri) {
+		if (_nrc == null) {
     		return true;
     	}
 

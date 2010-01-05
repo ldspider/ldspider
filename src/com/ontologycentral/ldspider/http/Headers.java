@@ -61,8 +61,10 @@ public class Headers {
 		new Resource(httpNS+"expires")		
 	};
 	
-	public static Map<String, Resource> HEADER_MAP = null;
+	static Map<String, Resource> HEADER_MAP = null;
 
+	String _contentType;
+	
 	public Headers(URI uri, int status, Header[] headerFields, Callbacks cbs) {
 		if (HEADER_MAP == null) {
 			HEADER_MAP = new HashMap<String, Resource>();
@@ -84,11 +86,19 @@ public class Headers {
 				           ruri } );
 		
 		for (int i = 0; i < headerFields.length; i++) {
+			if (headerFields[i].equals("Content-Type")) {
+				_contentType = headerFields[i].getValue();
+			}
+			
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
 				cbs.processStatement(new Node[] {
 						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(Literal.escapeForNx(headerFields[i].getValue())), ruri
 					});
 			}
-		}		
+		}	
+	}
+	
+	public String getContentType() {
+		return _contentType;
 	}
 }

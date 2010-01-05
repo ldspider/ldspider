@@ -4,9 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +45,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		handleError(null, e);
 	}
 
-	public synchronized void handleStatus(URI u, int status, long contentLength) {
+	public void handleStatus(URI u, int status, String type, long duration, long contentLength) {
 		Integer count = _status.get(status);
 		if (count == null) {
 			_status.put(status, 1);
@@ -57,34 +55,35 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		}
 		
 		if (_logger != null) {
+			if (type != null && type.indexOf(';') > 0) {
+				type = type.substring(0, type.indexOf(';'));
+			}
+			
 			StringBuilder sb = new StringBuilder();
 
-			//127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326
-			sb.append(u.getHost());
-			sb.append(" - - [");
-			sb.append(getDateAsISO8601String());
-			sb.append("] ");
-			sb.append("\"GET ");
-			sb.append(u.getPath());
-			if (u.getQuery() != null) {
-				sb.append("?");
-				try {
-					sb.append(URLEncoder.encode(u.getQuery(), "utf-8"));
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-			}
-			sb.append(" HTTP\" ");
+			// common.log: 127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326
+			// native.log: time elapsed remotehost code/status bytes method URL rfc931 peerstatus/peerhost type
+			// 1262626658.480     13 127.0.0.1 TCP_HIT/200 594 GET http://umbrich.net/robots.txt - NONE/- text/plain
+			sb.append(System.currentTimeMillis()/1000);
+			sb.append(" ");
+			sb.append(duration);
+			sb.append(" 127.0.0.1 TCP_HIT/");
 			sb.append(status);
 			sb.append(" ");
 			sb.append(contentLength);
+			sb.append(" GET ");
+			sb.append(u);
+			sb.append(" - NONE/- ");
+			sb.append(type);
 			sb.append("\n");
 
-			try {
-				_logger.write(sb.toString());
-				_logger.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
+			synchronized(this) {
+				try {
+					_logger.write(sb.toString());
+					_logger.flush();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}

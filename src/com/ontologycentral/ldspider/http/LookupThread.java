@@ -51,7 +51,11 @@ public class LookupThread implements Runnable {
 			URI lu = _q.handleRedirect(u);
 
 			long time1 = System.currentTimeMillis();
-			long time2 = System.currentTimeMillis();
+			long time2 = time1;
+			long time3 = time1;
+			long bytes = -1;
+			int status = 0;
+			String type = null;
 			
 			if (_robots.accessOk(lu)) {
 				time2 = System.currentTimeMillis();
@@ -64,7 +68,8 @@ public class LookupThread implements Runnable {
 
 					HttpEntity hen = hres.getEntity();
 
-					int status = hres.getStatusLine().getStatusCode();
+					status = hres.getStatusLine().getStatusCode();
+					type = hres.getFirstHeader("Content-Type").getValue();
 
 					_log.info("lookup on " + lu + " status " + status);
 
@@ -94,10 +99,9 @@ public class LookupThread implements Runnable {
 					}
 
 					if (hen != null) {
-						_eh.handleStatus(lu, status, hen.getContentLength());
+						bytes = hen.getContentLength();
 						hen.consumeContent();
 					} else {
-						_eh.handleStatus(lu, status, -1);
 						hget.abort();
 					}
 				} catch (ParseException e) {
@@ -110,13 +114,17 @@ public class LookupThread implements Runnable {
 					hget.abort();
 					_eh.handleError(lu, e);
 				}
+				
+				time3 = System.currentTimeMillis();
+				
+				if (status != 0) {
+					_eh.handleStatus(lu, status, type, (time3-time2), bytes);
+				}
+
+				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			} else {
 				_log.info("access denied per robots.txt for " + u);
 			}
-			
-			long time3 = System.currentTimeMillis();
-
-			_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 
 			u = _q.poll();
 		}

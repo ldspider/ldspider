@@ -72,9 +72,9 @@ public class Main {
 		.create( "o" );
 		options.addOption(output);
 
-		Option log = OptionBuilder.withArgName( "common log file name")
+		Option log = OptionBuilder.withArgName(" log file name")
 		.hasArgs(1)
-		.withDescription( "name of common log file" )
+		.withDescription( "name of access log file" )
 		.create( "l" );
 		options.addOption(log);
 
