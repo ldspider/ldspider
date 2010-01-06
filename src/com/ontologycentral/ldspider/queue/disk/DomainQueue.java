@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue;
+package com.ontologycentral.ldspider.queue.disk;
 
 import java.net.URI;
 import java.util.concurrent.ConcurrentLinkedQueue;
