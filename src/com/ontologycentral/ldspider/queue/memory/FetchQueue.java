@@ -29,7 +29,9 @@ public class FetchQueue extends SpiderQueue {
 	Queue<String> _current;
 
 	long _time;
-		
+	
+	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
+
 	public FetchQueue(TldManager tldm) {
 		_tldm = tldm;
 
@@ -109,6 +111,12 @@ public class FetchQueue extends SpiderQueue {
 			return;
 		}
 		
+		for (String suffix : _blacklist) {
+			if (u.getPath().endsWith(suffix)) {
+				return;
+			}
+		}
+
 		_frontier.add(u);
 	}
 	
