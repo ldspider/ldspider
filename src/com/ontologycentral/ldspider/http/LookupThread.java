@@ -2,7 +2,6 @@ package com.ontologycentral.ldspider.http;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 import org.apache.http.Header;
@@ -10,7 +9,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
-import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
@@ -18,12 +16,12 @@ import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.http.robot.Robots;
-import com.ontologycentral.ldspider.queue.FetchQueue;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 
 public class LookupThread implements Runnable {
 	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
-	FetchQueue _q;
+	SpiderQueue _q;
 	Callbacks _cbs;
 	FetchFilter _ff;
 	
@@ -31,7 +29,7 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	public LookupThread(ConnectionManager hc, FetchQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff) {
+	public LookupThread(ConnectionManager hc, SpiderQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff) {
 		_hclient = hc;
 		_q = q;
 		_cbs = cbs;

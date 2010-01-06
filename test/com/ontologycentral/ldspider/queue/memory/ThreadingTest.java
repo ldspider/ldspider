@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue;
+package com.ontologycentral.ldspider.queue.memory;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -8,6 +8,7 @@ import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
 
+import com.ontologycentral.ldspider.queue.memory.FetchQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 

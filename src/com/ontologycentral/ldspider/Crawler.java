@@ -20,7 +20,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
-import com.ontologycentral.ldspider.queue.FetchQueue;
+import com.ontologycentral.ldspider.queue.memory.FetchQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {

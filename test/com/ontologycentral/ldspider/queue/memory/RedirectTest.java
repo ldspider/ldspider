@@ -1,8 +1,9 @@
-package com.ontologycentral.ldspider.queue;
+package com.ontologycentral.ldspider.queue.memory;
 import java.net.URI;
 
 import junit.framework.TestCase;
 
+import com.ontologycentral.ldspider.queue.memory.FetchQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 

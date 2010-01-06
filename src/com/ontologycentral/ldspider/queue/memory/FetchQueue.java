@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue;
+package com.ontologycentral.ldspider.queue.memory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,9 +12,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
-public class FetchQueue {
+public class FetchQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	TldManager _tldm;
@@ -110,28 +111,6 @@ public class FetchQueue {
 		
 		_frontier.add(u);
 	}
-
-	public URI normalise(URI u) throws URISyntaxException {
-		String path = u.getPath();
-		if (path == null || path.length() == 0) {
-			path = "/";
-		} else if (path.endsWith("/index.html")) {
-			path = path.substring(0, path.length()-10);
-		} else if (path.endsWith("/index.htm") || path.endsWith("/index.php") || path.endsWith("/index.asp")) {
-			path = path.substring(0, path.length()-9);
-		}
-		
-		if (u.getHost() == null) {
-			throw new URISyntaxException("no host in ", u.toString());
-		}
-		
-		URI norm = new URI(u.getScheme().toLowerCase(),
-				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
-				path, u.getQuery(),
-				u.getFragment());
-
-		return norm.normalize();
-	}
 	
 	/**
 	 * Poll a URI, one PLD after another.
@@ -180,6 +159,7 @@ public class FetchQueue {
 			if (q != null && !q.isEmpty()) {
 				next = q.poll();
 				if (getSeen(next)) {
+					_log.info("get seen true for " + next);
 					next = null;
 				} else {
 					setSeen(next);
@@ -270,15 +250,6 @@ public class FetchQueue {
 		if (_seen.contains(u)) {
 			return true;
 		}
-		
-// not sure needed any more
-//		URI to = null;
-//		while ((to = _redirs.getRedirect(u)) != null && (to != u)) {
-//			if (_seen.contains(to)) {
-//				return true;
-//			}
-//			u = to;
-//		}
 		
 		return false;
 	}

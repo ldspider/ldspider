@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue;
+package com.ontologycentral.ldspider.queue.memory;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

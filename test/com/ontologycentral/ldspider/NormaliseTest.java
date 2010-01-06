@@ -3,7 +3,7 @@ import java.net.URI;
 
 import junit.framework.TestCase;
 
-import com.ontologycentral.ldspider.queue.FetchQueue;
+import com.ontologycentral.ldspider.queue.memory.FetchQueue;
 
 
 public class NormaliseTest extends TestCase {
