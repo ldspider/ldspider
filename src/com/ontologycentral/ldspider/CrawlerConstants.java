@@ -7,7 +7,8 @@ public class CrawlerConstants {
 	public static final String USERAGENT = "ldspider (http://code.google.com/p/ldspider/wiki/Robots)";
 	public static final Header[] HEADERS = {
 		new BasicHeader("Accept", "application/rdf+xml"),
-		new BasicHeader("User-Agent", USERAGENT),	
+		new BasicHeader("User-Agent", USERAGENT),
+		new BasicHeader("Accept-Encoding", "gzip")
 	};
 	
 	public static final int CONNECTION_TIMEOUT = 4000;
@@ -16,7 +17,9 @@ public class CrawlerConstants {
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
 	public static final int RETRIES = 0;
-	
+
+	public static final int MAX_REDIRECTS = 1;
+
 	// default values
 	public static final int DEFAULT_NB_THREADS = 2;
 	public static final int DEFAULT_NB_ROUNDS = 2;

@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
@@ -20,31 +22,18 @@ public class Redirects {
 	Redirects() {
 		_map = Collections.synchronizedMap(new Hashtable<URI, URI>());
 	}
-	
-	Redirects(Iterator<Node[]> nxp) {
-		this();
-		
-		_log.info("reading redirects file...");
-		
-		while (nxp.hasNext()) {
-			Node[] nx = nxp.next();
-			
-			try {
-				URI f = new URI(nx[0].toString());
-				URI t = new URI(nx[1].toString());
 
-				_map.put(f, t);
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-			}
+	boolean put(URI from, URI to) {
+		if (_map.containsKey(from)) {
+			_log.info("URI " + from + " already redirects to " + _map.get(from));
+			return false;
 		}
-	}
-	
-	void put(URI from, URI to) {
+		
 		_map.put(from, to);
+		return true;
 	}
 	
-	URI getRedir(URI from) {
+	URI getRedirect(URI from) {
 		if (from.getFragment() != null) {
 			try {
 				URI to = new URI(from.getScheme(), null, from.getAuthority(), from.getPort(), from.getPath(), from.getQuery(), null);
@@ -60,13 +49,5 @@ public class Redirects {
 		}
 		
 		return from;
-	}
-	
-	void store(FileOutputStream fos) throws IOException {
-		for (Map.Entry<URI, URI> en : _map.entrySet()) {
-			fos.write(("<" + en.getKey() + "> <" + en.getValue() + "> .\n").getBytes());
-		}
-		
-		fos.close();
 	}
 }

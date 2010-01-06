@@ -48,7 +48,7 @@ public class LookupThread implements Runnable {
 		while (u != null) {
 			long time = System.currentTimeMillis();
 			
-			URI lu = _q.handleRedirect(u);
+			URI lu = _q.obtainRedirect(u);
 
 			long time1 = System.currentTimeMillis();
 			long time2 = time1;
@@ -99,7 +99,8 @@ public class LookupThread implements Runnable {
 						_log.info("redirecting (" + status + ") to " + loc[0].getValue());
 						URI to = new URI(loc[0].getValue());
 
-						_q.setRedirect(lu, to);
+						// set redirect from original uri to new uri -> break loops by taking only one redirect into account
+						_q.setRedirect(u, to);
 					}
 
 					if (hen != null) {

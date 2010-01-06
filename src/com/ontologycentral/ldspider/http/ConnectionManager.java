@@ -24,6 +24,8 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.http.internal.HttpRequestRetryHandler;
+import com.ontologycentral.ldspider.http.internal.ResponseGzipUncompress;
 
 public class ConnectionManager {
 
@@ -61,7 +63,6 @@ public class ConnectionManager {
     	ClientConnectionManager cm = new ThreadSafeClientConnManager(params, supportedSchemes);
 
     	_client = new DefaultHttpClient(cm, params);
-    	_client.addRequestInterceptor(new RequestAcceptEncoding());
     	_client.addResponseInterceptor(new ResponseGzipUncompress());
 
     	// check if we have a proxy

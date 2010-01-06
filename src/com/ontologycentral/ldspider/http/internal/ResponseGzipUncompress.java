@@ -29,17 +29,24 @@
  *
  */
 
-package com.ontologycentral.ldspider.http;
+package com.ontologycentral.ldspider.http.internal;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.protocol.HttpContext;
 
+import com.ontologycentral.ldspider.http.ConnectionManager;
+
+
 /**
- * Client-side interceptor to indicate support for Gzip content compression.
+ * Client-side interceptor to handle Gzip-compressed responses.
  *
  *
  * <!-- empty lines above to avoid 'svn diff' context problems -->
@@ -47,15 +54,27 @@ import org.apache.http.protocol.HttpContext;
  * 
  * @since 4.0
  */
-public class RequestAcceptEncoding implements HttpRequestInterceptor {
+public class ResponseGzipUncompress implements HttpResponseInterceptor {
+    private final static Logger _log = Logger.getLogger(ConnectionManager.class.getName());
 
-    private static final String ACCEPT_ENCODING = "Accept-Encoding";
     private static final String GZIP_CODEC = "gzip";
     
-    public void process(final HttpRequest request, final HttpContext context) 
+    public void process(final HttpResponse response, final HttpContext context) 
             throws HttpException, IOException {
-        if (!request.containsHeader(ACCEPT_ENCODING)) {
-            request.addHeader(ACCEPT_ENCODING, GZIP_CODEC);
+        if (context == null) {
+            throw new IllegalArgumentException("HTTP context may not be null");
+        }
+        HttpEntity entity = response.getEntity();
+        Header ceheader = entity.getContentEncoding();
+        if (ceheader != null) {
+            HeaderElement[] codecs = ceheader.getElements();
+            for (int i = 0; i < codecs.length; i++) {
+                if (codecs[i].getName().equalsIgnoreCase(GZIP_CODEC)) {
+                	_log.info("gzip compression");
+                    response.setEntity(new GzipDecompressingEntity(response.getEntity())); 
+                    return;
+                }
+            }
         }
     }
     

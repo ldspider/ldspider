@@ -32,7 +32,7 @@ public class RedirectTest extends TestCase {
 		
 		u = fq.poll();
 		
-		URI lu = fq.handleRedirect(u);
+		URI lu = fq.obtainRedirect(u);
 
 		System.out.println(lu);
 		

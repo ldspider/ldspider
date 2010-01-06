@@ -81,6 +81,8 @@ public class FetchQueue {
 		
 		_frontier = new HashSet<URI>();
 		
+		_redirs = new Redirects();
+		
 		_log.info("scheduling done in " + (_time - time) + " ms");
 	}
 	
@@ -190,6 +192,9 @@ public class FetchQueue {
 		return next;
 	}
 	
+	/**
+	 * Set the redirect.
+	 */
 	public void setRedirect(URI from, URI to) {
 		try {
 			to = normalise(to);
@@ -203,13 +208,13 @@ public class FetchQueue {
 			return;
 		}
 		
-		_redirs.put(from, to);
+		if (_redirs.put(from, to) == true) {
+			// allow to poll from again from queue
+			_seen.remove(from);
 		
-		// allow to poll from again from queue
-		_seen.remove(from);
-		
-		// fetch again, this time redirects are taken into account
-		addDirectly(from);
+			// fetch again, this time redirects are taken into account
+			addDirectly(from);
+		}
 	}
 	
 	/**
@@ -237,8 +242,15 @@ public class FetchQueue {
 		}
 	}
 
-	public URI handleRedirect(URI from) {
-		URI to = _redirs.getRedir(from);
+	/**
+	 * Return redirected URI (if there's a redirect)
+	 * otherwise return original URI.
+	 * 
+	 * @param from
+	 * @return
+	 */
+	public URI obtainRedirect(URI from) {
+		URI to = _redirs.getRedirect(from);
 		if (from != to) {
 			_log.info("redir from " + from + " to " + to);
 			_seen.add(to);
@@ -248,18 +260,25 @@ public class FetchQueue {
 		return from;
 	}
 	
+	/**
+	 * Check for already seen URIs.
+	 * 
+	 * @param u
+	 * @return
+	 */
 	boolean getSeen(URI u) {
 		if (_seen.contains(u)) {
 			return true;
 		}
 		
-		URI to = null;
-		while ((to = _redirs.getRedir(u)) != null && (to != u)) {
-			if (_seen.contains(to)) {
-				return true;
-			}
-			u = to;
-		}
+// not sure needed any more
+//		URI to = null;
+//		while ((to = _redirs.getRedirect(u)) != null && (to != u)) {
+//			if (_seen.contains(to)) {
+//				return true;
+//			}
+//			u = to;
+//		}
 		
 		return false;
 	}

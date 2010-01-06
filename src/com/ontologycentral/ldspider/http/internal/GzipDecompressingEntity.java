@@ -29,7 +29,7 @@
  *
  */
 
-package com.ontologycentral.ldspider.http;
+package com.ontologycentral.ldspider.http.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
