@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="ldspider" basedir="." default="dist">
 <property name="name" value="ldspider"/>
-<property name="version" value="0.1-dev"/>
+<property name="version" value="0.1dev"/>
 <property name="dist" value="dist"/>
   <path id="classpath">
     <fileset dir="lib">
@@ -25,7 +25,7 @@
 
     <copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy>
 	  	
-    <jar jarfile="${dist}/${name}.${version}.jar" basedir="bin">
+    <jar jarfile="${dist}/${name}-${version}.jar" basedir="bin">
       <zipfileset src="lib/commons-cli-1.2.jar"/>
       <zipfileset src="lib/httpclient-4.0.1.jar"/>
       <zipfileset src="lib/httpcore-4.0.1.jar"/>

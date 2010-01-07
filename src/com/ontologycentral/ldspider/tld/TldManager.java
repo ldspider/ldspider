@@ -28,7 +28,7 @@ public class TldManager {
     }
     	
     	
-    public void read(InputStream is) throws IOException {
+    void read(InputStream is) throws IOException {
     	TLDs = new HashMap<String, Tld>();
     	
     	if (is != null) {
