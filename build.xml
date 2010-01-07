@@ -32,6 +32,7 @@
       <zipfileset src="lib/httpcore-nio-4.0.1.jar"/>
       <zipfileset src="lib/httpmime-4.0.1.jar"/>
       <zipfileset src="lib/nxparser.jar"/>
+      <zipfileset src="lib/je-4.0.71.jar"/>
       <manifest>
 	<attribute name="Main-Class" value="com.ontologycentral.ldspider.Main"/>
       </manifest>
