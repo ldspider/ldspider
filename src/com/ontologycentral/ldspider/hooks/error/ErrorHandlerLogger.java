@@ -1,14 +1,10 @@
 package com.ontologycentral.ldspider.hooks.error;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,24 +17,17 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	Map<Integer, Integer> _status;
 	
-	BufferedWriter _logger = null;
+	PrintStream _logger = null;
 
 	//[10/Oct/2000:13:55:36 -0700]
 	final SimpleDateFormat APACHEDATEFORMAT = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z");
 	
-	public ErrorHandlerLogger(String fname) {
+	public ErrorHandlerLogger(PrintStream out) {
+		_logger = out;
+		
 		_errors = Collections.synchronizedList(new ArrayList<URIThrowable>());
 		
 		_status = Collections.synchronizedMap(new HashMap<Integer, Integer>());
-
-		if (fname != null) {
-			try {
-				_logger = new BufferedWriter(new FileWriter(new File(fname)));
-			} catch (IOException e) {
-				_logger = null;
-				e.printStackTrace();
-			}
-		}
 	}
 
 	public void handleError(Throwable e) {
@@ -92,12 +81,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			sb.append("\n");
 
 			synchronized(this) {
-				try {
-					_logger.write(sb.toString());
-					_logger.flush();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				_logger.println(sb.toString());
+				_logger.flush();
 			}
 		}
 	}
@@ -126,25 +111,21 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	}
 	
 	public void close() {
-		if(_logger != null){
-			try {
-				_logger.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		if(_logger != null) {
+			_logger.close();
 		}
 	}
 	
-	private String getDateAsISO8601String(Date date) {
-		String result = APACHEDATEFORMAT.format(date);
-		//convert YYYYMMDDTHH:mm:ss+HH00 into YYYYMMDDTHH:mm:ss+HH:00
-		//- note the added colon for the Timezone
-		return result;
-	}
-
-	private String getDateAsISO8601String() {
-		return getDateAsISO8601String(new Date());
-	}
+//	private String getDateAsISO8601String(Date date) {
+//		String result = APACHEDATEFORMAT.format(date);
+//		//convert YYYYMMDDTHH:mm:ss+HH00 into YYYYMMDDTHH:mm:ss+HH:00
+//		//- note the added colon for the Timezone
+//		return result;
+//	}
+//
+//	private String getDateAsISO8601String() {
+//		return getDateAsISO8601String(new Date());
+//	}
 }
 
 class URIThrowable {

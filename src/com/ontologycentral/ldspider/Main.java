@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -169,8 +170,14 @@ public class Main {
 		}
 		
 		Crawler c = new Crawler(threads);
+		
+		PrintStream ps = System.out;
+		
+		if (cmd.hasOption("l")) {
+			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("l")));			
+		}
 
-		ErrorHandler eh = new ErrorHandlerLogger(cmd.getOptionValue("l"));
+		ErrorHandler eh = new ErrorHandlerLogger(ps);
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
