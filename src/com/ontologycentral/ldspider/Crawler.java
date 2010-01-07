@@ -2,6 +2,7 @@ package com.ontologycentral.ldspider;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +21,8 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
+import com.ontologycentral.ldspider.queue.disk.BDBQueue;
 import com.ontologycentral.ldspider.queue.memory.FetchQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
@@ -112,9 +115,41 @@ public class Crawler {
 		evaluate(seeds, rounds, CrawlerConstants.DEFAULT_NB_URIS);
 	}
 	
+	/**
+	 * Crawl with the default in-mem queue
+	 * 
+	 * @param seeds
+	 * @param rounds
+	 * @param maxuris
+	 */
 	public void evaluate(Collection<URI> seeds, int rounds, int maxuris) {
-		FetchQueue q = new FetchQueue(_tldm);
+		evaluate(seeds, rounds,maxuris,null);
+	}
+	
+	/**
+	 * 
+	 * @param seeds
+	 * @param rounds
+	 * @param maxuris
+	 * @param queuelocation - usage of a on-disk queue if specified, otherwise in-mem queue
+	 */
+	public void evaluate(Collection<URI> seeds, int rounds, int maxuris, String queueLocation) {
+	    SpiderQueue q  = null;
+	    //setup queue
+	    if(queueLocation== null){
+		    q = new FetchQueue(_tldm);
+	    }
+	    else{
+		try {
+		    q = new BDBQueue(_tldm, queueLocation);
+		} catch (URISyntaxException e) {
+		    e.printStackTrace();
+		    _log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
+		    return;
+		}
+	    }
 
+		
 		for (URI u : seeds) {
 			q.addFrontier(u);
 		}
@@ -152,6 +187,7 @@ public class Crawler {
 
 			q.schedule(maxuris);
 		}
+		if(queueLocation!=null) ((BDBQueue)q).close();
 	}
 	
 	public void close() {

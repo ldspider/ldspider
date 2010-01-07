@@ -11,7 +11,7 @@ public abstract class SpiderQueue {
 	public abstract URI poll();
 	public abstract void setRedirect(URI from, URI to);
 	public abstract URI obtainRedirect(URI from);
-
+	public abstract int size();
 	
 	public URI normalise(URI u) throws URISyntaxException {
 		String path = u.getPath();

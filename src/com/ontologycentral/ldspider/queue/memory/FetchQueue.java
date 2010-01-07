@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
+import com.ontologycentral.ldspider.queue.memory.Redirects;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class FetchQueue extends SpiderQueue {
@@ -210,7 +211,7 @@ public class FetchQueue extends SpiderQueue {
 	 * 
 	 * @param u
 	 */
-	synchronized void addDirectly(URI u) {
+	public synchronized void addDirectly(URI u) {
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {

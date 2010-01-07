@@ -84,6 +84,12 @@ public class Main {
 		.withDescription( "max no of uris per pld per round" )
 		.create( "m" );
 		options.addOption(maxuris);
+		
+		Option ondisk  = OptionBuilder.withArgName( "on-disk queue")
+		.hasArgs(1)
+		.withDescription( "use the BDB on-disk queue with URI selection based on their frequency." )
+		.create( "d" );
+		options.addOption(ondisk);
 
 //		Option useragent  = OptionBuilder.withArgName( "user agent")
 //		.hasArgs(1)
@@ -183,7 +189,12 @@ public class Main {
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
-		c.evaluate(seeds, rounds, maxuris);
+		if(cmd.hasOption("d")){
+		    c.evaluate(seeds, rounds, maxuris,cmd.getOptionValue("d"));
+		}
+		else{
+		    c.evaluate(seeds, rounds, maxuris);
+		}
 
 		System.err.println(eh);
 //		for (Throwable t : eh.getErrors()) {
