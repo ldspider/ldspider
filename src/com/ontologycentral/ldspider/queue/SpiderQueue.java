@@ -9,11 +9,10 @@ public abstract class SpiderQueue {
 	public abstract void schedule(int maxuris);
 	public abstract void addFrontier(URI u);
 	public abstract URI poll();
-	public abstract void setRedirect(URI from, URI to);
-	public abstract URI obtainRedirect(URI from);
+	public abstract void setRedirect(URI from, URI to, int status);
 	public abstract int size();
 	
-	public URI normalise(URI u) throws URISyntaxException {
+	public static URI normalise(URI u) throws URISyntaxException {
 		String path = u.getPath();
 		if (path == null || path.length() == 0) {
 			path = "/";
@@ -27,10 +26,10 @@ public abstract class SpiderQueue {
 			throw new URISyntaxException("no host in ", u.toString());
 		}
 
+		// remove fragment
 		URI norm = new URI(u.getScheme().toLowerCase(),
 				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
-				path, u.getQuery(),
-				u.getFragment());
+				path, u.getQuery(), null);
 
 		return norm.normalize();
 	}

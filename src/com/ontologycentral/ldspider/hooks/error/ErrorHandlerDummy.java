@@ -19,4 +19,8 @@ public class ErrorHandlerDummy implements ErrorHandler {
 	public void handleStatus(URI u, int status, String type, long duration,	long contentLength) {
 		;
 	}
+
+	public void handleRedirect(URI from, URI to, int status) {
+		;
+	}
 }

@@ -41,12 +41,12 @@ public class LookupThread implements Runnable {
 	public void run() {
 		_log.info("starting thread ...");
 
-		URI u = _q.poll();
+		URI lu = _q.poll();
 
-		while (u != null) {
+		while (lu != null) {
 			long time = System.currentTimeMillis();
 			
-			URI lu = _q.obtainRedirect(u);
+//				URI lu = _q.obtainRedirect(u);
 
 			long time1 = System.currentTimeMillis();
 			long time2 = time1;
@@ -97,8 +97,10 @@ public class LookupThread implements Runnable {
 						_log.info("redirecting (" + status + ") to " + loc[0].getValue());
 						URI to = new URI(loc[0].getValue());
 
-						// set redirect from original uri to new uri -> break loops by taking only one redirect into account
-						_q.setRedirect(u, to);
+						// set redirect from original uri to new uri
+						_q.setRedirect(lu, to, status);
+						
+						_eh.handleRedirect(lu, to, status);
 					}
 
 					if (hen != null) {
@@ -120,10 +122,10 @@ public class LookupThread implements Runnable {
 				
 				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			} else {
-				_log.info("access denied per robots.txt for " + u);
+				_log.info("access denied per robots.txt for " + lu);
 			}
 
-			u = _q.poll();
+			lu = _q.poll();
 		}
 	}
 }

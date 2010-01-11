@@ -56,7 +56,7 @@ class Worker implements Runnable {
 
 				_fq.addFrontier(u);
 				
-				_fq.getSeen(u);
+				_fq.checkSeen(u);
 
 				line = br.readLine();
 			}

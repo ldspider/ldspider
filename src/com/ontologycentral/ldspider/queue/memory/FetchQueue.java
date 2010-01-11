@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.queue.memory.Redirects;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class FetchQueue extends SpiderQueue {
@@ -56,7 +55,7 @@ public class FetchQueue extends SpiderQueue {
 		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 
 		for (URI u : _frontier) {
-			if (!getSeen(u)) {
+			if (!checkSeen(u)) {
 				addDirectly(u);
 			}
 		}
@@ -84,8 +83,6 @@ public class FetchQueue extends SpiderQueue {
 		_time = System.currentTimeMillis();
 		
 		_frontier = new HashSet<URI>();
-		
-		_redirs = new Redirects();
 		
 		_log.info("scheduling done in " + (_time - time) + " ms");
 	}
@@ -167,12 +164,23 @@ public class FetchQueue extends SpiderQueue {
 			
 			if (q != null && !q.isEmpty()) {
 				next = q.poll();
-				if (getSeen(next)) {
-					_log.info("get seen true for " + next);
-					next = null;
-				} else {
-					setSeen(next);
-				}
+
+//					// we have to do a in-queue check for seen if we put redirects directly back into the queue
+//					if (checkSeen(to) == true) {
+//						_log.info("redirect to " + to + " already seen");
+//						next = null;
+//					} else {	
+//						next = to;
+//					}
+//				}
+//				
+//				// argh - if uri comes from file and a redirect, seen does not catch it
+//				if (checkSeen(next) == true) {
+//					_log.info("uri " + next + " already seen");
+//					next = null;
+//				}
+				
+				setSeen(next);
 			} else {
 				empty++;
 			}
@@ -184,7 +192,7 @@ public class FetchQueue extends SpiderQueue {
 	/**
 	 * Set the redirect.
 	 */
-	public void setRedirect(URI from, URI to) {
+	public void setRedirect(URI from, URI to, int status) {
 		try {
 			to = normalise(to);
 		} catch (URISyntaxException e) {
@@ -197,13 +205,10 @@ public class FetchQueue extends SpiderQueue {
 			return;
 		}
 		
-		if (_redirs.put(from, to) == true) {
-			// allow to poll from again from queue
-			_seen.remove(from);
-		
-			// fetch again, this time redirects are taken into account
-			addDirectly(from);
-		}
+		_redirs.put(from, to);
+		addFrontier(to);
+//			// fetch again, this time redirects are taken into account
+//			addDirectly(from);
 	}
 	
 	/**
@@ -211,7 +216,7 @@ public class FetchQueue extends SpiderQueue {
 	 * 
 	 * @param u
 	 */
-	public synchronized void addDirectly(URI u) {
+	synchronized void addDirectly(URI u) {
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {
@@ -238,33 +243,28 @@ public class FetchQueue extends SpiderQueue {
 	 * @param from
 	 * @return
 	 */
-	public URI obtainRedirect(URI from) {
+	URI obtainRedirect(URI from) {
 		URI to = _redirs.getRedirect(from);
 		if (from != to) {
 			_log.info("redir from " + from + " to " + to);
-			_seen.add(to);
 			return to;
 		}
 		
 		return from;
 	}
 	
-	/**
-	 * Check for already seen URIs.
-	 * 
-	 * @param u
-	 * @return
-	 */
-	boolean getSeen(URI u) {
-		if (_seen.contains(u)) {
-			return true;
+	boolean checkSeen(URI u) {
+		if (u == null) {
+			throw new NullPointerException("u cannot be null");
 		}
 		
-		return false;
+		return _seen.contains(u);
 	}
 	
 	void setSeen(URI u) {
-		_seen.add(u);
+		if (u != null) {
+			_seen.add(u);
+		}
 	}
 	
 	public int size() {

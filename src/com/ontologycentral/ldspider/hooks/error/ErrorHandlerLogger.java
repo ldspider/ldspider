@@ -10,6 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Resource;
+import org.semanticweb.yars.nx.parser.Callback;
+
 public class ErrorHandlerLogger implements ErrorHandler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
@@ -18,12 +22,16 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	Map<Integer, Integer> _status;
 	
 	PrintStream _logger = null;
+	
+	Callback _redirects = null;
 
 	//[10/Oct/2000:13:55:36 -0700]
 	final SimpleDateFormat APACHEDATEFORMAT = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z");
 	
-	public ErrorHandlerLogger(PrintStream out) {
+	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
 		_logger = out;
+		
+		_redirects = redirects;
 		
 		_errors = Collections.synchronizedList(new ArrayList<URIThrowable>());
 		
@@ -78,7 +86,6 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			sb.append(u);
 			sb.append(" - NONE/- ");
 			sb.append(type);
-			sb.append("\n");
 
 			synchronized(this) {
 				_logger.println(sb.toString());
@@ -113,6 +120,17 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	public void close() {
 		if(_logger != null) {
 			_logger.close();
+		}
+	}
+
+	public void handleRedirect(URI from, URI to, int status) {
+		if (_redirects != null) {
+			Node[] nx = new Node[2];
+
+			nx[0] = new Resource(from.toString());
+			nx[1] = new Resource(to.toString());
+
+			_redirects.processStatement(nx);		
 		}
 	}
 	

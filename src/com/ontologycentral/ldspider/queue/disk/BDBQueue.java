@@ -138,8 +138,8 @@ public class BDBQueue extends SpiderQueue {
 	
     }
 
-    @Override
-    public URI obtainRedirect(URI from) {
+    // XXX logic for redirects changed
+    URI obtainRedirect(URI from) {
 	URI to = _redirs.getRedirect(from);
 	if (from != to) {
 		log.info("redir from " + from + " to " + to);
@@ -181,7 +181,7 @@ public class BDBQueue extends SpiderQueue {
     }
 
     @Override
-    public void setRedirect(URI from, URI to) {
+    public void setRedirect(URI from, URI to, int status) {
 	try {
 		to = normalise(to);
 	} catch (URISyntaxException e) {
@@ -194,13 +194,13 @@ public class BDBQueue extends SpiderQueue {
 		return;
 	}
 	
-	if (_redirs.put(from, to) == true) {
-		// allow to poll from again from queue
-		unseen(from);
-	
-		// fetch again, this time redirects are taken into account
-		_queue.addDirectly(from);
-	}
+//	if (_redirs.put(from, to) == true) {
+//		// allow to poll from again from queue
+//		unseen(from);
+//	
+//		// fetch again, this time redirects are taken into account
+//		_queue.addDirectly(from);
+//	}
 	
     }
 

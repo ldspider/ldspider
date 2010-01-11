@@ -24,6 +24,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNQOutputStream;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -61,11 +62,17 @@ public class Main {
 		.create( "t" );
 		options.addOption(threads);
 
-		Option rounds = OptionBuilder.withArgName( "rounds")
+		Option rounds = OptionBuilder.withArgName( "depth")
 		.hasArgs(1)
-		.withDescription( "number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
-		.create( "r" );
+		.withDescription( "depth; number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
+		.create( "d" );
 		options.addOption(rounds);
+
+		Option redirs = OptionBuilder.withArgName( "redirects")
+		.hasArgs(1)
+		.withDescription( "write redirects.nx file")
+		.create( "r" );
+		options.addOption(redirs);
 
 		Option output  = OptionBuilder.withArgName( "file name")
 		.hasArgs(1)
@@ -73,7 +80,7 @@ public class Main {
 		.create( "o" );
 		options.addOption(output);
 
-		Option log = OptionBuilder.withArgName(" log file name")
+		Option log = OptionBuilder.withArgName("log file name")
 		.hasArgs(1)
 		.withDescription( "name of access log file" )
 		.create( "l" );
@@ -86,9 +93,9 @@ public class Main {
 		options.addOption(maxuris);
 		
 		Option ondisk  = OptionBuilder.withArgName( "on-disk queue")
-		.hasArgs(1)
+		.hasArgs(0)
 		.withDescription( "use the BDB on-disk queue with URI selection based on their frequency." )
-		.create( "d" );
+		.create( "b" );
 		options.addOption(ondisk);
 
 //		Option useragent  = OptionBuilder.withArgName( "user agent")
@@ -152,18 +159,18 @@ public class Main {
 			}
 		}
 
-		int rounds = CrawlerConstants.DEFAULT_NB_ROUNDS;
+		int depth = CrawlerConstants.DEFAULT_NB_ROUNDS;
 		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
 		int maxuris = CrawlerConstants.DEFAULT_NB_URIS;
 		
-		if(cmd.hasOption("r")) 
-			rounds = Integer.valueOf(cmd.getOptionValue("r"));
+		if(cmd.hasOption("d")) 
+			depth = Integer.valueOf(cmd.getOptionValue("d"));
 		if(cmd.hasOption("t")) 
 			threads = Integer.valueOf(cmd.getOptionValue("t"));
 		if(cmd.hasOption("m")) 
 			maxuris = Integer.valueOf(cmd.getOptionValue("m"));
 
-		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " rounds " + rounds);
+		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " depth " + depth);
 		_log.info("seed uri " + seeds);
 		
 		//start the crawl
@@ -182,18 +189,24 @@ public class Main {
 		if (cmd.hasOption("l")) {
 			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("l")));			
 		}
+		
+		Callback rcb = null;
+		if (cmd.hasOption("r")) {
+			FileOutputStream fos = new FileOutputStream(cmd.getOptionValue("r"));
+			rcb = new CallbackNQOutputStream(fos);
+			rcb.startDocument();
+		}
 
-		ErrorHandler eh = new ErrorHandlerLogger(ps);
+		ErrorHandler eh = new ErrorHandlerLogger(ps, rcb);
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
 		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
-		if(cmd.hasOption("d")){
-		    c.evaluate(seeds, rounds, maxuris,cmd.getOptionValue("d"));
-		}
-		else{
-		    c.evaluate(seeds, rounds, maxuris);
+		if (cmd.hasOption("b")) {
+			c.evaluate(seeds, depth, maxuris, cmd.getOptionValue("b"));
+		} else {
+			c.evaluate(seeds, depth, maxuris);
 		}
 
 		System.err.println(eh);
@@ -210,6 +223,10 @@ public class Main {
 			os.close();
 		} catch (IOException e) {
 			_log.log(Level.WARNING, "could not close output stream: " + e.getMessage());
+		}
+		
+		if (rcb != null) {
+			rcb.endDocument();
 		}
 
 		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec" );
