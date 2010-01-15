@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 public class FetchFilterRdfXml implements FetchFilter {
@@ -20,13 +21,21 @@ public class FetchFilterRdfXml implements FetchFilter {
 	public boolean fetchOk(URI u, int status, HttpEntity hen) {
 		Header ct = hen.getContentType();
 		if (ct != null) {
-			if (ct.getValue().contains("application/rdf+xml")) {
-				return true;
+			for (String mt : CrawlerConstants.MIMETYPES) {
+				if (ct.getValue().contains(mt)) {
+					return true;
+				}
 			}
 			_log.info("ct " + u + " " + ct.getValue());
 		} else {
 			Exception e = new IOException("no content type available for " + u);
 			_eh.handleError(u, e);
+		}
+		
+		for (String suffix : CrawlerConstants.FILESUFFIXES) {
+			if (u.getPath().endsWith(suffix)) {
+				return true;
+			}
 		}
 		
 		return false;

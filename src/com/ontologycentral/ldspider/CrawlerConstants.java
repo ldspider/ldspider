@@ -5,8 +5,13 @@ import org.apache.http.message.BasicHeader;
 
 public class CrawlerConstants {
 	public static final String USERAGENT = "ldspider (http://code.google.com/p/ldspider/wiki/Robots)";
+
+	// http://www.w3.org/TR/owl-ref/#MIMEType
+	public static final String[] MIMETYPES = { "application/rdf+xml", "application/xml" };
+	public static final String[] FILESUFFIXES = { ".rdf", ".owl" };
+	
 	public static final Header[] HEADERS = {
-		new BasicHeader("Accept", "application/rdf+xml"),
+		new BasicHeader("Accept", MIMETYPES[0] + ", " + MIMETYPES[1]),
 		new BasicHeader("User-Agent", USERAGENT),
 		new BasicHeader("Accept-Encoding", "gzip")
 	};

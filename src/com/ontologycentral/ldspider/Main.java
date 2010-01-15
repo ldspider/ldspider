@@ -119,7 +119,7 @@ public class Main {
 		CommandLine cmd = null;
 		try {
 			cmd = parser.parse(options, args,true);
-			if (cmd.hasOption("h")&& cmd.hasOption("help")) {
+			if (cmd.hasOption("h") || cmd.hasOption("help")) {
 				formatter.printHelp(80," ","Life lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
 			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
