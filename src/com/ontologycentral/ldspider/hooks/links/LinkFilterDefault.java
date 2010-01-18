@@ -10,6 +10,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 
 /**
  * Follow all links (subject, predicate, object).
@@ -43,6 +44,7 @@ public class LinkFilterDefault implements LinkFilter {
 			if (nx[i] instanceof Resource) {
 				try {
 					URI u = new URI(nx[i].toString());
+					u = SpiderQueue.normalise(u);
 					_links.add(u);
 				} catch (URISyntaxException e) {
 					try {
