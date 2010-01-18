@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
-import org.semanticweb.yars.util.Callbacks;
 
 import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -48,8 +47,6 @@ public class Crawler {
 	}
 	
 	public Crawler(int threads) {
-		//_urisrc = new UriSrc();
-
 		_threads = threads;
 		
 		String phost = null;
@@ -124,8 +121,6 @@ public class Crawler {
 		_q.schedule();
 		
 		for (int curRound = 0; curRound <= depth; curRound++) {
-			System.out.println(curRound + " " + depth);
-			
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
