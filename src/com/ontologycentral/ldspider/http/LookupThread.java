@@ -109,10 +109,9 @@ public class LookupThread implements Runnable {
 
 					if (hen != null) {
 						bytes = hen.getContentLength();
-						hen.consumeContent();
-					} else {
-						hget.abort();
 					}
+					
+					hget.abort();
 				} catch (Exception e) {
 					hget.abort();
 					_eh.handleError(lu, e);

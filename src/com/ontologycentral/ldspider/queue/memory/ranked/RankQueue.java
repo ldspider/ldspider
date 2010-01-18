@@ -165,7 +165,7 @@ public class RankQueue extends SpiderQueue {
 //					} catch (InterruptedException e) {
 //						e.printStackTrace();
 //					}
-					_log.info("fetching plds too fact, rescheduling");
+					_log.info("fetching plds too fast, rescheduling");
 					_current.addAll(new ArrayList<String>());
 					return null;
 				}
