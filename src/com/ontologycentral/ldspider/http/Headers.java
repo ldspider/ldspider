@@ -10,7 +10,7 @@ import org.semanticweb.yars.nx.Literal;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.NumericLiteral;
 import org.semanticweb.yars.nx.Resource;
-import org.semanticweb.yars.util.Callbacks;
+import org.semanticweb.yars.nx.parser.Callback;
 
 public class Headers {
 	final static String httpNS = "http://www.w3.org/2006/http#";
@@ -63,7 +63,7 @@ public class Headers {
 	
 	static Map<String, Resource> HEADER_MAP = null;
 
-	public static void processHeaders(URI uri, int status, Header[] headerFields, Callbacks cbs) {
+	public static void processHeaders(URI uri, int status, Header[] headerFields, Callback cb) {
 		if (HEADER_MAP == null) {
 			HEADER_MAP = new HashMap<String, Resource>();
 
@@ -77,15 +77,15 @@ public class Headers {
 		
 		Resource ruri = new Resource(uri.toString());
 		
-		cbs.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri } );
-		cbs.processStatement(new Node[] { bNode,
+		cb.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri } );
+		cb.processStatement(new Node[] { bNode,
 				           new Resource(httpNS+"responseCode"),
 				           new NumericLiteral(Integer.valueOf(status)),
 				           ruri } );
 		
 		for (int i = 0; i < headerFields.length; i++) {
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
-				cbs.processStatement(new Node[] {
+				cb.processStatement(new Node[] {
 						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(Literal.escapeForNx(headerFields[i].getValue())), ruri
 					});
 			}

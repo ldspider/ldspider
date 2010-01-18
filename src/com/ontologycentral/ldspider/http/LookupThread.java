@@ -9,6 +9,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
+import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
@@ -22,17 +23,19 @@ public class LookupThread implements Runnable {
 	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	SpiderQueue _q;
-	Callbacks _cbs;
+	Callback _content;
+	Callback _links;
 	FetchFilter _ff;
 	
 	Robots _robots;
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	public LookupThread(ConnectionManager hc, SpiderQueue q, Callbacks cbs, Robots robots, ErrorHandler eh, FetchFilter ff) {
+	public LookupThread(ConnectionManager hc, SpiderQueue q, Callback content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff) {
 		_hclient = hc;
 		_q = q;
-		_cbs = cbs;
+		_content = content;
+		_links = links;
 		_robots = robots;
 		_ff = ff;
 		_eh = eh;
@@ -76,14 +79,15 @@ public class LookupThread implements Runnable {
 					_log.info("lookup on " + lu + " status " + status);
 
 					// write headers in RDF
-					Headers.processHeaders(lu, status, hres.getAllHeaders(), _cbs);
+					Headers.processHeaders(lu, status, hres.getAllHeaders(), _content);
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
 							if (_ff.fetchOk(lu, status, hen)) {
 								InputStream is = hen.getContent();
 
-								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), _cbs);
+								Callbacks cbs = new Callbacks(new Callback[] { _content, _links } );
+								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), cbs);
 								rxp = null;
 							} else {
 								_log.info("not allowed " + lu);

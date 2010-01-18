@@ -1,10 +1,14 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue.memory.ranked;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -16,14 +20,14 @@ import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
-public class FetchQueue extends SpiderQueue {
+public class RankQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	TldManager _tldm;
 
 	Set<URI> _seen;
-	Set<URI> _frontier;
 	
+	Frontier _frontier;
 	Redirects _redirs;
 
 	Map<String, Queue<URI>> _queues;
@@ -31,17 +35,14 @@ public class FetchQueue extends SpiderQueue {
 
 	long _time;
 	
-	int _maxuris;
-	
 	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 
-	public FetchQueue(TldManager tldm, int maxuris) {
+	public RankQueue(TldManager tldm) {
 		_tldm = tldm;
-		_maxuris = maxuris;
 
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
 		_redirs = new Redirects();
-		_frontier = Collections.synchronizedSet(new HashSet<URI>());
+		_frontier = new Frontier();
 		
 		_current = new ConcurrentLinkedQueue<String>();
 	}
@@ -58,35 +59,20 @@ public class FetchQueue extends SpiderQueue {
 
 		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 
-		for (URI u : _frontier) {
+		Iterator<URI> it = _frontier.getRanked();
+		
+		while (it.hasNext()) {
+			URI u = it.next();
 			if (!checkSeen(u)) {
 				addDirectly(u);
+			} else {
+				_frontier.remove(u);
 			}
 		}
-
-		for (String pld : _queues.keySet()) {
-			Queue<URI> q = _queues.get(pld);
-			if (q.size() > _maxuris) {
-				int n = 0;
-				Queue<URI> nq = new ConcurrentLinkedQueue<URI>();
-				for (URI u: q) {
-					nq.add(u);
-					n++;
-					if (n >= _maxuris) {
-						break;
-					}
-				}
-				q = nq;
-				
-				_queues.put(pld, q);
-			}
-		}
-		
-		_current.addAll(_queues.keySet());
+	
+		_current.addAll(getQueuePlds());
 		
 		_time = System.currentTimeMillis();
-		
-		_frontier = Collections.synchronizedSet(new HashSet<URI>());
 		
 		_log.info("scheduling done in " + (_time - time) + " ms");
 	}
@@ -123,99 +109,6 @@ public class FetchQueue extends SpiderQueue {
 	}
 	
 	/**
-	 * Poll a URI, one PLD after another.
-	 * If queue turnaround is smaller than DELAY, wait for DELAY ms to
-	 * avoid overloading servers.
-	 * 
-	 * @return URI
-	 */
-	public synchronized URI poll() {
-		if (_current == null) {
-			return null;
-		}
-		
-		URI next = null;
-
-		int empty = 0;
-
-		do {	
-			if (_current.isEmpty()) {
-				// queue is empty, done for this round
-				if (size() == 0) {
-					return null;
-				}
-				
-				long time1 = System.currentTimeMillis();
-				
-				if ((time1 - _time) < CrawlerConstants.MIN_DELAY) {
-					try {
-						_log.info("delaying queue " + CrawlerConstants.MIN_DELAY + " ms ...");
-						Thread.sleep(CrawlerConstants.MIN_DELAY);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				_log.info("queue turnaround in " + (time1-_time) + " ms");
-
-				_time = System.currentTimeMillis();
-				
-				_current.addAll(_queues.keySet());
-			}
-
-			String pld = _current.poll();
-			Queue<URI> q = _queues.get(pld);
-			
-			if (q != null && !q.isEmpty()) {
-				next = q.poll();
-
-//					// we have to do a in-queue check for seen if we put redirects directly back into the queue
-//					if (checkSeen(to) == true) {
-//						_log.info("redirect to " + to + " already seen");
-//						next = null;
-//					} else {	
-//						next = to;
-//					}
-//				}
-//				
-//				// argh - if uri comes from file and a redirect, seen does not catch it
-//				if (checkSeen(next) == true) {
-//					_log.info("uri " + next + " already seen");
-//					next = null;
-//				}
-				
-				setSeen(next);
-			} else {
-				empty++;
-			}
-		} while (next == null && empty < _queues.size());
-
-		return next;
-	}
-	
-	/**
-	 * Set the redirect.
-	 */
-	public void setRedirect(URI from, URI to, int status) {
-		try {
-			to = normalise(to);
-		} catch (URISyntaxException e) {
-			_log.info(to +  " not parsable, skipping " + to);
-			return;
-		}
-		
-		if (from.equals(to)) {
-			_log.info("redirected to same uri " + from);
-			return;
-		}
-		
-		_redirs.put(from, to);
-		addFrontier(to);
-//			// fetch again, this time redirects are taken into account
-//			addDirectly(from);
-	}
-	
-	/**
 	 * Add URI directly to queues.
 	 * 
 	 * @param u
@@ -239,7 +132,95 @@ public class FetchQueue extends SpiderQueue {
 			q.add(u);
 		}
 	}
+	
+	/**
+	 * Poll a URI, one PLD after another.
+	 * If queue turnaround is smaller than DELAY, wait for DELAY ms to
+	 * avoid overloading servers.
+	 * 
+	 * @return URI
+	 */
+	public synchronized URI poll() {
+		if (_current == null) {
+			return null;
+		}
+		
+		URI next = null;
 
+		int empty = 0;
+
+		do {
+			long time1 = System.currentTimeMillis();
+
+			if (_current.isEmpty()) {
+				// queue is empty, done for this round
+				if (size() == 0) {
+					return null;
+				}
+								
+				if ((time1 - _time) < CrawlerConstants.MIN_DELAY) {
+//					try {
+//						_log.info("delaying queue " + CrawlerConstants.MIN_DELAY + " ms ...");
+//						Thread.sleep(CrawlerConstants.MIN_DELAY);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+					_log.info("fetching plds too fact, rescheduling");
+					_current.addAll(new ArrayList<String>());
+					return null;
+				}
+				
+				_log.info("queue turnaround in " + (time1-_time) + " ms");
+
+				_time = System.currentTimeMillis();
+				
+				_current.addAll(getQueuePlds());
+			} else if ((time1 - _time) > CrawlerConstants.MAX_DELAY) {
+				_log.info("skipped to start of queue in " + (time1-_time) + " ms");
+
+				_time = System.currentTimeMillis();
+				
+				_current.addAll(getQueuePlds());				
+			}
+
+			String pld = _current.poll();
+			Queue<URI> q = _queues.get(pld);
+			
+			if (q != null && !q.isEmpty()) {
+				next = q.poll();
+
+				setSeen(next);
+				_frontier.remove(next);
+			} else {
+				empty++;
+			}
+		} while (next == null && empty < _queues.size());
+		
+		_log.info("polled " + next);
+
+		return next;
+	}
+	
+	/**
+	 * Set the redirect.
+	 */
+	public void setRedirect(URI from, URI to, int status) {
+		try {
+			to = normalise(to);
+		} catch (URISyntaxException e) {
+			_log.info(to +  " not parsable, skipping " + to);
+			return;
+		}
+		
+		if (from.equals(to)) {
+			_log.info("redirected to same uri " + from);
+			return;
+		}
+		
+		_redirs.put(from, to);
+		addFrontier(to);
+	}
+	
 	/**
 	 * Return redirected URI (if there's a redirect)
 	 * otherwise return original URI.
@@ -271,6 +252,16 @@ public class FetchQueue extends SpiderQueue {
 		}
 	}
 	
+	List<String> getQueuePlds() {
+		List<String> li = new ArrayList<String>();
+		
+		li.addAll(_queues.keySet());
+		
+		Collections.sort(li, new PldCountComparator(_queues));
+		
+		return li;
+	}
+	
 	public int size() {
 		int size = 0;
 		
@@ -284,7 +275,7 @@ public class FetchQueue extends SpiderQueue {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
-		for (String pld : _queues.keySet()) {
+		for (String pld : getQueuePlds()) {
 			Queue<URI> q = _queues.get(pld);
 			sb.append(pld);
 			sb.append(": ");
@@ -293,5 +284,17 @@ public class FetchQueue extends SpiderQueue {
 		}
 		
 		return sb.toString();
+	}
+}
+
+class PldCountComparator implements Comparator<String> {
+	Map<String, Queue<URI>> _map;
+	
+	public PldCountComparator(Map<String, Queue<URI>> map) {
+		_map = map;
+	}
+	
+	public int compare(String arg0, String arg1) {
+		return _map.get(arg1).size() - _map.get(arg0).size();
 	}
 }

@@ -161,14 +161,17 @@ public class Main {
 
 		int depth = CrawlerConstants.DEFAULT_NB_ROUNDS;
 		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
-		int maxuris = CrawlerConstants.DEFAULT_NB_URIS;
+		int maxuris = -1;
 		
-		if(cmd.hasOption("d")) 
+		if(cmd.hasOption("d")) {
 			depth = Integer.valueOf(cmd.getOptionValue("d"));
-		if(cmd.hasOption("t")) 
+		}
+		if(cmd.hasOption("t")) {
 			threads = Integer.valueOf(cmd.getOptionValue("t"));
-		if(cmd.hasOption("m")) 
+		}
+		if(cmd.hasOption("m")) {
 			maxuris = Integer.valueOf(cmd.getOptionValue("m"));
+		}
 
 		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " depth " + depth);
 		_log.info("seed uri " + seeds);
@@ -200,13 +203,15 @@ public class Main {
 		ErrorHandler eh = new ErrorHandlerLogger(ps, rcb);
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
-		c.setLinkSelectionCallback(new LinkFilterDefault(eh));
+		c.setLinkFilter(new LinkFilterDefault(eh));
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
 		if (cmd.hasOption("b")) {
 			c.evaluate(seeds, depth, maxuris, cmd.getOptionValue("b"));
-		} else {
+		} else if (maxuris != -1) {
 			c.evaluate(seeds, depth, maxuris);
+		} else {
+			c.evaluate(seeds, depth);
 		}
 
 		System.err.println(eh);

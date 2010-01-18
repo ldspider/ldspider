@@ -3,7 +3,7 @@ import java.net.URI;
 
 import junit.framework.TestCase;
 
-import com.ontologycentral.ldspider.queue.memory.FetchQueue;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 
@@ -11,13 +11,13 @@ public class RedirectTest extends TestCase {
 	public void testNormalise() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		FetchQueue fq = new FetchQueue(tldm);
+		SpiderQueue fq = new FetchQueue(tldm, 1);
 		
 		URI u = new URI("http://dbpedia.org/resource/Karlsruhe");
 
 		fq.addFrontier(u);
 		
-		fq.schedule(1);
+		fq.schedule();
 		
 		System.out.println(fq);
 		
@@ -27,24 +27,24 @@ public class RedirectTest extends TestCase {
 		
 		URI page = new URI("http://dbpedia.org/page/Karlsruhe");
 		
-		fq.setRedirect(u, page);
+		fq.setRedirect(u, page, 303);
 		
 		System.out.println(fq);
 		
 		u = fq.poll();
 		
-		URI lu = fq.obtainRedirect(u);
+		//URI lu = fq.obtainRedirect(u);
 
-		System.out.println(lu);
+		//System.out.println(lu);
 		
 		page = new URI("http://dbpedia.org/index.html");
 
 		System.out.println(page.getPath());
-		System.out.println(fq.normalise(page));
+		System.out.println(SpiderQueue.normalise(page));
 		
 		page = new URI("http://dbpedia.org/bla/index.html");
 
 		System.out.println(page.getPath());
-		System.out.println(fq.normalise(page));
+		System.out.println(SpiderQueue.normalise(page));
 	}
 }

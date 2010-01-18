@@ -18,7 +18,7 @@ public class ThreadingTest extends TestCase {
 	public void testThreading() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		FetchQueue fq = new FetchQueue(tldm);
+		FetchQueue fq = new FetchQueue(tldm, 5);
 
 		Thread[] ts = new Thread[THREADS];
 		

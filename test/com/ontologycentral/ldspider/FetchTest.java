@@ -30,7 +30,7 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	NodeCollector nc = new NodeCollector();
 	c.setOutputCallback(nc);
-	c.setLinkSelectionCallback(new LinkFilterDefault(eh));
+	c.setLinkFilter(new LinkFilterDefault(eh));
 	c.setFetchFilter(new FetchFilterRdfXml(eh));
 	c.evaluate(seeds, 0);
 	c=null;
@@ -43,7 +43,7 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	nc = new NodeCollector();
 	c.setOutputCallback(nc);
-	c.setLinkSelectionCallback(new LinkFilterDefault(eh));
+	c.setLinkFilter(new LinkFilterDefault(eh));
 	c.setFetchFilter(new FetchFilterRdfXml(eh));
 	c.evaluate(seeds, 0);
 	

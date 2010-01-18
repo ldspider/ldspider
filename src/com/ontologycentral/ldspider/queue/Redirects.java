@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
 import java.util.Collections;
@@ -18,11 +18,9 @@ public class Redirects {
 	public void put(URI from, URI to) {
 		if (_map.containsKey(from)) {
 			_log.info("URI " + from + " already redirects to " + _map.get(from));
-			//return false;
 		}
 		
 		_map.put(from, to);
-		//return true;
 	}
 	
 	public URI getRedirect(URI from) {

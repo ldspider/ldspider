@@ -24,6 +24,7 @@ import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.queue.disk.BDBQueue;
 import com.ontologycentral.ldspider.queue.memory.FetchQueue;
+import com.ontologycentral.ldspider.queue.memory.ranked.RankQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
@@ -37,8 +38,8 @@ public class Crawler {
 	
 	Robots _robots;
 	TldManager _tldm;
-	
-	//UriSrc _urisrc;
+
+	SpiderQueue _q = null;
 	
 	int _threads;
 	
@@ -107,67 +108,33 @@ public class Crawler {
 		_output = cb;
 	}
 	
-	public void setLinkSelectionCallback(LinkFilter links) {
+	public void setLinkFilter(LinkFilter links) {
 		_links = links;
 	}
 	
-	public void evaluate(Collection<URI> seeds, int rounds) {
-		evaluate(seeds, rounds, CrawlerConstants.DEFAULT_NB_URIS);
-	}
-	
-	/**
-	 * Crawl with the default in-mem queue
-	 * 
-	 * @param seeds
-	 * @param rounds
-	 * @param maxuris
-	 */
-	public void evaluate(Collection<URI> seeds, int rounds, int maxuris) {
-		evaluate(seeds, rounds,maxuris,null);
-	}
-	
-	/**
-	 * 
-	 * @param seeds
-	 * @param rounds
-	 * @param maxuris
-	 * @param queuelocation - usage of a on-disk queue if specified, otherwise in-mem queue
-	 */
-	public void evaluate(Collection<URI> seeds, int rounds, int maxuris, String queueLocation) {
-	    SpiderQueue q  = null;
-	    //setup queue
-	    if(queueLocation== null){
-		    q = new FetchQueue(_tldm);
-	    }
-	    else{
-		try {
-		    q = new BDBQueue(_tldm, queueLocation);
-		} catch (URISyntaxException e) {
-		    e.printStackTrace();
-		    _log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
-		    return;
+	public void evaluate(Collection<URI> seeds, int depth) {
+		if (_q == null) {
+			_q = new RankQueue(_tldm);
 		}
-	    }
-
 		
 		for (URI u : seeds) {
-			q.addFrontier(u);
+			_q.addFrontier(u);
 		}
 		
-		q.schedule(maxuris);
+		_q.schedule();
 		
-		for (int curRound = 0 ; curRound <= rounds; curRound++) {
+		for (int curRound = 0; curRound <= depth; curRound++) {
+			System.out.println(curRound + " " + depth);
+			
 			List<Thread> ts = new ArrayList<Thread>();
 
-			Callbacks cbs = new Callbacks(new Callback[] { _output, _links } );
-
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, q, cbs, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _q, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
-			_log.info("Starting threads round " + curRound + " with " + q.size() + " uris");
-			_log.info(q.toString());
+			_log.info("Starting threads round " + curRound + " with " + _q.size() + " uris");
+			_log.info(_q.toString());
 			
 			for (Thread t : ts) {
 				t.start();
@@ -182,15 +149,50 @@ public class Crawler {
 			}
 
 			for (URI u : _links.getLinks()) {
-				q.addFrontier(u);
+				_q.addFrontier(u);
 			}
 
-			q.schedule(maxuris);
+			_q.schedule();
 		}
-		if(queueLocation!=null) ((BDBQueue)q).close();
+	}
+	
+	/**
+	 * Crawl with the default in-mem queue
+	 * 
+	 * @param seeds
+	 * @param rounds
+	 * @param maxuris
+	 */
+	public void evaluate(Collection<URI> seeds, int depth, int maxuris) {
+		_q = new FetchQueue(_tldm, maxuris);
+		
+		evaluate(seeds, depth);
+	}
+	
+	/**
+	 * 
+	 * @param seeds
+	 * @param rounds
+	 * @param maxuris
+	 * @param queuelocation - usage of a on-disk queue if specified, otherwise in-mem queue
+	 */
+	public void evaluate(Collection<URI> seeds, int depth, int maxuris, String queueLocation) {
+	    SpiderQueue q  = null;
+	    try {
+	    	q = new BDBQueue(_tldm, queueLocation, maxuris);
+	    } catch (URISyntaxException e) {
+	    	e.printStackTrace();
+	    	_log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
+	    	return;
+	    }
+	    
+	    evaluate(seeds, depth);
 	}
 	
 	public void close() {
+		if (_q instanceof BDBQueue) {
+			((BDBQueue)_q).close();
+		}
 		_cm.shutdown();
 		_eh.close();
 	}

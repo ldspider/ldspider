@@ -6,7 +6,7 @@ import java.net.URISyntaxException;
 
 
 public abstract class SpiderQueue {
-	public abstract void schedule(int maxuris);
+	public abstract void schedule();
 	public abstract void addFrontier(URI u);
 	public abstract URI poll();
 	public abstract void setRedirect(URI from, URI to, int status);

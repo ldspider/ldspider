@@ -19,7 +19,7 @@ public class PerformanceTest extends TestCase {
 
 		TldManager tldm = new TldManager();
 		
-		FetchQueue fq = new FetchQueue(tldm);
+		FetchQueue fq = new FetchQueue(tldm, Integer.MAX_VALUE);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		
@@ -40,7 +40,7 @@ public class PerformanceTest extends TestCase {
 		
 		br.close();
 		
-		fq.schedule(Integer.MAX_VALUE);
+		fq.schedule();
 		
 		int size = fq.size();
 		
@@ -54,7 +54,7 @@ public class PerformanceTest extends TestCase {
 			u = fq.poll();
 			
 			if (u != null && r.nextFloat() < 0.01) {
-				fq.setRedirect(u, new URI("http://dbpedia.org/resource/Redirect"));
+				fq.setRedirect(u, new URI("http://dbpedia.org/resource/Redirect"), 303);
 				fq.addDirectly(u);
 				System.out.println("adding " + u);
 				redirects++;

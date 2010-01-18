@@ -1,6 +1,7 @@
 package com.ontologycentral.ldspider.hooks.links;
 
 import java.net.URI;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.semanticweb.yars.nx.Node;
@@ -14,7 +15,7 @@ import org.semanticweb.yars.nx.Node;
 public class LinkFilterDummy implements LinkFilter {
 
 	public Set<URI> getLinks() {
-		return null;
+		return new HashSet<URI>();
 	}
 
 	public void startDocument() {

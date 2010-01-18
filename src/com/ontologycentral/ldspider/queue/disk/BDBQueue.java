@@ -18,9 +18,9 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.HttpClient;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.queue.memory.FetchQueue;
-import com.ontologycentral.ldspider.queue.memory.Redirects;
 import com.ontologycentral.ldspider.tld.TldManager;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
@@ -55,10 +55,13 @@ public class BDBQueue extends SpiderQueue {
     private TldManager _tldm;
 
     private FetchQueue _queue;
+    
+    int _maxuris;
 
-    public BDBQueue(TldManager tldm, String queueLocation) throws URISyntaxException {
+    public BDBQueue(TldManager tldm, String queueLocation, int maxuris) throws URISyntaxException {
 	this.envDir = new File(queueLocation);
 	_tldm = tldm;
+	_maxuris = maxuris;
 	_redirs = new Redirects();
 	setup();
 
@@ -157,8 +160,8 @@ public class BDBQueue extends SpiderQueue {
     }
 
     @Override
-    public void schedule(int maxuris) {
-	_queue = new FetchQueue(_tldm);
+    public void schedule() {
+	_queue = new FetchQueue(_tldm, _maxuris);
 	
 	log.info("Schedule new queue");
 //	_pldMap = new HashMap<String, Integer>();
@@ -171,8 +174,8 @@ public class BDBQueue extends SpiderQueue {
 		_queue.addFrontier(o.getURI());
 		counter++;
 	    }
-	}while(counter!=maxuris && o != null);
-	_queue.schedule(maxuris);
+	}while(counter!=_maxuris && o != null);
+	_queue.schedule();
 //	log.info("New Queue contains: "+_tmpQueue.size()+" elements from "+_pldMap.size()+" plds");
 //	Collections.shuffle(_tmpQueue);
 //	log.info("Shuffled");
