@@ -63,7 +63,7 @@ public class LookupThread implements Runnable {
 
 				HttpGet hget = new HttpGet(lu);
 				hget.setHeaders(CrawlerConstants.HEADERS);
-
+				
 				try {
 					HttpResponse hres = _hclient.connect(hget);
 
@@ -83,14 +83,14 @@ public class LookupThread implements Runnable {
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
-							if (_ff.fetchOk(lu, status, hen)) {
+							if (_ff.fetchOk(lu, status, hen) == true) {
 								InputStream is = hen.getContent();
 
 								Callbacks cbs = new Callbacks(new Callback[] { _content, _links } );
 								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), cbs);
 								rxp = null;
 							} else {
-								_log.info("not allowed " + lu);
+								_log.info("disallowed via fetch filter " + lu);
 							}
 						} else {
 							_log.info("HttpEntity for " + lu + " is null");
@@ -114,6 +114,8 @@ public class LookupThread implements Runnable {
 					hget.abort();
 				} catch (Exception e) {
 					hget.abort();
+					_log.info("Exception " + e.getClass().getName());
+					e.printStackTrace();
 					_eh.handleError(lu, e);
 				}
 				

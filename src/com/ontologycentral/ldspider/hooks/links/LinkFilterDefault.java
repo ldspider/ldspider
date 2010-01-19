@@ -5,8 +5,10 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.Resource;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -19,6 +21,8 @@ import com.ontologycentral.ldspider.queue.SpiderQueue;
  *
  */
 public class LinkFilterDefault implements LinkFilter {
+	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
+
 	Set<URI> _links;
 	ErrorHandler _eh;
 	
@@ -48,7 +52,7 @@ public class LinkFilterDefault implements LinkFilter {
 					_links.add(u);
 				} catch (URISyntaxException e) {
 					try {
-						_eh.handleError(new URI(nx[4].toString()), e);
+						_eh.handleError(new URI(nx[nx.length-1].toString()), e);
 					} catch (URISyntaxException e1) {
 						e1.printStackTrace();
 					}

@@ -6,6 +6,6 @@ import org.apache.http.HttpEntity;
 
 public class FetchFilterAllow implements FetchFilter {
 	public boolean fetchOk(URI u, int status, HttpEntity hen) {
-		return false;
+		return true;
 	}
 }
