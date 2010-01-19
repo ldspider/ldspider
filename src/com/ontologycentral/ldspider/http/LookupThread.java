@@ -94,6 +94,7 @@ public class LookupThread implements Runnable {
 								rxp = null;
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
+								_eh.handleStatus(lu, 498, null, 0, 0);
 							}
 						} else {
 							_log.info("HttpEntity for " + lu + " is null");
@@ -131,6 +132,7 @@ public class LookupThread implements Runnable {
 				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			} else {
 				_log.info("access denied per robots.txt for " + lu);
+				_eh.handleStatus(lu, 499, null, 0, 0);
 			}
 
 			lu = _q.poll();

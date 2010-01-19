@@ -158,6 +158,7 @@ public class RankQueue extends SpiderQueue {
 				// queue is empty, done for this round
 				if (size() == 0) {
 					_log.info("queue size is 0: " + toString());
+					return null;
 				}
 				if (_current == POISON) {
 					return null;
