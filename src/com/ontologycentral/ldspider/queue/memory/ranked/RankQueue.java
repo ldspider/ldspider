@@ -33,6 +33,7 @@ public class RankQueue extends SpiderQueue {
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
 
+	long _mindelay, _maxdelay;
 	long _mintime, _maxtime;
 	
 	static Queue<String> POISON = new ConcurrentLinkedQueue<String>();
@@ -47,6 +48,17 @@ public class RankQueue extends SpiderQueue {
 		_frontier = new Frontier();
 		
 		_current = new ConcurrentLinkedQueue<String>();
+		
+		_mindelay = CrawlerConstants.MIN_DELAY;
+		_maxdelay = CrawlerConstants.MAX_DELAY;
+	}
+	
+	public void setMinDelay(int delay) {
+		_mindelay = delay;
+	}
+	
+	public void setMaxDelay(int delay) {
+		_maxdelay = delay;
 	}
 	
 	/**
@@ -164,7 +176,7 @@ public class RankQueue extends SpiderQueue {
 					return null;
 				}
 		
-				if ((time1 - _mintime) < CrawlerConstants.MIN_DELAY) {
+				if ((time1 - _mintime) < _mindelay) {
 					_log.info("fetching plds too fast, rescheduling, queue size " + size());
 					_log.info(toString());
 					_current = POISON;
@@ -176,7 +188,7 @@ public class RankQueue extends SpiderQueue {
 				_mintime = _maxtime = System.currentTimeMillis();
 				
 				_current.addAll(getQueuePlds());
-			} else if ((time1 - _maxtime) > CrawlerConstants.MAX_DELAY) {
+			} else if ((time1 - _maxtime) > _maxdelay) {
 				_log.info("skipped to start of queue in " + (time1-_maxtime) + " ms, queue size " + size());
 
 				_maxtime = System.currentTimeMillis();

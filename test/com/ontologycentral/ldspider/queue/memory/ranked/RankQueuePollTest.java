@@ -13,16 +13,13 @@ import junit.framework.TestCase;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
-public class RankQueueTest extends TestCase {
-	public void testPoll() throws Exception {
+public class RankQueuePollTest extends TestCase {
+	public void testNormalise() throws Exception {
 		long time = System.currentTimeMillis();
 
 		TldManager tldm = new TldManager();
 		
-		RankQueue fq = new RankQueue(tldm);
-		
-		fq.setMinDelay(0);
-		fq.setMaxDelay(Integer.MAX_VALUE);
+		SpiderQueue fq = new RankQueue(tldm);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		
@@ -45,17 +42,6 @@ public class RankQueueTest extends TestCase {
 		
 		fq.schedule();
 		
-		//System.out.println(fq);
-		
-		URI u = fq.poll();
-		
-		int j = 0;
-		
-		while (u != null) {
-			j++;
-			u = fq.poll();
-		}
-		
-		System.out.println("read " + i + " lines, polled " + j + " uris");
+		System.out.println(fq);
 	}
 }
