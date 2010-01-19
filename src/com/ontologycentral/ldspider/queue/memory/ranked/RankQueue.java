@@ -33,7 +33,7 @@ public class RankQueue extends SpiderQueue {
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
 
-	long _time;
+	long _mintime, _maxtime;
 	
 	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 
@@ -72,9 +72,9 @@ public class RankQueue extends SpiderQueue {
 	
 		_current.addAll(getQueuePlds());
 		
-		_time = System.currentTimeMillis();
+		_mintime = _maxtime = System.currentTimeMillis();
 		
-		_log.info("scheduling done in " + (_time - time) + " ms");
+		_log.info("scheduling done in " + (_mintime - time) + " ms");
 	}
 	
 	/**
@@ -157,28 +157,22 @@ public class RankQueue extends SpiderQueue {
 				if (size() == 0) {
 					return null;
 				}
-								
-				if ((time1 - _time) < CrawlerConstants.MIN_DELAY) {
-//					try {
-//						_log.info("delaying queue " + CrawlerConstants.MIN_DELAY + " ms ...");
-//						Thread.sleep(CrawlerConstants.MIN_DELAY);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
+		
+				if ((time1 - _mintime) < CrawlerConstants.MIN_DELAY) {
 					_log.info("fetching plds too fast, rescheduling");
 					_current.addAll(new ArrayList<String>());
 					return null;
 				}
 				
-				_log.info("queue turnaround in " + (time1-_time) + " ms");
+				_log.info("queue turnaround in " + (time1-_mintime) + " ms");
 
-				_time = System.currentTimeMillis();
+				_mintime = _maxtime = System.currentTimeMillis();
 				
 				_current.addAll(getQueuePlds());
-			} else if ((time1 - _time) > CrawlerConstants.MAX_DELAY) {
-				_log.info("skipped to start of queue in " + (time1-_time) + " ms");
+			} else if ((time1 - _maxtime) > CrawlerConstants.MAX_DELAY) {
+				_log.info("skipped to start of queue in " + (time1-_mintime) + " ms");
 
-				_time = System.currentTimeMillis();
+				_maxtime = System.currentTimeMillis();
 				
 				_current.addAll(getQueuePlds());				
 			}
