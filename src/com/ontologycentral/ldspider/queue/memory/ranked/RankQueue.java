@@ -35,6 +35,8 @@ public class RankQueue extends SpiderQueue {
 
 	long _mintime, _maxtime;
 	
+	static Queue<String> POISON = new ConcurrentLinkedQueue<String>();
+	
 	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 
 	public RankQueue(TldManager tldm) {
@@ -154,13 +156,13 @@ public class RankQueue extends SpiderQueue {
 
 			if (_current.isEmpty()) {
 				// queue is empty, done for this round
-				if (size() == 0) {
+				if (size() == 0 || _current == POISON) {
 					return null;
 				}
 		
 				if ((time1 - _mintime) < CrawlerConstants.MIN_DELAY) {
 					_log.info("fetching plds too fast, rescheduling");
-					_current.addAll(new ArrayList<String>());
+					_current = POISON;
 					return null;
 				}
 				
