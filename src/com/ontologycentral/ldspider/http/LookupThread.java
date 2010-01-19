@@ -43,10 +43,13 @@ public class LookupThread implements Runnable {
 	
 	public void run() {
 		_log.info("starting thread ...");
+		
+		int i = 0;
 
 		URI lu = _q.poll();
 
 		while (lu != null) {
+			i++;
 			long time = System.currentTimeMillis();
 			
 //				URI lu = _q.obtainRedirect(u);
@@ -112,7 +115,7 @@ public class LookupThread implements Runnable {
 					}
 					
 					hget.abort();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					hget.abort();
 					_log.info("Exception " + e.getClass().getName());
 					e.printStackTrace();
@@ -132,5 +135,7 @@ public class LookupThread implements Runnable {
 
 			lu = _q.poll();
 		}
+		
+		_log.info("finished thread after fetching " + i + " uris");
 	}
 }
