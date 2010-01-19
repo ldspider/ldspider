@@ -156,12 +156,15 @@ public class RankQueue extends SpiderQueue {
 
 			if (_current.isEmpty()) {
 				// queue is empty, done for this round
-				if (size() == 0 || _current == POISON) {
+				if (size() == 0) {
+					_log.info("queue size is 0: " + toString());
+				}
+				if (_current == POISON) {
 					return null;
 				}
 		
 				if ((time1 - _mintime) < CrawlerConstants.MIN_DELAY) {
-					_log.info("fetching plds too fast, rescheduling");
+					_log.info("fetching plds too fast, rescheduling, queue size " + size());
 					_log.info(toString());
 					_current = POISON;
 					return null;
@@ -173,7 +176,7 @@ public class RankQueue extends SpiderQueue {
 				
 				_current.addAll(getQueuePlds());
 			} else if ((time1 - _maxtime) > CrawlerConstants.MAX_DELAY) {
-				_log.info("skipped to start of queue in " + (time1-_maxtime) + " ms");
+				_log.info("skipped to start of queue in " + (time1-_maxtime) + " ms, queue size " + size());
 
 				_maxtime = System.currentTimeMillis();
 				
