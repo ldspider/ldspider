@@ -162,6 +162,7 @@ public class RankQueue extends SpiderQueue {
 		
 				if ((time1 - _mintime) < CrawlerConstants.MIN_DELAY) {
 					_log.info("fetching plds too fast, rescheduling");
+					_log.info(toString());
 					_current = POISON;
 					return null;
 				}
@@ -172,7 +173,7 @@ public class RankQueue extends SpiderQueue {
 				
 				_current.addAll(getQueuePlds());
 			} else if ((time1 - _maxtime) > CrawlerConstants.MAX_DELAY) {
-				_log.info("skipped to start of queue in " + (time1-_mintime) + " ms");
+				_log.info("skipped to start of queue in " + (time1-_maxtime) + " ms");
 
 				_maxtime = System.currentTimeMillis();
 				
