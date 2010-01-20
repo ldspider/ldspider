@@ -7,12 +7,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
-
 public class BasicFrontier extends Frontier {
 	Set<URI> _data;
 	
 	public BasicFrontier() {
+		super();
 		_data = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	

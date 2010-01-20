@@ -10,12 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
-
 public class RankedFrontier extends Frontier {
 	Map<URI, Integer> _data;
 	
 	public RankedFrontier() {
+		super();
 		_data = Collections.synchronizedMap(new HashMap<URI, Integer>());
 	}
 	
