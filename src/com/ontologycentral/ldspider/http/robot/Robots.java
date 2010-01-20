@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
 
@@ -27,9 +28,11 @@ public class Robots {
 	
     private ErrorHandler _eh;
 
-	public Robots(ConnectionManager cm, ErrorHandler eh) {
+	public Robots(ConnectionManager cm) {
 		_cm = cm;
-		_eh = eh;
+		
+		_eh = new ErrorHandlerDummy();
+		
 		_robots = Collections.synchronizedMap(new HashMap<String, Robot>());
 	}	
 	

@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.semanticweb.yars.nx.Node;
 
-import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 /**
  * Follow no links
@@ -32,7 +32,7 @@ public class LinkFilterDummy implements LinkFilter {
 		;
 	}
 
-	public void setFrontier(Frontier f) {
+	public void setErrorHandler(ErrorHandler eh) {
 		;
 	}
 }

@@ -1,16 +1,13 @@
 package com.ontologycentral.ldspider;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
 
-import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -24,8 +21,8 @@ import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.queue.disk.BDBQueue;
-import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.memory.BreadthFirstQueue;
+import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
@@ -40,7 +37,6 @@ public class Crawler {
 	Robots _robots;
 	TldManager _tldm;
 
-	Frontier _frontier = null;
 	SpiderQueue _queue = null;
 	
 	int _threads;
@@ -87,14 +83,10 @@ public class Crawler {
 
 		_eh = new ErrorHandlerDummy();
 
-	    _robots = new Robots(_cm, _eh);
+	    _robots = new Robots(_cm);
+	    _robots.setErrorHandler(_eh);
 		
-	    _frontier = new BasicFrontier(_eh);
-	    _frontier.setBlacklist(CrawlerConstants.BLACKLIST);
-	    
 		_output = new CallbackDummy();
-		_links = new LinkFilterDefault(_eh);
-		_links.setFrontier(_frontier);
 		_ff = new FetchFilterAllow();
 	}
 	
@@ -105,7 +97,12 @@ public class Crawler {
 	public void setErrorHandler(ErrorHandler eh) {
 		_eh = eh;
 		
-		_robots.setErrorHandler(eh);
+		if (_robots != null) {
+			_robots.setErrorHandler(eh);
+		}
+		if (_links != null) {
+			_links.setErrorHandler(eh);
+		}
 	}
 	
 	public void setOutputCallback(Callback cb) {
@@ -116,14 +113,16 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluate(Collection<URI> seeds, int depth) {
+	public void evaluate(Frontier frontier, int depth) {
 		if (_queue == null) {
 			_queue = new LoadBalancingQueue(_tldm);
 		}
 		
-		_frontier.addAll(seeds);
+		if (_links == null) {
+			_links = new LinkFilterDefault(frontier);
+		}
 		
-		_queue.schedule(_frontier);
+		_queue.schedule(frontier);
 		
 		for (int curRound = 0; curRound <= depth; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
@@ -148,7 +147,7 @@ public class Crawler {
 				}
 			}
 
-			_queue.schedule(_frontier);
+			_queue.schedule(frontier);
 		}
 	}
 	
@@ -159,10 +158,10 @@ public class Crawler {
 	 * @param rounds
 	 * @param maxuris
 	 */
-	public void evaluate(Collection<URI> seeds, int depth, int maxuris) {
+	public void evaluate(Frontier frontier, int depth, int maxuris) {
 		_queue = new BreadthFirstQueue(_tldm, maxuris);
 		
-		evaluate(seeds, depth);
+		evaluate(frontier, depth);
 	}
 	
 	/**
@@ -172,23 +171,25 @@ public class Crawler {
 	 * @param maxuris
 	 * @param queuelocation - usage of a on-disk queue if specified, otherwise in-mem queue
 	 */
-	public void evaluate(Collection<URI> seeds, int depth, int maxuris, String queueLocation) {
-	    SpiderQueue q  = null;
-	    try {
-	    	q = new BDBQueue(_tldm, queueLocation, maxuris);
-	    } catch (URISyntaxException e) {
-	    	e.printStackTrace();
-	    	_log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
-	    	return;
-	    }
-	    
-	    evaluate(seeds, depth);
+	public void evaluate(Frontier frontier, int depth, int maxuris, String queueLocation) {
+		if (_queue == null) {
+			try {
+				_queue = new BDBQueue(_tldm, queueLocation, maxuris);
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+				_log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
+				return;
+			}
+		}
+		
+	    evaluate(frontier, depth);
+
+	    if (_queue instanceof BDBQueue) {
+			((BDBQueue)_queue).close();
+		}
 	}
 	
 	public void close() {
-		if (_queue instanceof BDBQueue) {
-			((BDBQueue)_queue).close();
-		}
 		_cm.shutdown();
 		_eh.close();
 	}

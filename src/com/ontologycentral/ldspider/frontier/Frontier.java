@@ -14,7 +14,7 @@ public abstract class Frontier {
 	String[] _suffixes = { };
 	ErrorHandler _eh;
 	
-	public Frontier(ErrorHandler eh) {
+	public void setErrorHandler(ErrorHandler eh) {
 		_eh = eh;
 	}
 	
@@ -22,29 +22,31 @@ public abstract class Frontier {
 		_suffixes = suffixes;
 	}
 	
-	public void add(URI u) {
+	URI process(URI u) {
 		if (u == null || u.getScheme() == null) {
-			return;
+			return null;
 		}
 	
-		if (!u.getScheme().equals("http") || !u.getScheme().equals("https")) {
+		if (!(u.getScheme().equals("http") || u.getScheme().equals("https"))) {
 			_log.info("skipping " + u + ", " + u.getScheme() + " != http(s)");
-			return;
+			return null;
 		}
 
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {
 			_log.info("skipping " + u +  ", not parsable");
-			return;
+			return null;
 		}
 
 		for (String suffix : _suffixes) {
 			if (u.getPath().endsWith(suffix)) {
 				_log.info("skipping " + u + ", suffix " + suffix + " blacklisted");
-				return;
+				return null;
 			}
 		}
+		
+		return u;
 	}
 	
 	public static URI normalise(URI u) throws URISyntaxException {
@@ -68,6 +70,7 @@ public abstract class Frontier {
 
 		return norm.normalize();
 	}
+	public abstract void add(URI u);
 	public abstract void addAll(Collection<URI> c);
 	public abstract void remove(URI u);
 	public abstract void removeAll(Collection<URI> c);

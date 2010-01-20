@@ -30,7 +30,7 @@ public class LoadBalancingQueuePollTest extends TestCase {
 
 		int i = 0;
 		
-		Frontier f = new RankedFrontier(null);
+		Frontier f = new RankedFrontier();
 		
 		String line = br.readLine();
 		while (line != null) {

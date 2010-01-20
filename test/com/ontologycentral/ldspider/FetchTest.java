@@ -10,7 +10,8 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.parser.Callback;
 
-import com.ontologycentral.ldspider.Crawler;
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
@@ -19,9 +20,8 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 
 public class FetchTest {
 public static void main(String[] args) throws URISyntaxException {
-	List<URI> seeds = new ArrayList<URI>();
-	seeds.add(new URI("http://ld2sd.deri.org/dady/publisher/test-dataset.rdf"));
-	
+	Frontier f = new BasicFrontier();
+	f.add(new URI("http://ld2sd.deri.org/dady/publisher/test-dataset.rdf"));
 	
 	Crawler c = new Crawler(1);
 	
@@ -30,9 +30,9 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	NodeCollector nc = new NodeCollector();
 	c.setOutputCallback(nc);
-	c.setLinkFilter(new LinkFilterDefault(eh));
-	c.setFetchFilter(new FetchFilterRdfXml(eh));
-	c.evaluate(seeds, 0);
+	c.setLinkFilter(new LinkFilterDefault(f));
+	c.setFetchFilter(new FetchFilterRdfXml());
+	c.evaluate(f, 0);
 	c=null;
 	nc=null;
 	
@@ -43,9 +43,9 @@ public static void main(String[] args) throws URISyntaxException {
 	
 	nc = new NodeCollector();
 	c.setOutputCallback(nc);
-	c.setLinkFilter(new LinkFilterDefault(eh));
-	c.setFetchFilter(new FetchFilterRdfXml(eh));
-	c.evaluate(seeds, 0);
+	c.setLinkFilter(new LinkFilterDefault(f));
+	c.setFetchFilter(new FetchFilterRdfXml());
+	c.evaluate(f, 0);
 	
 	
 	System.out.println(nc.getContent());

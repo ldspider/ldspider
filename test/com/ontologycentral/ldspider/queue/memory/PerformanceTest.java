@@ -26,7 +26,7 @@ public class PerformanceTest extends TestCase {
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-		Frontier f = new BasicFrontier(null);
+		Frontier f = new BasicFrontier();
 		
 		int i = 0;
 		

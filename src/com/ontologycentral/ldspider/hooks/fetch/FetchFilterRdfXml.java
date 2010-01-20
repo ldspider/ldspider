@@ -14,7 +14,12 @@ public class FetchFilterRdfXml implements FetchFilter {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	ErrorHandler _eh;
-	public FetchFilterRdfXml(ErrorHandler eh) {
+	
+	public FetchFilterRdfXml() {
+		;
+	}
+	
+	public void setErrorHandler(ErrorHandler eh) {
 		_eh = eh;	
 	}
 	

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
 
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 public class LinkFilterSelect extends LinkFilterDefault{
@@ -13,13 +14,13 @@ public class LinkFilterSelect extends LinkFilterDefault{
 	private List<Node> _predicates;
 	private boolean _isAllowRule;
 
-	public LinkFilterSelect(List<Node> linkPredicates, boolean isAllowRule, ErrorHandler eh) {
-		super(eh);
+	public LinkFilterSelect(Frontier f, List<Node> linkPredicates, boolean isAllowRule) {
+		super(f);
 		_predicates =linkPredicates;
 		_log.info("link predicate is " + linkPredicates);
 		_isAllowRule = isAllowRule;
 	}
-
+	
 	public void startDocument() {
 		;
 	}

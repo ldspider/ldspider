@@ -12,14 +12,15 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 public class BasicFrontier extends Frontier {
 	Set<URI> _data;
 	
-	public BasicFrontier(ErrorHandler eh) {
-		super(eh);
+	public BasicFrontier() {
 		_data = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
 	public void add(URI u) {
-		
-		_data.add(u);
+		u = process(u);
+		if (u != null) {
+			_data.add(u);
+		}
 	}
 	
 	public void remove(URI u) {

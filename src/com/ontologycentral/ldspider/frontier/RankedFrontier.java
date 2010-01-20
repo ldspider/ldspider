@@ -15,19 +15,24 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 public class RankedFrontier extends Frontier {
 	Map<URI, Integer> _data;
 	
-	public RankedFrontier(ErrorHandler eh) {
-		super(eh);
+	public RankedFrontier() {
 		_data = Collections.synchronizedMap(new HashMap<URI, Integer>());
 	}
 	
 	public void add(URI u) {
-		Integer count = _data.get(u);
-		if (count == null) {
-			count = 1;
-		} else {
-			count++;
+		u = process(u);
+
+		if (u != null) {
+			Integer count = _data.get(u);
+			if (count == null) {
+				count = 1;
+			} else {
+				count++;
+			}
+			_data.put(u, count);
+
+			_log.fine("added " + u);
 		}
-		_data.put(u, count);
 	}
 	
 	public void remove(URI u) {

@@ -10,7 +10,7 @@ import com.ontologycentral.ldspider.frontier.RankedFrontier;
 
 public class FrontierTest extends TestCase {
 	public void testFrontier() throws Exception {
-		Frontier f = new RankedFrontier(null);
+		Frontier f = new RankedFrontier();
 		
 		URI u1 = new URI("http://harth.org/andreas/foaf.rdf");
 		URI u2 = new URI("http://harth.org/andreas/foaf#ah");

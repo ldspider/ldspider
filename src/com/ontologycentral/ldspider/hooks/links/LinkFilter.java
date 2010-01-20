@@ -2,7 +2,7 @@ package com.ontologycentral.ldspider.hooks.links;
 
 import org.semanticweb.yars.nx.parser.Callback;
 
-import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 
 /**
@@ -12,5 +12,5 @@ import com.ontologycentral.ldspider.frontier.Frontier;
  *
  */
 public interface LinkFilter extends Callback {
-	public void setFrontier(Frontier f);
+	public void setErrorHandler(ErrorHandler e);
 }

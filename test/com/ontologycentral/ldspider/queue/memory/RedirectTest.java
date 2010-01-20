@@ -17,7 +17,7 @@ public class RedirectTest extends TestCase {
 		
 		URI u = new URI("http://dbpedia.org/resource/Karlsruhe");
 
-		Frontier f = new BasicFrontier(null);
+		Frontier f = new BasicFrontier();
 		
 		f.add(u);
 		

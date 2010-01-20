@@ -22,7 +22,7 @@ public class ThreadingTest extends TestCase {
 		TldManager tldm = new TldManager();
 		
 		SpiderQueue fq = new BreadthFirstQueue(tldm, 5);
-		Frontier f = new BasicFrontier(null);
+		Frontier f = new BasicFrontier();
 		
 		Thread[] ts = new Thread[THREADS];
 		
@@ -40,7 +40,7 @@ public class ThreadingTest extends TestCase {
 		TldManager tldm = new TldManager();
 		
 		SpiderQueue fq = new LoadBalancingQueue(tldm);
-		Frontier f = new RankedFrontier(null);
+		Frontier f = new RankedFrontier();
 		
 		Thread[] ts = new Thread[THREADS];
 		

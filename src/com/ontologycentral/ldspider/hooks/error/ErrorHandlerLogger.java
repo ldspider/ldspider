@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,7 +18,7 @@ import org.semanticweb.yars.nx.parser.Callback;
 public class ErrorHandlerLogger implements ErrorHandler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	List<URIThrowable> _errors;
+	List<ObjectThrowable> _errors;
 	
 	Map<Integer, Integer> _status;
 	
@@ -33,7 +34,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		
 		_redirects = redirects;
 		
-		_errors = Collections.synchronizedList(new ArrayList<URIThrowable>());
+		_errors = Collections.synchronizedList(new ArrayList<ObjectThrowable>());
 		
 		_status = Collections.synchronizedMap(new HashMap<Integer, Integer>());
 	}
@@ -49,9 +50,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			e.printStackTrace();
 		}
 		
-		URIThrowable ut = new URIThrowable();
-		ut._u = u;
-		ut._e = e;
+		ObjectThrowable ut = new ObjectThrowable(u, e);
 		
 		_errors.add(ut);
 	}
@@ -107,6 +106,10 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		return size;
 	}
 	
+	public Iterator<ObjectThrowable> iterator() {
+		return _errors.iterator();
+	}
+	
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		
@@ -144,9 +147,4 @@ public class ErrorHandlerLogger implements ErrorHandler {
 //	private String getDateAsISO8601String() {
 //		return getDateAsISO8601String(new Date());
 //	}
-}
-
-class URIThrowable {
-	URI _u;
-	Throwable _e;
 }

@@ -1,6 +1,8 @@
 package com.ontologycentral.ldspider.hooks.error;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class ErrorHandlerDummy implements ErrorHandler {
 
@@ -22,5 +24,9 @@ public class ErrorHandlerDummy implements ErrorHandler {
 
 	public void handleRedirect(URI from, URI to, int status) {
 		;
+	}
+
+	public Iterator<ObjectThrowable> iterator() {
+		return new ArrayList<ObjectThrowable>().iterator();
 	}
 }

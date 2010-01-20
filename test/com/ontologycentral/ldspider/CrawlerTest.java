@@ -5,6 +5,8 @@ import java.util.List;
 
 import junit.framework.TestCase;
 
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 
@@ -12,34 +14,31 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 public class CrawlerTest extends TestCase {
 	public void testCrawl() throws Exception {
 		Crawler c = new Crawler(1);
-		
-		List<URI> seeds = new ArrayList<URI>();
-		seeds.add(new URI("http://harth.org/andreas/foaf.rdf"));
+
+		Frontier frontier = new BasicFrontier();
+		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 
 		ErrorHandler eh = new ErrorHandlerLogger(null, null);
 		c.setErrorHandler(eh);
-
-		c.evaluate(seeds, 1);
+	
+		c.evaluate(frontier, 1);
 	}
 	
 	public void testCrawl2() throws Exception {
 		Crawler c = new Crawler(1);
 
-		List<URI> seeds = new ArrayList<URI>();
-		seeds.add(new URI("http://harth.org/andreas/foaf.rdf"));
+		Frontier frontier = new BasicFrontier();
+		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 
 		ErrorHandler eh = new ErrorHandlerLogger(null, null);
 		c.setErrorHandler(eh);
 
-		c.evaluate(seeds, 0);
+		c.evaluate(frontier, 0);
 
-		seeds = new ArrayList<URI>();
-		seeds.add(new URI("http://umbrich.net/foaf.rdf"));
-		c.evaluate(seeds, 0);
+		frontier = new BasicFrontier();
+		frontier.add(new URI("http://umbrich.net/foaf.rdf"));
 
-		seeds = new ArrayList<URI>();
-		seeds.add(new URI("http://umbrich.net/foaf.rdf"));
-		c.evaluate(seeds, 0);		
+		c.evaluate(frontier, 0);
 	}
 }
 

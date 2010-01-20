@@ -11,6 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
+import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
@@ -205,30 +207,39 @@ public class Main {
 	
 		ErrorHandler eh = new ErrorHandlerLogger(ps, rcb);
 		
-		Frontier frontier = new RankedFrontier(eh);
+		Frontier frontier = new RankedFrontier();
+		frontier.setErrorHandler(eh);
 		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
-
+		frontier.addAll(seeds);
+		
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
-		LinkFilter links = new LinkFilterDefault(eh);
-		links.setFrontier(frontier);
+		LinkFilter links = new LinkFilterDefault(frontier);
+		links.setErrorHandler(eh);
 		c.setLinkFilter(links);
-		c.setFetchFilter(new FetchFilterRdfXml(eh));
+		FetchFilterRdfXml ffrdf = new FetchFilterRdfXml();
+		ffrdf.setErrorHandler(eh);
+		c.setFetchFilter(ffrdf);
 		
 		if (cmd.hasOption("b")) {
-			c.evaluate(seeds, depth, maxuris, cmd.getOptionValue("b"));
+			c.evaluate(frontier, depth, maxuris, cmd.getOptionValue("b"));
 		} else if (maxuris != -1) {
-			c.evaluate(seeds, depth, maxuris);
+			c.evaluate(frontier, depth, maxuris);
 		} else {
-			c.evaluate(seeds, depth);
+			c.evaluate(frontier, depth);
+		}
+		
+		System.err.println("---------------");
+	
+		for (Iterator<ObjectThrowable> it = eh.iterator(); it.hasNext() ; ) {
+			ObjectThrowable ot = it.next();
+			System.err.println(ot.getThrowable().getMessage() + " " + ot.getObject());
 		}
 
-		System.err.println(eh);
-//		for (Throwable t : eh.getErrors()) {
-//			System.err.println(t.getMessage());		// TODO Auto-generated method stub
+		System.err.println("---------------");
 
-//		}
-		
+		System.err.println(eh);
+
 		c.close();
 
 		long time1 = System.currentTimeMillis();

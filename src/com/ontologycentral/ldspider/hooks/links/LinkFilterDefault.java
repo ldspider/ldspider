@@ -22,12 +22,12 @@ public class LinkFilterDefault implements LinkFilter {
 	Frontier _f;
 	ErrorHandler _eh;
 	
-	public LinkFilterDefault(ErrorHandler eh) {
-		_eh = eh;
+	public LinkFilterDefault(Frontier f) {
+		_f = f;
 	}
 	
-	public void setFrontier(Frontier f) {
-		_f = f;
+	public void setErrorHandler(ErrorHandler eh) {
+		_eh = eh;
 	}
 
 	public void startDocument() {
@@ -44,6 +44,7 @@ public class LinkFilterDefault implements LinkFilter {
 				try {
 					URI u = new URI(nx[i].toString());
 					_f.add(u);
+					_log.fine("adding " + u + " to frontier");
 				} catch (URISyntaxException e) {
 					try {
 						_eh.handleError(new URI(nx[nx.length-1].toString()), e);
