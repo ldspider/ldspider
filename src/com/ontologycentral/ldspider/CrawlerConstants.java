@@ -35,4 +35,9 @@ public class CrawlerConstants {
 	// avoid hammering plds
 	public static final long MIN_DELAY = 500;
 	public static final long MAX_DELAY = 3000;
+	
+	// our status codes
+	public static final int SKIP_SUFFIX = 497;
+	public static final int SKIP_ROBOTS = 498;
+	public static final int SKIP_MIMETYPE = 499;
 }

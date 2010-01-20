@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 
@@ -47,7 +48,7 @@ public abstract class Frontier {
 		for (String suffix : _suffixes) {
 			if (u.getPath().endsWith(suffix)) {
 				_log.info("skipping " + u + ", suffix " + suffix + " blacklisted");
-				_eh.handleStatus(u, 497, null, 0, -1);
+				_eh.handleStatus(u, CrawlerConstants.SKIP_SUFFIX, null, 0, -1);
 				return null;
 			}
 		}

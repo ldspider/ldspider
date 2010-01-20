@@ -15,6 +15,8 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
+
 public class ErrorHandlerLogger implements ErrorHandler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
@@ -99,8 +101,10 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	public long lookups() {
 		long size = 0;
-		for (Integer i : _status.values()) {
-			size += i;
+		for (Integer status : _status.keySet()) {
+			if (status != CrawlerConstants.SKIP_SUFFIX && status != CrawlerConstants.SKIP_ROBOTS) {
+				size += _status.get(status);
+			}
 		}
 
 		return size;
