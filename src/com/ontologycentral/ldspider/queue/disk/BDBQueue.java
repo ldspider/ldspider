@@ -120,25 +120,23 @@ public class BDBQueue extends SpiderQueue {
     }
 
     @Override
-    public void addFrontier(URI url){
-	String uri;
-	try {
-	    uri = normalise(url).toASCIIString();
-	    synchronized (_urlIndex) {
-		    URLObject o = _urlIndex.get(uri);
-		    if(o == null) _urlIndex.put(new URLObject(uri));
-		    else if(o.getCount()==-1) return;
-		    else{
-			o.incrementCount();
-			_urlIndex.put(o);
-		    }
-		}
-	} catch (URISyntaxException e) {
-	    // TODO Auto-generated catch block
-//	    e.printStackTrace();
-	    return;
-	}
-	
+    public boolean addFrontier(URI u){
+    	String uri = u.toASCIIString();
+
+    	if (super.addFrontier(u) == true) {
+    		synchronized (_urlIndex) {
+    			URLObject o = _urlIndex.get(uri);
+    			if(o == null) _urlIndex.put(new URLObject(uri));
+    			else if(o.getCount()==-1) return false;
+    			else{
+    				o.incrementCount();
+    				_urlIndex.put(o);
+    			}
+    			return true;
+    		}
+    	}
+		
+		return false;	
     }
 
     // XXX logic for redirects changed

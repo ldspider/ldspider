@@ -32,8 +32,6 @@ public class FetchQueue extends SpiderQueue {
 	long _time;
 	
 	int _maxuris;
-	
-	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 
 	public FetchQueue(TldManager tldm, int maxuris) {
 		_tldm = tldm;
@@ -96,30 +94,13 @@ public class FetchQueue extends SpiderQueue {
 	 * 
 	 * @param u
 	 */
-	public void addFrontier(URI u) {
-		if (u == null || u.getScheme() == null) {
-			return;
+	public boolean addFrontier(URI u) {
+		if (super.addFrontier(u) == true) {
+			_frontier.add(u);
+			return true;
 		}
 		
-		if (!(u.getScheme().equals("http"))) {
-			_log.info(u.getScheme() + " != http, skipping " + u);
-			return;
-		}
-		
-		try {
-			u = normalise(u);
-		} catch (URISyntaxException e) {
-			_log.info(u +  " not parsable, skipping " + u);
-			return;
-		}
-		
-		for (String suffix : _blacklist) {
-			if (u.getPath().endsWith(suffix)) {
-				return;
-			}
-		}
-
-		_frontier.add(u);
+		return false;
 	}
 	
 	/**

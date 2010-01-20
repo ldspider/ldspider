@@ -49,7 +49,9 @@ public class LinkFilterDefault implements LinkFilter {
 				try {
 					URI u = new URI(nx[i].toString());
 					u = SpiderQueue.normalise(u);
-					_links.add(u);
+					if (_links.add(u) == false) {
+						_eh.handleStatus(u, 497, null, 0, 0);
+					}
 				} catch (URISyntaxException e) {
 					try {
 						_eh.handleError(new URI(nx[nx.length-1].toString()), e);
