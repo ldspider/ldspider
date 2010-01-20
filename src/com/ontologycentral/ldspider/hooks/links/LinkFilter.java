@@ -1,9 +1,8 @@
 package com.ontologycentral.ldspider.hooks.links;
 
-import java.net.URI;
-import java.util.Set;
-
 import org.semanticweb.yars.nx.parser.Callback;
+
+import com.ontologycentral.ldspider.frontier.Frontier;
 
 
 /**
@@ -13,7 +12,5 @@ import org.semanticweb.yars.nx.parser.Callback;
  *
  */
 public interface LinkFilter extends Callback {
-
-    Set<URI> getLinks();
-
+	public void setFrontier(Frontier f);
 }

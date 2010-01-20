@@ -3,24 +3,14 @@ package com.ontologycentral.ldspider.queue.disk;
 import static com.sleepycat.persist.model.Relationship.MANY_TO_ONE;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Queue;
-import java.util.Stack;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.HttpClient;
-
-import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.queue.memory.FetchQueue;
+import com.ontologycentral.ldspider.queue.memory.BreadthFirstQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 import com.sleepycat.je.DatabaseException;
 import com.sleepycat.je.Environment;
@@ -52,13 +42,12 @@ public class BDBQueue extends SpiderQueue {
 
 //    private long _time;
 
-    private TldManager _tldm;
-
-    private FetchQueue _queue;
+    private BreadthFirstQueue _queue;
     
     int _maxuris;
 
     public BDBQueue(TldManager tldm, String queueLocation, int maxuris) throws URISyntaxException {
+    	super(tldm);
 	this.envDir = new File(queueLocation);
 	_tldm = tldm;
 	_maxuris = maxuris;
@@ -119,25 +108,25 @@ public class BDBQueue extends SpiderQueue {
 	return success;
     }
 
-    @Override
-    public boolean addFrontier(URI u){
-    	String uri = u.toASCIIString();
-
-    	if (super.addFrontier(u) == true) {
-    		synchronized (_urlIndex) {
-    			URLObject o = _urlIndex.get(uri);
-    			if(o == null) _urlIndex.put(new URLObject(uri));
-    			else if(o.getCount()==-1) return false;
-    			else{
-    				o.incrementCount();
-    				_urlIndex.put(o);
-    			}
-    			return true;
-    		}
-    	}
-		
-		return false;	
-    }
+//    @Override
+//    public boolean addFrontier(URI u){
+//    	String uri = u.toASCIIString();
+//
+//    	if (super.addFrontier(u) == true) {
+//    		synchronized (_urlIndex) {
+//    			URLObject o = _urlIndex.get(uri);
+//    			if(o == null) _urlIndex.put(new URLObject(uri));
+//    			else if(o.getCount()==-1) return false;
+//    			else{
+//    				o.incrementCount();
+//    				_urlIndex.put(o);
+//    			}
+//    			return true;
+//    		}
+//    	}
+//		
+//		return false;	
+//    }
 
     // XXX logic for redirects changed
     URI obtainRedirect(URI from) {
@@ -158,33 +147,33 @@ public class BDBQueue extends SpiderQueue {
     }
 
     @Override
-    public void schedule() {
-	_queue = new FetchQueue(_tldm, _maxuris);
+    public void schedule(Frontier f) {
+	_queue = new BreadthFirstQueue(_tldm, _maxuris);
 	
 	log.info("Schedule new queue");
 //	_pldMap = new HashMap<String, Integer>();
-	EntityCursor<URLObject> cursor  = _countIndex.entities();
-	URLObject o = null; 
-	int counter = 0;
-	do{
-	    o = cursor.prev();
-	    if(o!=null && o.getCount()!=-1){
-		_queue.addFrontier(o.getURI());
-		counter++;
-	    }
-	}while(counter!=_maxuris && o != null);
-	_queue.schedule();
+//	EntityCursor<URLObject> cursor  = _countIndex.entities();
+//	URLObject o = null; 
+//	int counter = 0;
+//	do{
+//	    o = cursor.prev();
+//	    if(o!=null && o.getCount()!=-1){
+//		_queue.addFrontier(o.getURI());
+//		counter++;
+//	    }
+//	}while(counter!=_maxuris && o != null);
+//	_queue.schedule(f);
 //	log.info("New Queue contains: "+_tmpQueue.size()+" elements from "+_pldMap.size()+" plds");
 //	Collections.shuffle(_tmpQueue);
 //	log.info("Shuffled");
-	cursor.close();
+//	cursor.close();
 	
     }
 
     @Override
     public void setRedirect(URI from, URI to, int status) {
 	try {
-		to = normalise(to);
+		to = Frontier.normalise(to);
 	} catch (URISyntaxException e) {
 		log.info(to +  " not parsable, skipping " + to);
 		return;

@@ -3,6 +3,8 @@ import java.net.URI;
 
 import junit.framework.TestCase;
 
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
@@ -11,13 +13,15 @@ public class RedirectTest extends TestCase {
 	public void testNormalise() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		SpiderQueue fq = new FetchQueue(tldm, 1);
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 1);
 		
 		URI u = new URI("http://dbpedia.org/resource/Karlsruhe");
 
-		fq.addFrontier(u);
+		Frontier f = new BasicFrontier(null);
 		
-		fq.schedule();
+		f.add(u);
+		
+		fq.schedule(f);
 		
 		System.out.println(fq);
 		
@@ -40,11 +44,11 @@ public class RedirectTest extends TestCase {
 		page = new URI("http://dbpedia.org/index.html");
 
 		System.out.println(page.getPath());
-		System.out.println(SpiderQueue.normalise(page));
+		System.out.println(Frontier.normalise(page));
 		
 		page = new URI("http://dbpedia.org/bla/index.html");
 
 		System.out.println(page.getPath());
-		System.out.println(SpiderQueue.normalise(page));
+		System.out.println(Frontier.normalise(page));
 	}
 }

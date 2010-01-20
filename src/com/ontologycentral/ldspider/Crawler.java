@@ -10,6 +10,8 @@ import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
 
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
@@ -22,8 +24,8 @@ import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.queue.disk.BDBQueue;
-import com.ontologycentral.ldspider.queue.memory.FetchQueue;
-import com.ontologycentral.ldspider.queue.memory.ranked.RankQueue;
+import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
+import com.ontologycentral.ldspider.queue.memory.BreadthFirstQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
@@ -38,7 +40,8 @@ public class Crawler {
 	Robots _robots;
 	TldManager _tldm;
 
-	SpiderQueue _q = null;
+	Frontier _frontier = null;
+	SpiderQueue _queue = null;
 	
 	int _threads;
 	
@@ -86,8 +89,12 @@ public class Crawler {
 
 	    _robots = new Robots(_cm, _eh);
 		
+	    _frontier = new BasicFrontier(_eh);
+	    _frontier.setBlacklist(CrawlerConstants.BLACKLIST);
+	    
 		_output = new CallbackDummy();
 		_links = new LinkFilterDefault(_eh);
+		_links.setFrontier(_frontier);
 		_ff = new FetchFilterAllow();
 	}
 	
@@ -110,26 +117,24 @@ public class Crawler {
 	}
 	
 	public void evaluate(Collection<URI> seeds, int depth) {
-		if (_q == null) {
-			_q = new RankQueue(_tldm);
+		if (_queue == null) {
+			_queue = new LoadBalancingQueue(_tldm);
 		}
 		
-		for (URI u : seeds) {
-			_q.addFrontier(u);
-		}
+		_frontier.addAll(seeds);
 		
-		_q.schedule();
+		_queue.schedule(_frontier);
 		
 		for (int curRound = 0; curRound <= depth; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _q, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
-			_log.info("Starting threads round " + curRound + " with " + _q.size() + " uris");
-			_log.info(_q.toString());
+			_log.info("Starting threads round " + curRound + " with " + _queue.size() + " uris");
+			_log.info(_queue.toString());
 			
 			for (Thread t : ts) {
 				t.start();
@@ -143,11 +148,7 @@ public class Crawler {
 				}
 			}
 
-			for (URI u : _links.getLinks()) {
-				_q.addFrontier(u);
-			}
-
-			_q.schedule();
+			_queue.schedule(_frontier);
 		}
 	}
 	
@@ -159,7 +160,7 @@ public class Crawler {
 	 * @param maxuris
 	 */
 	public void evaluate(Collection<URI> seeds, int depth, int maxuris) {
-		_q = new FetchQueue(_tldm, maxuris);
+		_queue = new BreadthFirstQueue(_tldm, maxuris);
 		
 		evaluate(seeds, depth);
 	}
@@ -185,8 +186,8 @@ public class Crawler {
 	}
 	
 	public void close() {
-		if (_q instanceof BDBQueue) {
-			((BDBQueue)_q).close();
+		if (_queue instanceof BDBQueue) {
+			((BDBQueue)_queue).close();
 		}
 		_cm.shutdown();
 		_eh.close();

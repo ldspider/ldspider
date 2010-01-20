@@ -8,7 +8,10 @@ import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
 
-import com.ontologycentral.ldspider.queue.memory.FetchQueue;
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 
@@ -18,12 +21,31 @@ public class ThreadingTest extends TestCase {
 	public void testThreading() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		FetchQueue fq = new FetchQueue(tldm, 5);
-
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 5);
+		Frontier f = new BasicFrontier(null);
+		
 		Thread[] ts = new Thread[THREADS];
 		
 		for (int i = 0; i < THREADS; i++) {
-			ts[i] = new Thread(new Worker(fq));
+			ts[i] = new Thread(new Worker(fq, f));
+			ts[i].start();
+		}
+		
+		for (int i = 0; i < THREADS; i++) {
+			ts[i].join();
+		}
+	}	
+	
+	public void testThreadingLoadBalancing() throws Exception {
+		TldManager tldm = new TldManager();
+		
+		SpiderQueue fq = new LoadBalancingQueue(tldm);
+		Frontier f = new RankedFrontier(null);
+		
+		Thread[] ts = new Thread[THREADS];
+		
+		for (int i = 0; i < THREADS; i++) {
+			ts[i] = new Thread(new Worker(fq, f));
 			ts[i].start();
 		}
 		
@@ -34,10 +56,12 @@ public class ThreadingTest extends TestCase {
 }
 
 class Worker implements Runnable {
-	FetchQueue _fq;
+	SpiderQueue _fq;
+	Frontier _f;
 	
-	public Worker(FetchQueue fq) {
+	public Worker(SpiderQueue fq, Frontier f) {
 		_fq = fq;
+		_f = f;
 	}
 
 	public void run() {
@@ -54,9 +78,7 @@ class Worker implements Runnable {
 
 				URI u = new URI(line);
 
-				_fq.addFrontier(u);
-				
-				_fq.checkSeen(u);
+				_f.add(u);
 
 				line = br.readLine();
 			}

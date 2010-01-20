@@ -9,7 +9,8 @@ import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
 
-import com.ontologycentral.ldspider.queue.memory.FetchQueue;
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 
@@ -19,12 +20,14 @@ public class PerformanceTest extends TestCase {
 
 		TldManager tldm = new TldManager();
 		
-		FetchQueue fq = new FetchQueue(tldm, Integer.MAX_VALUE);
+		BreadthFirstQueue fq = new BreadthFirstQueue(tldm, Integer.MAX_VALUE);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
+		Frontier f = new BasicFrontier(null);
+		
 		int i = 0;
 		
 		String line = br.readLine();
@@ -33,14 +36,14 @@ public class PerformanceTest extends TestCase {
 
 			URI u = new URI(line);
 			
-			fq.addFrontier(u);
+			f.add(u);
 			
 			line = br.readLine();
 		}
 		
 		br.close();
 		
-		fq.schedule();
+		fq.schedule(f);
 		
 		int size = fq.size();
 		

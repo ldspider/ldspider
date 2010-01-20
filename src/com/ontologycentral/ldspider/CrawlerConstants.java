@@ -16,6 +16,8 @@ public class CrawlerConstants {
 		new BasicHeader("Accept-Encoding", "gzip")
 	};
 	
+	public static String[] BLACKLIST = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
+	
 	public static final int CONNECTION_TIMEOUT = 4000;
 	public static final int SOCKET_TIMEOUT = 8000;
 

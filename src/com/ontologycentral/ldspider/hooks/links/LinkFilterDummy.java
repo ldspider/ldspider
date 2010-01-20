@@ -6,6 +6,8 @@ import java.util.Set;
 
 import org.semanticweb.yars.nx.Node;
 
+import com.ontologycentral.ldspider.frontier.Frontier;
+
 /**
  * Follow no links
  * 
@@ -27,6 +29,10 @@ public class LinkFilterDummy implements LinkFilter {
 	}
 
 	public void processStatement(Node[] arg0) {
+		;
+	}
+
+	public void setFrontier(Frontier f) {
 		;
 	}
 }

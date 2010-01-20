@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -12,17 +13,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
-public class FetchQueue extends SpiderQueue {
+public class BreadthFirstQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	TldManager _tldm;
-
 	Set<URI> _seen;
-	Set<URI> _frontier;
 	
 	Redirects _redirs;
 
@@ -33,13 +32,13 @@ public class FetchQueue extends SpiderQueue {
 	
 	int _maxuris;
 
-	public FetchQueue(TldManager tldm, int maxuris) {
+	public BreadthFirstQueue(TldManager tldm, int maxuris) {
+		super(tldm);
 		_tldm = tldm;
 		_maxuris = maxuris;
 
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
 		_redirs = new Redirects();
-		_frontier = Collections.synchronizedSet(new HashSet<URI>());
 		
 		_current = new ConcurrentLinkedQueue<String>();
 	}
@@ -49,14 +48,18 @@ public class FetchQueue extends SpiderQueue {
 	 * 
 	 * @param maxuris - cut off number of uris per pld
 	 */
-	public synchronized void schedule() {	
+	public synchronized void schedule(Frontier f) {	
 		_log.info("start scheduling...");
 
 		long time = System.currentTimeMillis();
+		
+		super.schedule(f);
 
 		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 
-		for (URI u : _frontier) {
+		Iterator<URI> it = f.iterator();
+		while (it.hasNext()) {
+			URI u = it.next();
 			if (!checkSeen(u)) {
 				addDirectly(u);
 			}
@@ -84,23 +87,7 @@ public class FetchQueue extends SpiderQueue {
 		
 		_time = System.currentTimeMillis();
 		
-		_frontier = Collections.synchronizedSet(new HashSet<URI>());
-		
 		_log.info("scheduling done in " + (_time - time) + " ms");
-	}
-	
-	/**
-	 * Add URI to frontier
-	 * 
-	 * @param u
-	 */
-	public boolean addFrontier(URI u) {
-		if (super.addFrontier(u) == true) {
-			_frontier.add(u);
-			return true;
-		}
-		
-		return false;
 	}
 	
 	/**
@@ -179,7 +166,7 @@ public class FetchQueue extends SpiderQueue {
 	 */
 	public void setRedirect(URI from, URI to, int status) {
 		try {
-			to = normalise(to);
+			to = Frontier.normalise(to);
 		} catch (URISyntaxException e) {
 			_log.info(to +  " not parsable, skipping " + to);
 			return;
@@ -191,7 +178,7 @@ public class FetchQueue extends SpiderQueue {
 		}
 		
 		_redirs.put(from, to);
-		addFrontier(to);
+		_redirsRound.add(to);
 //			// fetch again, this time redirects are taken into account
 //			addDirectly(from);
 	}
@@ -203,7 +190,7 @@ public class FetchQueue extends SpiderQueue {
 	 */
 	synchronized void addDirectly(URI u) {
 		try {
-			u = normalise(u);
+			u = Frontier.normalise(u);
 		} catch (URISyntaxException e) {
 			_log.info(u +  " not parsable, skipping " + u);
 			return;
@@ -249,6 +236,7 @@ public class FetchQueue extends SpiderQueue {
 	void setSeen(URI u) {
 		if (u != null) {
 			_seen.add(u);
+			_seenRound.add(u);
 		}
 	}
 	

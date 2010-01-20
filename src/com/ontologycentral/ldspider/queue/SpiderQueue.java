@@ -2,72 +2,78 @@ package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
+
+import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.tld.TldManager;
 
 
 
 public abstract class SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	public abstract void schedule();
 //	public abstract boolean addFrontier(URI u);
 	public abstract URI poll();
 	public abstract void setRedirect(URI from, URI to, int status);
 	public abstract int size();
 	
-	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
+	protected Set<URI> _seenRound = null;
+	protected Set<URI> _redirsRound = null;
 	
-	/**
-	 * Add URI to frontier
-	 * 
-	 * @param u
-	 */
-	public boolean addFrontier(URI u) {
-		if (u == null || u.getScheme() == null) {
-			return false;
-		}
-		
-		if (!(u.getScheme().equals("http"))) {
-			_log.info(u.getScheme() + " != http, skipping " + u);
-			return false;
-		}
-		
-		try {
-			u = normalise(u);
-		} catch (URISyntaxException e) {
-			_log.info(u +  " not parsable, skipping " + u);
-			return false;
-		}
-		
-		for (String suffix : _blacklist) {
-			if (u.getPath().endsWith(suffix)) {
-				_log.info("suffix blacklisted");
-				return false;
-			}
-		}
-
-		return true;
+	protected TldManager _tldm;
+	
+	public SpiderQueue(TldManager tldm) {
+		_tldm = tldm;
 	}
 	
-	public static URI normalise(URI u) throws URISyntaxException {
-		String path = u.getPath();
-		if (path == null || path.length() == 0) {
-			path = "/";
-		} else if (path.endsWith("/index.html")) {
-			path = path.substring(0, path.length()-10);
-		} else if (path.endsWith("/index.htm") || path.endsWith("/index.php") || path.endsWith("/index.asp")) {
-			path = path.substring(0, path.length()-9);
+	public void schedule(Frontier f) {
+		if (_seenRound != null) {
+			f.removeAll(_seenRound);
 		}
-
-		if (u.getHost() == null) {
-			throw new URISyntaxException("no host in ", u.toString());
+		if (_redirsRound != null) {
+			f.addAll(_redirsRound);
 		}
-
-		// remove fragment
-		URI norm = new URI(u.getScheme().toLowerCase(),
-				u.getUserInfo(), u.getHost().toLowerCase(), u.getPort(),
-				path, u.getQuery(), null);
-
-		return norm.normalize();
+		
+		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
+		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
 	}
+	
+//	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
+//	
+//	protected Frontier _frontier;
+//
+//	/**
+//	 * Add URI to frontier
+//	 * 
+//	 * @param u
+//	 */
+//	public boolean addFrontier(URI u) {
+//		if (u == null || u.getScheme() == null) {
+//			return false;
+//		}
+//		
+//		if (!(u.getScheme().equals("http"))) {
+//			_log.info(u.getScheme() + " != http, skipping " + u);
+//			return false;
+//		}
+//		
+//		try {
+//			u = normalise(u);
+//		} catch (URISyntaxException e) {
+//			_log.info(u +  " not parsable, skipping " + u);
+//			return false;
+//		}
+//		
+//		for (String suffix : _blacklist) {
+//			if (u.getPath().endsWith(suffix)) {
+//				_log.info("suffix blacklisted");
+//				return false;
+//			}
+//		}
+//
+//		return true;
+//	}
 }
