@@ -1,9 +1,9 @@
 package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -40,40 +40,4 @@ public abstract class SpiderQueue {
 		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
 		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
 	}
-	
-//	String[] _blacklist = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
-//	
-//	protected Frontier _frontier;
-//
-//	/**
-//	 * Add URI to frontier
-//	 * 
-//	 * @param u
-//	 */
-//	public boolean addFrontier(URI u) {
-//		if (u == null || u.getScheme() == null) {
-//			return false;
-//		}
-//		
-//		if (!(u.getScheme().equals("http"))) {
-//			_log.info(u.getScheme() + " != http, skipping " + u);
-//			return false;
-//		}
-//		
-//		try {
-//			u = normalise(u);
-//		} catch (URISyntaxException e) {
-//			_log.info(u +  " not parsable, skipping " + u);
-//			return false;
-//		}
-//		
-//		for (String suffix : _blacklist) {
-//			if (u.getPath().endsWith(suffix)) {
-//				_log.info("suffix blacklisted");
-//				return false;
-//			}
-//		}
-//
-//		return true;
-//	}
 }

@@ -146,6 +146,9 @@ public class Crawler {
 					e1.printStackTrace();
 				}
 			}
+			
+			_log.info("ROUND " + curRound + " DONE with " + _queue.size() + " uris remaining in queue");
+			_log.info(_queue.toString());
 
 			_queue.schedule(frontier);
 		}

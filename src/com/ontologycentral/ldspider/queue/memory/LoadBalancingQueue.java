@@ -157,7 +157,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 				}
 		
 				if ((time1 - _mintime) < _mindelay) {
-					_log.info("fetching plds too fast, rescheduling, queue size " + size());
+					_log.info("fetching plds too fast, rescheduling, remaining uris in queue " + size());
 					_log.info(toString());
 					_current = POISON;
 					return null;
