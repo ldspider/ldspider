@@ -95,6 +95,9 @@ public class LookupThread implements Runnable {
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);
+								hget.abort();
+								hen = null;
+								status = 0;
 							}
 						} else {
 							_log.info("HttpEntity for " + lu + " is null");
