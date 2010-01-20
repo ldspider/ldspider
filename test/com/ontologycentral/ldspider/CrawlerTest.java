@@ -19,7 +19,7 @@ public class CrawlerTest extends TestCase {
 		ErrorHandler eh = new ErrorHandlerLogger(null, null);
 		c.setErrorHandler(eh);
 
-		c.evaluate(seeds, 0);
+		c.evaluate(seeds, 1);
 	}
 	
 	public void testCrawl2() throws Exception {

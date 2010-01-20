@@ -27,9 +27,12 @@ import org.apache.commons.cli.Options;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNQOutputStream;
 
+import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
+import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 
 public class Main {
@@ -199,11 +202,17 @@ public class Main {
 			rcb = new CallbackNQOutputStream(fos);
 			rcb.startDocument();
 		}
-
+	
 		ErrorHandler eh = new ErrorHandlerLogger(ps, rcb);
+		
+		Frontier frontier = new RankedFrontier(eh);
+		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
+
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
-		c.setLinkFilter(new LinkFilterDefault(eh));
+		LinkFilter links = new LinkFilterDefault(eh);
+		links.setFrontier(frontier);
+		c.setLinkFilter(links);
 		c.setFetchFilter(new FetchFilterRdfXml(eh));
 		
 		if (cmd.hasOption("b")) {
