@@ -48,7 +48,6 @@ public class LinkFilterDefault implements LinkFilter {
 			if (nx[i] instanceof Resource) {
 				try {
 					URI u = new URI(nx[i].toString());
-					u = SpiderQueue.normalise(u);
 					if (_links.add(u) == false) {
 						_eh.handleStatus(u, 497, null, 0, 0);
 					}

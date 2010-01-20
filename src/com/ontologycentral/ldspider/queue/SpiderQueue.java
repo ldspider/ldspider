@@ -41,6 +41,7 @@ public abstract class SpiderQueue {
 		
 		for (String suffix : _blacklist) {
 			if (u.getPath().endsWith(suffix)) {
+				_log.info("suffix blacklisted");
 				return false;
 			}
 		}
