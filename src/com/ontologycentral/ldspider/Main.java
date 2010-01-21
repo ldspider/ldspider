@@ -46,73 +46,79 @@ public class Main {
 
 		OptionGroup input = new OptionGroup();
 
-		Option seeds  = OptionBuilder.withArgName( "seed list")
+		Option seeds = OptionBuilder.withArgName("seed list")
 		.hasArgs(1)
-		.withDescription( "location of the seed list" )
-		.create( "s" );
+		.withDescription("location of the seed list")
+		.create("s");
 		seeds.setRequired(true);
 		input.addOption(seeds);
 
-		Option uri  = OptionBuilder.withArgName( "uri")
+		Option uri = OptionBuilder.withArgName("uri")
 		.hasArgs(1)
-		.withDescription( "uri of an instance" )
-		.create( "u" );
+		.withDescription("uri of an instance")
+		.create("u");
 		uri.setRequired(true);
 		input.addOption(uri);
 		options.addOptionGroup(input);
 
-		Option threads = OptionBuilder.withArgName( "threads")
+		Option threads = OptionBuilder.withArgName("threads")
 		.hasArgs(1)
-		.withDescription( "number of threads (default "+CrawlerConstants.DEFAULT_NB_THREADS+")")
-		.create( "t" );
+		.withDescription("number of threads (default "+CrawlerConstants.DEFAULT_NB_THREADS+")")
+		.create("t");
 		options.addOption(threads);
 
-		Option rounds = OptionBuilder.withArgName( "depth")
+		Option rounds = OptionBuilder.withArgName("depth")
 		.hasArgs(1)
-		.withDescription( "depth; number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
-		.create( "d" );
+		.withDescription("depth; number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
+		.create("d");
 		options.addOption(rounds);
 
-		Option redirs = OptionBuilder.withArgName( "redirects")
+		Option redirs = OptionBuilder.withArgName("redirects")
 		.hasArgs(1)
-		.withDescription( "write redirects.nx file")
-		.create( "r" );
+		.withDescription("write redirects.nx file")
+		.create("r");
 		options.addOption(redirs);
 
-		Option output  = OptionBuilder.withArgName( "file name")
+		Option output = OptionBuilder.withArgName("file name")
 		.hasArgs(1)
-		.withDescription( "name of NQ file with output " )
-		.create( "o" );
+		.withDescription("name of NQ file with output ")
+		.create("o");
 		options.addOption(output);
 
 		Option log = OptionBuilder.withArgName("log file name")
 		.hasArgs(1)
-		.withDescription( "name of access log file" )
-		.create( "l" );
+		.withDescription("name of access log file")
+		.create("l");
 		options.addOption(log);
 
-		Option maxuris  = OptionBuilder.withArgName( "max no uris")
+//		Option strategy = OptionBuilder.withArgName("strategy")
+//		.hasArgs(1)
+//		.withDescription("crawl strategy: breadth-first, load balanced, random walk")
+//		.create("s");
+//		options.addOption(strategy);
+		
+		Option maxuris = OptionBuilder.withArgName("max no uris")
 		.hasArgs(1)
-		.withDescription( "max no of uris per pld per round" )
-		.create( "m" );
+		.withDescription("max no of uris per pld per round")
+		.create("m");
 		options.addOption(maxuris);
 		
-		Option ondisk  = OptionBuilder.withArgName( "on-disk queue")
+		Option ondisk = OptionBuilder.withArgName("on-disk queue")
 		.hasArgs(0)
-		.withDescription( "use the BDB on-disk queue with URI selection based on their frequency." )
-		.create( "b" );
+		.withDescription("use the BDB on-disk queue with URI selection based on their frequency.")
+		.create("b");
 		options.addOption(ondisk);
 
-//		Option useragent  = OptionBuilder.withArgName( "user agent")
+//		Option useragent  = OptionBuilder.withArgName("user agent")
 //		.hasArgs(1)
-//		.withDescription( "user agent" )
-//		.create( "a" );
+//		.withDescription("user agent")
+//		.create("a");
 //		options.addOption(useragent);
 		
-//		Option error  = OptionBuilder.withArgName( "error")
+//		Option error  = OptionBuilder.withArgName("error")
 //		.hasArgs(1)
-//		.withDescription( "error log file" )
-//		.create( "e" );
+//		.withDescription("error log file")
+//		.create("e");
 //		input.addOption(error);
 
 
@@ -125,7 +131,7 @@ public class Main {
 		try {
 			cmd = parser.parse(options, args,true);
 			if (cmd.hasOption("h") || cmd.hasOption("help")) {
-				formatter.printHelp(80," ","Life lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
+				formatter.printHelp(80," ","Live lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
 			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
 				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
@@ -179,7 +185,7 @@ public class Main {
 		}
 
 		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " depth " + depth);
-		_log.info("seed uri " + seeds);
+		_log.info("no of seed uris " + seeds.size());
 		
 		//start the crawl
 		long time = System.currentTimeMillis();
@@ -254,7 +260,7 @@ public class Main {
 			rcb.endDocument();
 		}
 
-		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec" );
+		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec");
 	}
 
 	/**
