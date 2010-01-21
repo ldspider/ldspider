@@ -28,6 +28,8 @@ public class LookupThread implements Runnable {
 	FetchFilter _ff;
 	
 	Robots _robots;
+//	Sitemaps _sitemaps;
+	
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
@@ -37,6 +39,7 @@ public class LookupThread implements Runnable {
 		_content = content;
 		_links = links;
 		_robots = robots;
+//		_sitemaps = sitemaps;
 		_ff = ff;
 		_eh = eh;
 	}
@@ -60,6 +63,11 @@ public class LookupThread implements Runnable {
 			long bytes = -1;
 			int status = 0;
 			String type = null;
+			
+//			List<URI> li = _sitemaps.getSitemapUris(lu);
+//			if (li != null && li.size() > 0) {
+//				_log.info("sitemap surprisingly actually has uris " + li);
+//			}
 			
 			if (_robots.accessOk(lu)) {
 				time2 = System.currentTimeMillis();

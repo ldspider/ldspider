@@ -33,7 +33,7 @@ public class CrawlerConstants {
 	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
 	
 	// avoid hammering plds
-	public static final long MIN_DELAY = 500;
+	public static final long MIN_DELAY = 2000;
 	public static final long MAX_DELAY = 4*MIN_DELAY;
 	
 	// our status codes

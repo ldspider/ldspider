@@ -34,6 +34,8 @@ public class LoadBalancingQueue extends SpiderQueue {
 	long _mindelay, _maxdelay;
 	long _mintime, _maxtime;
 	
+	int _depth = 0;
+	
 	static Queue<String> POISON = new ConcurrentLinkedQueue<String>();
 	
 	public LoadBalancingQueue(TldManager tldm) {
@@ -62,7 +64,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 	 * @param maxuris - cut off number of uris per pld
 	 */
 	public synchronized void schedule(Frontier f) {	
-		_log.info("start scheduling...");
+		_log.info("start scheduling depth " + _depth++ + "...");
 
 		long time = System.currentTimeMillis();
 
@@ -85,7 +87,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 		
 		_mintime = _maxtime = System.currentTimeMillis();
 		
-		_log.info("scheduling " + size() + " uris done in " + (_mintime - time) + " ms");
+		_log.info("scheduling depth " + _depth + " with " + size() + " uris and " + getQueuePlds().size() + " plds done in " + (_mintime - time) + " ms");
 	}
 	
 //	/**

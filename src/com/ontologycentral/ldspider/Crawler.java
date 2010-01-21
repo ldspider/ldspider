@@ -35,6 +35,8 @@ public class Crawler {
 	ConnectionManager _cm;
 	
 	Robots _robots;
+//	Sitemaps _sitemaps;
+	
 	TldManager _tldm;
 
 	SpiderQueue _queue = null;
@@ -85,6 +87,9 @@ public class Crawler {
 
 	    _robots = new Robots(_cm);
 	    _robots.setErrorHandler(_eh);
+	    
+//	    _sitemaps = new Sitemaps(_cm);
+//	    _sitemaps.setErrorHandler(_eh);
 		
 		_output = new CallbackDummy();
 		_ff = new FetchFilterAllow();
@@ -100,6 +105,9 @@ public class Crawler {
 		if (_robots != null) {
 			_robots.setErrorHandler(eh);
 		}
+//		if (_sitemaps != null) {
+//			_sitemaps.setErrorHandler(eh);
+//		}
 		if (_links != null) {
 			_links.setErrorHandler(eh);
 		}
@@ -152,8 +160,8 @@ public class Crawler {
 			_log.info(_queue.toString());
 
 			_queue.schedule(frontier);
-			
-			_log.info(_queue.toString());
+
+			_log.info("new queue: \n" + _queue.toString());
 		}
 	}
 	
