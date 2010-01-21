@@ -124,6 +124,8 @@ public class Crawler {
 		
 		_queue.schedule(frontier);
 		
+		_log.info(_queue.toString());
+		
 		for (int curRound = 0; curRound <= depth; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
 
@@ -133,7 +135,6 @@ public class Crawler {
 			}
 
 			_log.info("Starting threads round " + curRound + " with " + _queue.size() + " uris");
-			_log.info(_queue.toString());
 			
 			for (Thread t : ts) {
 				t.start();
@@ -151,6 +152,8 @@ public class Crawler {
 			_log.info(_queue.toString());
 
 			_queue.schedule(frontier);
+			
+			_log.info(_queue.toString());
 		}
 	}
 	

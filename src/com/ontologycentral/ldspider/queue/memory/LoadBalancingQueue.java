@@ -268,6 +268,10 @@ public class LoadBalancingQueue extends SpiderQueue {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		
+		sb.append("no of plds ");
+		sb.append(_queues.size());
+		sb.append("\n");
+		
 		for (String pld : getQueuePlds()) {
 			Queue<URI> q = _queues.get(pld);
 			sb.append(pld);
