@@ -63,12 +63,50 @@ public class NoRobotClient {
     public NoRobotClient(String userAgent) {
         this.userAgent = userAgent;
     }
-    
+
+    /**
+     * Head to a website and suck in their robots.txt file. 
+     * Note that the URL passed in is for the website and does 
+     * not include the robots.txt file itself.
+     *
+     * @param baseUrl of the site
+     */
+    public void parse(URL baseUrl) throws NoRobotException {
+
+        this.rules = new RulesEngine();
+
+        this.baseUrl = baseUrl;
+
+        URL txtUrl = null;
+        try {
+            // fetch baseUrl+"robots.txt"
+            txtUrl = new URL(baseUrl, "robots.txt");
+        } catch(MalformedURLException murle) {
+            throw new NoRobotException("Bad URL: "+baseUrl+", robots.txt. ", murle);
+        }
+
+        String txt = null;
+        try {
+            txt = loadContent(txtUrl, this.userAgent);
+            if(txt == null) {
+                throw new NoRobotException("No content found for: "+txtUrl);
+            }
+        } catch(IOException ioe) {
+            throw new NoRobotException("Unable to get content for: "+txtUrl, ioe);
+        }
+
+        try {
+            parseText(txt);
+        } catch(NoRobotException nre) {
+            throw new NoRobotException("Problem while parsing "+txtUrl, nre);
+        }
+    }
+
     public void parse(String txt, URL baseUrl) throws NoRobotException {
     	this.baseUrl = baseUrl;
     	parseText(txt);
     }
-
+    
     public void parseText(String txt) throws NoRobotException {
         this.rules = parseTextForUserAgent(txt, this.userAgent);
         this.wildcardRules = parseTextForUserAgent(txt, "*");
@@ -99,7 +137,7 @@ public class NoRobotClient {
                 // if User-agent == userAgent 
                 // record the rest up until end or next User-agent
                 // then quit (? check spec)
-                if(line.startsWith("User-agent:")) {
+                if(line.toLowerCase().startsWith("user-agent:")) {
 
                     if(parsingAllowBlock) {
                         // we've just finished reading allows/disallows
@@ -112,7 +150,7 @@ public class NoRobotClient {
                         }
                     }
 
-                    value = line.substring("User-agent:".length()).trim();
+                    value = line.toLowerCase().substring("user-agent:".length()).trim();
                     if(value.equalsIgnoreCase(userAgent)) {
                         parsingAllowBlock = true;
                         continue;
@@ -186,4 +224,30 @@ public class NoRobotClient {
 
         return allowed.booleanValue();
     }
+
+    // INLINE: as such from genjava/gj-core's net package. Simple method 
+    // stolen from Payload too.
+    private static String loadContent(URL url, String userAgent) throws IOException {
+        URLConnection urlConn = url.openConnection();
+        if(urlConn instanceof HttpURLConnection) {
+            if(userAgent != null) {
+                ((HttpURLConnection)urlConn).addRequestProperty("User-Agent", userAgent);
+            }
+        }
+        InputStream in = urlConn.getInputStream();
+        BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
+        StringBuffer buffer = new StringBuffer();
+        String line = "";
+        while( (line = rdr.readLine()) != null) {
+            buffer.append(line);
+            buffer.append("\n");
+        }
+        in.close();
+        return buffer.toString();
+    }
+    
+    public String toString() {
+    	return this.rules.toString() + " " + this.wildcardRules.toString();
+    }
+
 }
