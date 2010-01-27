@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+import net.sourceforge.sitemaps.SitemapParser;
+import net.sourceforge.sitemaps.SitemapUrl;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.Header;

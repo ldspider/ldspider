@@ -59,9 +59,9 @@ public class Robot {
 
 			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {
-					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT);
+					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT_LINE);
 					String content = EntityUtils.toString(hen);
-					_log.fine(content);
+					_log.info(content);
 					try {
 						_nrc.parse(content, new URL("http://" + host + "/"));
 					} catch (NoRobotException e) {
@@ -93,6 +93,7 @@ public class Robot {
 
 	public boolean isUrlAllowed(URL uri) {
 		if (_nrc == null) {
+			_log.info("_nrc == null ");
     		return true;
     	}
 
