@@ -36,6 +36,7 @@ import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -72,6 +73,12 @@ public class Main {
 		.withDescription("depth; number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
 		.create("d");
 		options.addOption(rounds);
+
+		Option stay = OptionBuilder.withArgName("stay")
+		.hasArgs(0)
+		.withDescription("stay on domains of seed uris")
+		.create("y");
+		options.addOption(stay);
 
 		Option redirs = OptionBuilder.withArgName("redirects")
 		.hasArgs(1)
@@ -220,9 +227,22 @@ public class Main {
 		
 		c.setErrorHandler(eh);
 		c.setOutputCallback(new CallbackNQOutputStream(os));
-		LinkFilter links = new LinkFilterDefault(frontier);
+		
+		LinkFilter links = null;
+		
+		if (cmd.hasOption("y")) {
+			LinkFilterDomain lfd = new LinkFilterDomain(frontier);	
+			for (URI pld : seeds) {
+				lfd.addHost(pld.getHost());
+			}
+			links = lfd;
+		} else {
+			links = new LinkFilterDefault(frontier);	
+		}
+		
 		links.setErrorHandler(eh);
 		c.setLinkFilter(links);
+
 		FetchFilterRdfXml ffrdf = new FetchFilterRdfXml();
 		ffrdf.setErrorHandler(eh);
 		c.setFetchFilter(ffrdf);
