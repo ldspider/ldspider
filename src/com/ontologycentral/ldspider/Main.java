@@ -80,6 +80,12 @@ public class Main {
 		.create("y");
 		options.addOption(stay);
 
+		Option bfs = OptionBuilder.withArgName("breadth-first")
+		.hasArgs(0)
+		.withDescription("do strict breadth-first")
+		.create("f");
+		options.addOption(bfs);
+
 		Option redirs = OptionBuilder.withArgName("redirects")
 		.hasArgs(1)
 		.withDescription("write redirects.nx file")
@@ -249,6 +255,8 @@ public class Main {
 		
 		if (cmd.hasOption("b")) {
 			c.evaluate(frontier, depth, maxuris, cmd.getOptionValue("b"));
+		} else if (cmd.hasOption("f")) {
+			c.evaluate(frontier, depth, Integer.MAX_VALUE, true);		
 		} else if (maxuris != -1) {
 			c.evaluate(frontier, depth, maxuris);
 		} else {

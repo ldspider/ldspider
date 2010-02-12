@@ -203,6 +203,14 @@ public class Crawler {
 		}
 	}
 	
+	public void evaluate(Frontier frontier, int depth, int maxuris, boolean bfs) {
+		if (_queue == null) {
+			_queue = new BreadthFirstQueue(_tldm, maxuris);
+		}
+		
+	    evaluate(frontier, depth);
+	}
+	
 	public void close() {
 		_cm.shutdown();
 		_eh.close();
