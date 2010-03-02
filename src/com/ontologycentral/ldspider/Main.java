@@ -37,6 +37,7 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -92,6 +93,12 @@ public class Main {
 		.create("r");
 		options.addOption(redirs);
 
+		Option noLinks = OptionBuilder.withArgName("none")
+		.hasArgs(0)
+		.withDescription("do not extract links - just follow redirects.")
+		.create("n");
+		options.addOption(noLinks);
+		
 		Option output = OptionBuilder.withArgName("file name")
 		.hasArgs(1)
 		.withDescription("name of NQ file with output ")
@@ -242,7 +249,10 @@ public class Main {
 				lfd.addHost(pld.getHost());
 			}
 			links = lfd;
-		} else {
+		}else if (cmd.hasOption("n")) {
+			LinkFilterDummy d = new LinkFilterDummy();
+			links = d;
+		}else {
 			links = new LinkFilterDefault(frontier);	
 		}
 		
