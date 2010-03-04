@@ -48,6 +48,8 @@ public class BDBQueue extends SpiderQueue {
 
     public BDBQueue(TldManager tldm, String queueLocation, int maxuris) throws URISyntaxException {
     	super(tldm);
+    	System.out.println("here");
+    	log.info("environment location: "+new File(queueLocation));
 	this.envDir = new File(queueLocation);
 	_tldm = tldm;
 	_maxuris = maxuris;
@@ -148,7 +150,7 @@ public class BDBQueue extends SpiderQueue {
 
     @Override
     public void schedule(Frontier f) {
-	_queue = new BreadthFirstQueue(_tldm, _maxuris);
+    	_queue = new BreadthFirstQueue(_tldm, _maxuris);
 	
 	log.info("Schedule new queue");
 //	_pldMap = new HashMap<String, Integer>();
@@ -393,7 +395,7 @@ public class BDBQueue extends SpiderQueue {
 
     @Override
     public int size() {
-	return _queue.size();
+    	return _queue.size();
     }
 }
 

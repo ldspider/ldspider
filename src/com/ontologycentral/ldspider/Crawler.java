@@ -72,7 +72,7 @@ public class Crawler {
 	    _cm = new ConnectionManager(phost, pport, puser, ppassword, threads*CrawlerConstants.MAX_CONNECTIONS_PER_THREAD);
 	    _cm.setRetries(CrawlerConstants.RETRIES);
 	    
-	    try {
+	    try { 
 		    _tldm = new TldManager(_cm);
 		} catch (Exception e) {
 			_log.info("cannot get tld file online " + e.getMessage());

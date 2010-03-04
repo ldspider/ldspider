@@ -111,12 +111,6 @@ public class Main {
 		.create("l");
 		options.addOption(log);
 
-//		Option strategy = OptionBuilder.withArgName("strategy")
-//		.hasArgs(1)
-//		.withDescription("crawl strategy: breadth-first, load balanced, random walk")
-//		.create("s");
-//		options.addOption(strategy);
-		
 		Option maxuris = OptionBuilder.withArgName("max no uris")
 		.hasArgs(1)
 		.withDescription("max no of uris per pld per round")
@@ -124,23 +118,10 @@ public class Main {
 		options.addOption(maxuris);
 		
 		Option ondisk = OptionBuilder.withArgName("on-disk queue")
-		.hasArgs(0)
+		.hasArgs(1)
 		.withDescription("use the BDB on-disk queue with URI selection based on their frequency.")
 		.create("b");
 		options.addOption(ondisk);
-
-//		Option useragent  = OptionBuilder.withArgName("user agent")
-//		.hasArgs(1)
-//		.withDescription("user agent")
-//		.create("a");
-//		options.addOption(useragent);
-		
-//		Option error  = OptionBuilder.withArgName("error")
-//		.hasArgs(1)
-//		.withDescription("error log file")
-//		.create("e");
-//		input.addOption(error);
-
 
 		Option help0 = new Option("h", "help",false,"print help");
 		options.addOption(help0);
