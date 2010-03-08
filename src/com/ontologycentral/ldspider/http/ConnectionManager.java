@@ -3,6 +3,7 @@ package com.ontologycentral.ldspider.http;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import org.apache.commons.httpclient.util.IdleConnectionTimeoutThread;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -35,6 +36,8 @@ public class ConnectionManager {
     
     private DefaultHttpClient _client;
 
+	private CloseIdleConnectionThread _ciThread;
+
     
     public ConnectionManager(String proxyHost, int proxyPort, String puser, String ppassword, int connections) {
     	// general setup
@@ -63,7 +66,7 @@ public class ConnectionManager {
 
     	ConnManagerParams.setMaxTotalConnections(params, connections);
     	ClientConnectionManager cm = new ThreadSafeClientConnManager(params, supportedSchemes);
-
+    	
     	_client = new DefaultHttpClient(cm, params);
     	_client.addResponseInterceptor(new ResponseGzipUncompress());
 
@@ -78,6 +81,8 @@ public class ConnectionManager {
     					new UsernamePasswordCredentials(puser, new String(ppassword))); 
     		}
     	}	
+    	 _ciThread = new CloseIdleConnectionThread(cm,60000);
+    	_ciThread.start();
     }
     
     public void setRetries(int no) {
@@ -89,7 +94,9 @@ public class ConnectionManager {
     }
 
     public void shutdown() {
+    	_ciThread.shutdown();
     	_client.getConnectionManager().shutdown();
+    	
 
     }
 

@@ -125,7 +125,6 @@ public class LookupThread implements Runnable {
 					if (hen != null) {
 						bytes = hen.getContentLength();
 					}
-					
 					hget.abort();
 				} catch (Throwable e) {
 					hget.abort();
