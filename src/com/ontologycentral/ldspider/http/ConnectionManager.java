@@ -95,6 +95,9 @@ public class ConnectionManager {
 
     public void shutdown() {
     	_ciThread.shutdown();
+    	if(_ciThread.isAlive()){
+    		_ciThread.interrupt();
+    	}
     	_client.getConnectionManager().shutdown();
     	
 
