@@ -288,7 +288,7 @@ public class Main {
 	 * @param seedList
 	 * @throws FileNotFoundException - should never happen since the check was done in method before
 	 */
-	private static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
+	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
 		Set<URI> seeds = new HashSet<URI>();
 		
 		Scanner s = new Scanner(seedList);
@@ -296,16 +296,16 @@ public class Main {
 		URL uri = null;
 		int i = 0;
 		
-		while(s.hasNextLine()) {
+		while (s.hasNextLine()) {
 			i++;
 			line = s.nextLine().trim();
 			try {
 				uri = new URL(line);
 				seeds.add(uri.toURI());	
 			} catch (URISyntaxException e) {
-				_log.log(Level.FINE,"Discard invalid uri "+e.getMessage()+" for "+line);
+				_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
 			} catch (MalformedURLException e) {
-				_log.log(Level.FINE,"Discard invalid uri "+e.getMessage()+" for "+line);
+				_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
 			}
 		}
 		
