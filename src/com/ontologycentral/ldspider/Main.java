@@ -291,6 +291,8 @@ public class Main {
 	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
 		Set<URI> seeds = new HashSet<URI>();
 		
+		_log.info("file size " + seedList.length());
+		
 		Scanner s = new Scanner(seedList);
 		String line=null;
 		URL uri = null;
