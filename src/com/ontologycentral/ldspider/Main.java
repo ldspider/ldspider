@@ -298,14 +298,17 @@ public class Main {
 		
 		while (s.hasNextLine()) {
 			i++;
-			line = s.nextLine().trim();
-			try {
-				uri = new URL(line);
-				seeds.add(uri.toURI());	
-			} catch (URISyntaxException e) {
-				_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
-			} catch (MalformedURLException e) {
-				_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+			line = s.nextLine();
+			if (line != null) {
+				line = line.trim();
+				try {
+					uri = new URL(line);
+					seeds.add(uri.toURI());	
+				} catch (URISyntaxException e) {
+					_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+				} catch (MalformedURLException e) {
+					_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+				}
 			}
 		}
 		
