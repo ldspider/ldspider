@@ -156,11 +156,11 @@ public class Main {
 	private static void run(CommandLine cmd) throws FileNotFoundException {
 		//check seed file
 		Set<URI> seeds = null;
-		if(cmd.hasOption("s")){
+		if (cmd.hasOption("s")) {
 			File seedList = new File(cmd.getOptionValue("s"));
 			if(!seedList.exists()) throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
 			seeds = readSeeds(seedList);
-		}else if(cmd.hasOption("u")){
+		} else if (cmd.hasOption("u")) {
 			seeds = new HashSet<URI>();
 			try {
 				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
@@ -294,7 +294,10 @@ public class Main {
 		Scanner s = new Scanner(seedList);
 		String line=null;
 		URL uri = null;
-		while(s.hasNextLine()){
+		int i = 0;
+		
+		while(s.hasNextLine()) {
+			i++;
 			line = s.nextLine().trim();
 			try {
 				uri = new URL(line);
@@ -305,6 +308,8 @@ public class Main {
 				_log.log(Level.FINE,"Discard invalid uri "+e.getMessage()+" for "+line);
 			}
 		}
+		
+		_log.info("read " + i + " lines from seed file");
 		
 		return seeds;
 	}
