@@ -1,8 +1,10 @@
 package com.ontologycentral.ldspider;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -293,25 +295,30 @@ public class Main {
 		
 		_log.info("file size " + seedList.length());
 		
-		Scanner s = new Scanner(seedList);
+		BufferedReader br = new BufferedReader(new FileReader(seedList));
+		
 		String line=null;
 		URL uri = null;
 		int i = 0;
 		
-		while (s.hasNextLine()) {
-			i++;
-			line = s.nextLine();
-			if (line != null) {
-				line = line.trim();
-				try {
-					uri = new URL(line);
-					seeds.add(uri.toURI());	
-				} catch (URISyntaxException e) {
-					_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
-				} catch (MalformedURLException e) {
-					_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+		try {
+			while ((line = br.readLine()) != null) {
+				i++;
+				if (line != null) {
+					line = line.trim();
+					try {
+						uri = new URL(line);
+						seeds.add(uri.toURI());	
+					} catch (URISyntaxException e) {
+						_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+					} catch (MalformedURLException e) {
+						_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+					}
 				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			_log.info(e.getMessage());
 		}
 		
 		_log.info("read " + i + " lines from seed file");
