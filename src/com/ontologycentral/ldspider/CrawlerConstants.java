@@ -37,7 +37,8 @@ public class CrawlerConstants {
 	
 	// avoid hammering plds
 	public static final long MIN_DELAY = 2000;
-	public static final long MAX_DELAY = 4*MIN_DELAY;
+	// should be adapted based on no of URIs in queue
+	public static final long MAX_DELAY = 50*MIN_DELAY;
 	
 	// our status codes
 	public static final int SKIP_SUFFIX = 497;

@@ -34,20 +34,20 @@ public abstract class Frontier {
 		}
 	
 		if (!(u.getScheme().equals("http") || u.getScheme().equals("https"))) {
-			_log.info("skipping " + u + ", " + u.getScheme() + " != http(s)");
+			_log.fine("skipping " + u + ", " + u.getScheme() + " != http(s)");
 			return null;
 		}
 
 		try {
 			u = normalise(u);
 		} catch (URISyntaxException e) {
-			_log.info("skipping " + u +  ", not parsable");
+			_log.fine("skipping " + u +  ", not parsable");
 			return null;
 		}
 
 		for (String suffix : _suffixes) {
 			if (u.getPath().endsWith(suffix)) {
-				_log.info("skipping " + u + ", suffix " + suffix + " blacklisted");
+				_log.fine("skipping " + u + ", suffix " + suffix + " blacklisted");
 				_eh.handleStatus(u, CrawlerConstants.SKIP_SUFFIX, null, 0, -1);
 				return null;
 			}

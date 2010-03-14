@@ -232,10 +232,10 @@ public class Main {
 				lfd.addHost(pld.getHost());
 			}
 			links = lfd;
-		}else if (cmd.hasOption("n")) {
+		} else if (cmd.hasOption("n")) {
 			LinkFilterDummy d = new LinkFilterDummy();
 			links = d;
-		}else {
+		} else {
 			links = new LinkFilterDefault(frontier);	
 		}
 		
@@ -297,7 +297,7 @@ public class Main {
 		
 		BufferedReader br = new BufferedReader(new FileReader(seedList));
 		
-		String line=null;
+		String line = null;
 		URL uri = null;
 		int i = 0;
 		

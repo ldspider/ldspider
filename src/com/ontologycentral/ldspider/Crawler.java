@@ -132,7 +132,7 @@ public class Crawler {
 		
 		_queue.schedule(frontier);
 		
-		_log.info(_queue.toString());
+		_log.fine(_queue.toString());
 		
 		for (int curRound = 0; curRound <= depth; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
@@ -157,11 +157,11 @@ public class Crawler {
 			}
 			
 			_log.info("ROUND " + curRound + " DONE with " + _queue.size() + " uris remaining in queue");
-			_log.info(_queue.toString());
+			_log.fine("old queue: \n" + _queue.toString());
 
 			_queue.schedule(frontier);
 
-			_log.info("new queue: \n" + _queue.toString());
+			_log.fine("new queue: \n" + _queue.toString());
 		}
 	}
 	
