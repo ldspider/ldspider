@@ -37,4 +37,8 @@ public class BasicFrontier extends Frontier {
 	public void removeAll(Collection<URI> c) {
 		_data.removeAll(c);
 	}
+	
+	public String toString() {
+		return _data.toString();
+	}
 }
