@@ -40,6 +40,9 @@ public class CrawlerConstants {
 	// should be adapted based on no of URIs in queue
 	public static final long MAX_DELAY = 50*MIN_DELAY;
 	
+	// close idle connections
+	public static final int CLOSE_IDLE = 60000;
+	
 	// our status codes
 	public static final int SKIP_SUFFIX = 497;
 	public static final int SKIP_ROBOTS = 498;

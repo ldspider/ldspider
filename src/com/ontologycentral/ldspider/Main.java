@@ -14,7 +14,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -44,15 +43,14 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
 
-
 	public static void main(String[] args) {
 		Options options = new Options();
 
 		OptionGroup input = new OptionGroup();
 
-		Option seeds = OptionBuilder.withArgName("seed list")
+		Option seeds = OptionBuilder.withArgName("file")
 		.hasArgs(1)
-		.withDescription("location of the seed list")
+		.withDescription("location of seed list")
 		.create("s");
 		seeds.setRequired(true);
 		input.addOption(seeds);
@@ -65,17 +63,31 @@ public class Main {
 		input.addOption(uri);
 		options.addOptionGroup(input);
 
+		OptionGroup strategy = new OptionGroup();
+
+		Option ondisk = OptionBuilder.withArgName("directory max-uris")
+		.hasArgs(1)
+		.withDescription("use on-disk queue with URI selection based on frequency")
+		.create("d");
+		strategy.addOption(ondisk);
+
+		Option bfs = new Option("b", false, "do strict breadth-first");
+		bfs.setArgs(2);
+		bfs.setArgName("depth uri-limit");
+		strategy.addOption(bfs);
+
+		Option opti = new Option("c", false, "use load balanced crawling strategy (default)");
+		opti.setArgs(1);
+		opti.setArgName("max-uris");
+		strategy.addOption(opti);
+		
+		options.addOptionGroup(strategy);
+		
 		Option threads = OptionBuilder.withArgName("threads")
 		.hasArgs(1)
 		.withDescription("number of threads (default "+CrawlerConstants.DEFAULT_NB_THREADS+")")
 		.create("t");
 		options.addOption(threads);
-
-		Option rounds = OptionBuilder.withArgName("depth")
-		.hasArgs(1)
-		.withDescription("depth; number of rounds (default "+CrawlerConstants.DEFAULT_NB_ROUNDS+")")
-		.create("d");
-		options.addOption(rounds);
 
 		Option stay = OptionBuilder.withArgName("stay")
 		.hasArgs(0)
@@ -83,50 +95,30 @@ public class Main {
 		.create("y");
 		options.addOption(stay);
 
-		Option bfs = OptionBuilder.withArgName("breadth-first")
-		.hasArgs(0)
-		.withDescription("do strict breadth-first")
-		.create("f");
-		options.addOption(bfs);
-
 		Option redirs = OptionBuilder.withArgName("redirects")
 		.hasArgs(1)
 		.withDescription("write redirects.nx file")
 		.create("r");
 		options.addOption(redirs);
 
-		Option noLinks = OptionBuilder.withArgName("none")
-		.hasArgs(0)
-		.withDescription("do not extract links - just follow redirects.")
-		.create("n");
+		Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
+		noLinks.setArgs(0);
 		options.addOption(noLinks);
 		
-		Option output = OptionBuilder.withArgName("file name")
+		Option output = OptionBuilder.withArgName("file")
 		.hasArgs(1)
-		.withDescription("name of NQ file with output ")
+		.withDescription("name of NQuad file with output")
 		.create("o");
 		options.addOption(output);
 
-		Option log = OptionBuilder.withArgName("log file name")
+		Option log = OptionBuilder.withArgName("file")
 		.hasArgs(1)
 		.withDescription("name of access log file")
 		.create("l");
 		options.addOption(log);
-
-		Option maxuris = OptionBuilder.withArgName("max no uris")
-		.hasArgs(1)
-		.withDescription("max no of uris per pld per round")
-		.create("m");
-		options.addOption(maxuris);
 		
-		Option ondisk = OptionBuilder.withArgName("on-disk queue")
-		.hasArgs(1)
-		.withDescription("use the BDB on-disk queue with URI selection based on their frequency.")
-		.create("b");
-		options.addOption(ondisk);
-
-		Option help0 = new Option("h", "help",false,"print help");
-		options.addOption(help0);
+		Option helpO = new Option("h", "help", false, "print help");
+		options.addOption(helpO);
 
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -134,7 +126,7 @@ public class Main {
 		try {
 			cmd = parser.parse(options, args,true);
 			if (cmd.hasOption("h") || cmd.hasOption("help")) {
-				formatter.printHelp(80," ","Live lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
+				formatter.printHelp(80," ","Crawling and lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
 			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
 				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
@@ -148,61 +140,40 @@ public class Main {
 		} catch (FileNotFoundException e) {
 			formatter.printHelp(80," ","ERROR: "+e.getMessage()+"\n", options,"\nError occured! Please see the error message above",true );
 			System.exit(-1);
-		}
-		catch (NumberFormatException e) {
+		} catch (NumberFormatException e) {
 			formatter.printHelp(80," ","ERROR: "+e.getMessage()+"\n", options,"\nError occured! Please see the error message above",true );
 			System.exit(-1);
 		}
 	}
 
 	private static void run(CommandLine cmd) throws FileNotFoundException {
-		//check seed file
+		// check seed file
 		Set<URI> seeds = null;
 		if (cmd.hasOption("s")) {
 			File seedList = new File(cmd.getOptionValue("s"));
-			if(!seedList.exists()) throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
+			if (!seedList.exists()) {
+				throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
+			}
 			seeds = readSeeds(seedList);
 		} else if (cmd.hasOption("u")) {
 			seeds = new HashSet<URI>();
 			try {
 				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
 			} catch (Exception e) {
-				_log.log(Level.WARNING,"Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
+				_log.warning("Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
 				e.printStackTrace();
 				System.exit(-1);
 			}
 		}
-
-		int depth = CrawlerConstants.DEFAULT_NB_ROUNDS;
-		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
-		int maxuris = -1;
 		
-		if(cmd.hasOption("d")) {
-			depth = Integer.valueOf(cmd.getOptionValue("d"));
-		}
-		if(cmd.hasOption("t")) {
-			threads = Integer.valueOf(cmd.getOptionValue("t"));
-		}
-		if(cmd.hasOption("m")) {
-			maxuris = Integer.valueOf(cmd.getOptionValue("m"));
-		}
-
-		_log.info("crawling with " + threads + " threads, maxuris " + maxuris + " depth " + depth);
 		_log.info("no of seed uris " + seeds.size());
 		
-		//start the crawl
-		long time = System.currentTimeMillis();
-		
 		OutputStream os = System.out;
-		
 		if (cmd.hasOption("o")) {
 			os = new FileOutputStream(cmd.getOptionValue("o"));
 		}
-		
-		Crawler c = new Crawler(threads);
-		
+				
 		PrintStream ps = System.out;
-		
 		if (cmd.hasOption("l")) {
 			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("l")));			
 		}
@@ -221,9 +192,8 @@ public class Main {
 		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
 		frontier.addAll(seeds);
 		
-		c.setErrorHandler(eh);
-		c.setOutputCallback(new CallbackNQOutputStream(os));
-		
+		_log.info("frontier done");
+
 		LinkFilter links = null;
 		
 		if (cmd.hasOption("y")) {
@@ -240,30 +210,51 @@ public class Main {
 		}
 		
 		links.setErrorHandler(eh);
-		c.setLinkFilter(links);
+		
+		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
+
+		if (cmd.hasOption("t")) {
+			threads = Integer.valueOf(cmd.getOptionValue("t"));
+		}
+
+		long time = System.currentTimeMillis();
 
 		FetchFilterRdfXml ffrdf = new FetchFilterRdfXml();
 		ffrdf.setErrorHandler(eh);
+
+		_log.info("init crawler");
+
+		Crawler c = new Crawler(threads);
+		c.setErrorHandler(eh);
+		c.setOutputCallback(new CallbackNQOutputStream(os));
+		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
 		
 		if (cmd.hasOption("b")) {
-			c.evaluate(frontier, depth, maxuris, cmd.getOptionValue("b"));
-		} else if (cmd.hasOption("f")) {
-			c.evaluate(frontier, depth, Integer.MAX_VALUE, true);		
-		} else if (maxuris != -1) {
-			c.evaluate(frontier, depth, maxuris);
-		} else {
-			c.evaluate(frontier, depth);
+			int depth = Integer.parseInt(cmd.getOptionValues("b")[0]);
+			int maxuris = Integer.parseInt(cmd.getOptionValues("b")[1]);
+			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris);
+			
+			c.evaluateBreadthFirst(frontier, depth, maxuris);
+		} else if (cmd.hasOption("c")) {
+			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
+
+			_log.info("load balanced crawl with " + threads + " threads, maxuris " + maxuris);
+
+			c.evaluateLoadBalanced(frontier, maxuris);
+		} else if (cmd.hasOption("d")) {
+			String fname = cmd.getOptionValues("d")[0];
+			int maxuris = Integer.parseInt(cmd.getOptionValues("d")[1]);
+
+			_log.info("on-disk optimised crawl with " + threads + " threads, maxuris " + maxuris);
+
+			c.evaluateLoadBalanced(frontier, maxuris, fname);
 		}
-		
-		System.err.println("---------------");
 	
 		for (Iterator<ObjectThrowable> it = eh.iterator(); it.hasNext() ; ) {
 			ObjectThrowable ot = it.next();
 			System.err.println(ot.getThrowable().getMessage() + " " + ot.getObject());
 		}
-
-		System.err.println("---------------");
 
 		System.err.println(eh);
 
@@ -274,7 +265,7 @@ public class Main {
 		try {
 			os.close();
 		} catch (IOException e) {
-			_log.log(Level.WARNING, "could not close output stream: " + e.getMessage());
+			_log.warning("could not close output stream: " + e.getMessage());
 		}
 		
 		if (rcb != null) {
@@ -293,8 +284,6 @@ public class Main {
 	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
 		Set<URI> seeds = new HashSet<URI>();
 		
-		_log.info("file size " + seedList.length());
-		
 		BufferedReader br = new BufferedReader(new FileReader(seedList));
 		
 		String line = null;
@@ -310,15 +299,15 @@ public class Main {
 						uri = new URL(line);
 						seeds.add(uri.toURI());	
 					} catch (URISyntaxException e) {
-						_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
 					} catch (MalformedURLException e) {
-						_log.info("Discard invalid uri " + e.getMessage() + " for " + line);
+						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
 					}
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			_log.info(e.getMessage());
+			_log.fine(e.getMessage());
 		}
 		
 		_log.info("read " + i + " lines from seed file");

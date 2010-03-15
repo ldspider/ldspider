@@ -45,10 +45,8 @@ public class ConnectionManager {
 
     	// Register the "http" and "https" protocol schemes, they are
     	// required by the default operator to look up socket factories.
-    	supportedSchemes.register(new Scheme("http", 
-    			PlainSocketFactory.getSocketFactory(), 80));
-    	supportedSchemes.register(new Scheme("https", 
-    			SSLSocketFactory.getSocketFactory(), 443));
+    	supportedSchemes.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+    	supportedSchemes.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
 
     	// prepare parameters
     	HttpParams params = new BasicHttpParams();
@@ -80,13 +78,14 @@ public class ConnectionManager {
     					new AuthScope(proxyHost, proxyPort),
     					new UsernamePasswordCredentials(puser, new String(ppassword))); 
     		}
-    	}	
-    	 _ciThread = new CloseIdleConnectionThread(cm,60000);
+    	}
+ 	
+    	_ciThread = new CloseIdleConnectionThread(cm, CrawlerConstants.CLOSE_IDLE);
     	_ciThread.start();
     }
     
     public void setRetries(int no) {
-    	//set the retry handler
+    	// set the retry handler
     	if (no > 0) {
     		HttpRequestRetryHandler retryHandler = new HttpRequestRetryHandler(no);
     		_client.setHttpRequestRetryHandler(retryHandler);

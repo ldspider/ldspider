@@ -35,7 +35,7 @@ public class Robot {
 		try {
 			u = new URI( "http://" + host + "/robots.txt" );
 		} catch (URISyntaxException e) {
-			_log.info(e.getMessage() + " " + host);
+			_log.fine(e.getMessage() + " " + host);
 			return;
 		}
 
@@ -61,7 +61,7 @@ public class Robot {
 				if (hen != null) {
 					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT_LINE);
 					String content = EntityUtils.toString(hen);
-					_log.info(content);
+					_log.finer(content);
 					try {
 						_nrc.parse(content, new URL("http://" + host + "/"));
 					} catch (NoRobotException e) {
@@ -71,7 +71,7 @@ public class Robot {
 					_nrc = null;
 				}
 			} else {
-				_log.info("no robots.txt for " + host);
+				_log.fine("no robots.txt for " + host);
 				_nrc = null;
 			}
 
@@ -93,7 +93,7 @@ public class Robot {
 
 	public boolean isUrlAllowed(URL uri) {
 		if (_nrc == null) {
-			_log.info("_nrc == null ");
+			_log.fine("_nrc == null ");
     		return true;
     	}
 

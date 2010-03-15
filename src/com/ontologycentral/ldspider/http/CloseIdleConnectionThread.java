@@ -16,28 +16,32 @@ public class CloseIdleConnectionThread extends Thread{
 	public CloseIdleConnectionThread(ClientConnectionManager cm , long sleepTime) {
 		_cm = cm; 
 		_st = sleepTime;
+		
 		log.info("Initialised "+CloseIdleConnectionThread.class.getSimpleName()+" with sleepTime "+_st+" ms");
 	}
-	@Override
+
 	public void run() {
 		log.info("Starting "+CloseIdleConnectionThread.class.getSimpleName());
 		_run = true;
-		while(_run){
+		
+		while(_run) {
 			log.info("Closing expired and idle connections");
 			_cm.closeExpiredConnections();
 			_cm.closeIdleConnections(0L, TimeUnit.SECONDS);
+
 			try {
 				Thread.sleep(_st);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		
 		log.info("Stopped "+CloseIdleConnectionThread.class.getSimpleName());
 	}
 	
-	public void shutdown(){
+	public void shutdown() {
 		_run = false;
 		log.info("Stopping "+CloseIdleConnectionThread.class.getSimpleName());
+		interrupt();
 	}
 }

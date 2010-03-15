@@ -77,6 +77,7 @@ public abstract class Frontier {
 
 		return norm.normalize();
 	}
+	
 	public abstract void add(URI u);
 	public abstract void addAll(Collection<URI> c);
 	public abstract void remove(URI u);

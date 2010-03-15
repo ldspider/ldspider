@@ -121,9 +121,9 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluate(Frontier frontier, int depth) {
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris) {
 		if (_queue == null) {
-			_queue = new LoadBalancingQueue(_tldm);
+			_queue = new BreadthFirstQueue(_tldm, maxuris);
 		}
 		
 		if (_links == null) {
@@ -165,27 +165,58 @@ public class Crawler {
 		}
 	}
 	
-	/**
-	 * Crawl with the default in-mem queue
-	 * 
-	 * @param seeds
-	 * @param rounds
-	 * @param maxuris
-	 */
-	public void evaluate(Frontier frontier, int depth, int maxuris) {
-		_queue = new BreadthFirstQueue(_tldm, maxuris);
+	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
+		if (_queue == null) {
+			_queue = new LoadBalancingQueue(_tldm);
+		}
 		
-		evaluate(frontier, depth);
+		if (_links == null) {
+			_links = new LinkFilterDefault(frontier);
+		}
+		
+		_queue.schedule(frontier);
+		
+		_log.fine(_queue.toString());
+
+		int i = 0;
+		int uris = 0;
+		
+		while (uris < maxuris) {
+			int size = _queue.size();
+			
+			List<Thread> ts = new ArrayList<Thread>();
+
+			for (int j = 0; j < _threads; j++) {
+				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
+				ts.add(new Thread(lt,"LookupThread-"+j));		
+			}
+
+			_log.info("Starting threads round " + i++ + " with " + _queue.size() + " uris");
+			
+			for (Thread t : ts) {
+				t.start();
+			}
+
+			for (Thread t : ts) {
+				try {
+					t.join();
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+			}
+			
+			uris = size - _queue.size();
+			
+			_log.info("ROUND " + i + " DONE with " + _queue.size() + " uris remaining in queue");
+			_log.fine("old queue: \n" + _queue.toString());
+
+			_queue.schedule(frontier);
+
+			_log.fine("new queue: \n" + _queue.toString());
+		}
 	}
 	
-	/**
-	 * 
-	 * @param seeds
-	 * @param rounds
-	 * @param maxuris
-	 * @param queuelocation - usage of a on-disk queue if specified, otherwise in-mem queue
-	 */
-	public void evaluate(Frontier frontier, int depth, int maxuris, String queueLocation) {
+	public void evaluateLoadBalanced(Frontier frontier, int maxuris, String queueLocation) {
 		if (_queue == null) {
 			try {
 				_queue = new BDBQueue(_tldm, queueLocation, maxuris);
@@ -196,20 +227,12 @@ public class Crawler {
 			}
 		}
 		
-	    evaluate(frontier, depth);
+	    evaluateLoadBalanced(frontier, maxuris);
 
 	    if (_queue instanceof BDBQueue) {
 			((BDBQueue)_queue).close();
 		}
-	}
-	
-	public void evaluate(Frontier frontier, int depth, int maxuris, boolean bfs) {
-		if (_queue == null) {
-			_queue = new BreadthFirstQueue(_tldm, maxuris);
-		}
-		
-	    evaluate(frontier, depth);
-	}
+	}	
 	
 	public void close() {
 		_cm.shutdown();
