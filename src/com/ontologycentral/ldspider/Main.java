@@ -76,7 +76,7 @@ public class Main {
 		bfs.setArgName("depth uri-limit");
 		strategy.addOption(bfs);
 
-		Option opti = new Option("c", false, "use load balanced crawling strategy (default)");
+		Option opti = new Option("c", false, "use load balanced crawling strategy");
 		opti.setArgs(1);
 		opti.setArgName("max-uris");
 		strategy.addOption(opti);

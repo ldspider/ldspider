@@ -9,6 +9,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
+import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
@@ -98,7 +99,7 @@ public class LookupThread implements Runnable {
 								InputStream is = hen.getContent();
 
 								Callbacks cbs = new Callbacks(new Callback[] { _content, _links } );
-								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), cbs);
+								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), cbs, new Resource(lu.toString()));
 								rxp = null;
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
