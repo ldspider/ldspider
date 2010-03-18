@@ -175,6 +175,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 
 				_maxtime = System.currentTimeMillis();
 				
+				_current = new ConcurrentLinkedQueue<String>();
 				_current.addAll(getQueuePlds());				
 			}
 

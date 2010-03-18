@@ -15,7 +15,6 @@ import java.net.URL;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.BasicParser;
@@ -70,6 +69,9 @@ public class Main {
 		.withDescription("use on-disk queue with URI selection based on frequency")
 		.create("d");
 		strategy.addOption(ondisk);
+
+//		Option simple = new Option("a", false, "just fetch URIs from list");
+//		strategy.addOption(simple);
 
 		Option bfs = new Option("b", false, "do strict breadth-first");
 		bfs.setArgs(2);

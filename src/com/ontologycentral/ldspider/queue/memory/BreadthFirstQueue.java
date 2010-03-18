@@ -34,7 +34,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 	public BreadthFirstQueue(TldManager tldm, int maxuris) {
 		super(tldm);
-		_tldm = tldm;
+
 		_maxuris = maxuris;
 
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
