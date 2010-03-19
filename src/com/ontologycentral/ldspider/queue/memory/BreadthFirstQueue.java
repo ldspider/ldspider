@@ -63,6 +63,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 			if (!checkSeen(u)) {
 				addDirectly(u);
 			}
+			it.remove();
 		}
 
 		for (String pld : _queues.keySet()) {

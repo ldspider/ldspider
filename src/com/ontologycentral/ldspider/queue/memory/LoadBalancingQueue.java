@@ -78,9 +78,9 @@ public class LoadBalancingQueue extends SpiderQueue {
 			URI u = it.next();
 			if (!checkSeen(u)) {
 				addDirectly(u);
-			} else {
-				f.remove(u);
 			}
+			it.remove();
+			//f.remove(u);
 		}
 	
 		_current.addAll(getQueuePlds());
