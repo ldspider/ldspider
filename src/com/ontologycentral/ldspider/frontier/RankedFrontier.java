@@ -48,12 +48,6 @@ public class RankedFrontier extends Frontier {
 		return li.iterator();
 	}
 
-	public void addAll(Collection<URI> c) {
-		for (URI u : c) {
-			add(u);
-		}
-	}
-
 	public void removeAll(Collection<URI> c) {
 		for (URI u: c) {
 			remove(u);

@@ -30,10 +30,6 @@ public class BasicFrontier extends Frontier {
 		return _data.iterator();
 	}
 
-	public void addAll(Collection<URI> c) {
-		_data.addAll(c);
-	}
-
 	public void removeAll(Collection<URI> c) {
 		_data.removeAll(c);
 	}
