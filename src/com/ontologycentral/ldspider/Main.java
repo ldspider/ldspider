@@ -12,9 +12,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.BasicParser;
@@ -39,7 +42,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
-public class Main {
+public class Main{
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
 
 	public static void main(String[] args) {
@@ -284,7 +287,7 @@ public class Main {
 	 * @throws FileNotFoundException - should never happen since the check was done in method before
 	 */
 	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
-		Set<URI> seeds = new HashSet<URI>();
+		ConcurrentHashMap<URI, URI> seeds = new ConcurrentHashMap<URI, URI>();
 		
 		BufferedReader br = new BufferedReader(new FileReader(seedList));
 		
@@ -299,7 +302,7 @@ public class Main {
 					line = line.trim();
 					try {
 						uri = new URL(line);
-						seeds.add(uri.toURI());	
+						seeds.put(uri.toURI(),uri.toURI());	
 					} catch (URISyntaxException e) {
 						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
 					} catch (MalformedURLException e) {
@@ -314,6 +317,6 @@ public class Main {
 		
 		_log.info("read " + i + " lines from seed file");
 		
-		return seeds;
+		return seeds.keySet();
 	}
 }
