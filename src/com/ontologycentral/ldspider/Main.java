@@ -287,7 +287,7 @@ public class Main{
 	 * @throws FileNotFoundException - should never happen since the check was done in method before
 	 */
 	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
-		ConcurrentHashMap<URI, URI> seeds = new ConcurrentHashMap<URI, URI>();
+		Set<URI> seeds = new HashSet<URI>();
 		
 		BufferedReader br = new BufferedReader(new FileReader(seedList));
 		
@@ -302,7 +302,7 @@ public class Main{
 					line = line.trim();
 					try {
 						uri = new URL(line);
-						seeds.put(uri.toURI(),uri.toURI());	
+						seeds.add(uri.toURI());	
 					} catch (URISyntaxException e) {
 						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
 					} catch (MalformedURLException e) {
@@ -317,6 +317,6 @@ public class Main{
 		
 		_log.info("read " + i + " lines from seed file");
 		
-		return seeds.keySet();
+		return seeds;
 	}
 }
