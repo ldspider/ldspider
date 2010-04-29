@@ -9,7 +9,8 @@ import java.util.logging.Logger;
 import org.semanticweb.yars.nx.parser.Callback;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
+import com.ontologycentral.ldspider.hooks.content.Sink;
+import com.ontologycentral.ldspider.hooks.content.SinkDummy;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
@@ -28,7 +29,7 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class Crawler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	Callback _output;
+	Sink _output;
 	LinkFilter _links;
 	ErrorHandler _eh;
 	FetchFilter _ff;
@@ -91,7 +92,7 @@ public class Crawler {
 //	    _sitemaps = new Sitemaps(_cm);
 //	    _sitemaps.setErrorHandler(_eh);
 		
-		_output = new CallbackDummy();
+		_output = new SinkDummy();
 		_ff = new FetchFilterAllow();
 	}
 	
@@ -113,7 +114,7 @@ public class Crawler {
 		}
 	}
 	
-	public void setOutputCallback(Callback cb) {
+	public void setOutputCallback(Sink cb) {
 		_output = cb;
 	}
 	

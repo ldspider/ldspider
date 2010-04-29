@@ -33,6 +33,7 @@ import org.semanticweb.yars.util.CallbackNQOutputStream;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.hooks.content.SinkCallback;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
@@ -231,7 +232,7 @@ public class Main{
 
 		Crawler c = new Crawler(threads);
 		c.setErrorHandler(eh);
-		c.setOutputCallback(new CallbackNQOutputStream(os));
+		c.setOutputCallback(new SinkCallback(new CallbackNQOutputStream(os)));
 		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
 		
