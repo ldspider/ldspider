@@ -1,12 +1,10 @@
 package com.ontologycentral.ldspider.hooks.content;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.logging.Logger;
 
@@ -21,6 +19,9 @@ import com.ontologycentral.ldspider.http.Headers;
  * @author RobertIsele
  */
 public class SinkSparul implements Sink {
+	
+	/** Maximum number of statements per request. */
+	private int STATEMENTS_PER_REQUEST = 200;
 	
 	private final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 	
@@ -53,27 +54,8 @@ public class SinkSparul implements Sink {
 		}
 		
 		public void startDocument() {
-			//Preconditions
-			if(_connection != null) throw new IllegalStateException("Document already openend");
-			
 			try {
-
-				//Open a new HTTP connection
-				URL url = new URL(_endpoint);
-				_connection = (HttpURLConnection)url.openConnection();
-				_connection.setRequestMethod("POST");
-				_connection.setDoOutput(true);
-				_connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-				_writer = new OutputStreamWriter(_connection.getOutputStream(), "UTF-8");
-
-				//Begin SPARQL Request			
-				_writer.write("request=CREATE+SILENT+GRAPH+%3C" + _prov.getUri().toASCIIString() + "%3E+");
-				_writer.write("INSERT+DATA+INTO+%3C" + _prov.getUri().toASCIIString() + "%3E+%7B");
-				_statements = 0;
-
-				//Write provenance data
-				Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
-
+				beginSparul(true);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -81,15 +63,12 @@ public class SinkSparul implements Sink {
 		}
 
 		public void processStatement(Node[] nodes) {
-			//Preconditions
-			if(_connection == null) throw new IllegalStateException("Must open document before writing statements");
-			if(nodes == null) throw new NullPointerException("nodes must not be null");
-			if(nodes.length < 3) throw new IllegalArgumentException("A statement must consist of at least 3 nodes");
-		
-			//Write statement
 			try {
-				_writer.write(URLEncoder.encode(nodes[0].toN3() + " " + nodes[1].toN3() + " " + nodes[2].toN3() + " .\n", "UTF-8"));
-				_statements++;
+				if(_statements + 1 >= STATEMENTS_PER_REQUEST ) {
+					endSparql();
+					beginSparul(false);
+				}
+				writeStatement(nodes);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -97,22 +76,65 @@ public class SinkSparul implements Sink {
 		}
 		
 		public void endDocument() {
-		  //Preconditions
-	    if(_connection == null) return;
-			
 			try {
-			  //End SPARQL Request
-				_writer.write("%7D");
-				_writer.close();
-
-				_log.info("New graph with " + _statements + " statements written to Store. " + 
-						"Server response: " + _connection.getResponseCode() + " " + _connection.getResponseMessage() + ".");
-				
+				endSparql();
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
+		}
+		
+		private void beginSparul(boolean newGraph) throws IOException {
+			//Preconditions
+			if(_connection != null) throw new IllegalStateException("Document already openend");
 			
+			//Open a new HTTP connection
+			URL url = new URL(_endpoint);
+			_connection = (HttpURLConnection)url.openConnection();
+			_connection.setRequestMethod("POST");
+			_connection.setDoOutput(true);
+			_connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+			_writer = new OutputStreamWriter(_connection.getOutputStream(), "UTF-8");
+			_statements = 0;
+
+			//SPARUL Requests	
+			String provUri = URLEncoder.encode(_prov.getUri().toString(), "UTF-8");
+			_writer.write("request=");
+			if(newGraph) {
+				_writer.write("DROP+SILENT+GRAPH+%3C" + provUri + "%3E+");
+				_writer.write("CREATE+SILENT+GRAPH+%3C" + provUri + "%3E+");
+			}
+			_writer.write("INSERT+DATA+INTO+%3C" + provUri + "%3E+%7B");
+
+			//Write provenance data
+			Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
+		}
+		
+		private void writeStatement(Node[] nodes) throws IOException {
+			//Preconditions
+			if(_connection == null) throw new IllegalStateException("Must open document before writing statements");
+			if(nodes == null) throw new NullPointerException("nodes must not be null");
+			if(nodes.length < 3) throw new IllegalArgumentException("A statement must consist of at least 3 nodes");
+			
+			_writer.write(URLEncoder.encode(nodes[0].toN3() + " " + nodes[1].toN3() + " " + nodes[2].toN3() + " .\n", "UTF-8"));
+			_statements++;
+		}
+		
+		private void endSparql() throws IOException {
+		  //Preconditions
+	    if(_connection == null) return;
+			
+	    //End request
+			_writer.write("%7D");
+			_writer.close();
+			
+			//Check response
+			if(_connection.getResponseCode() == 200) {
+				_log.info(_statements + " statements written to Store.");
+			} else {
+				_log.warning("Cannot write to Store. Server response: " + _connection.getResponseCode() + " " + _connection.getResponseMessage() + ".");		
+			}
+
 			_connection = null;
 			_writer = null;
 		}
