@@ -25,6 +25,7 @@ public class CrawlerMultipleTest extends TestCase {
 
 		Frontier frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
+		frontier.add(new URI("http://dbpedia.org/resource/France"));
 
 		c.evaluateLoadBalanced(frontier, 1);
 		
@@ -33,6 +34,7 @@ public class CrawlerMultipleTest extends TestCase {
 		frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 		frontier.add(new URI("http://umbrich.net/foaf.rdf"));
+		frontier.add(new URI("http://dbpedia.org/resource/Germany"));
 
 		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
 
