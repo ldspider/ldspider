@@ -122,9 +122,9 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris) {
-		if (_queue == null) {
+		//if (_queue == null) {
 			_queue = new BreadthFirstQueue(_tldm, maxuris);
-		}
+		//}
 		
 		if (_links == null) {
 			_links = new LinkFilterDefault(frontier);
@@ -166,9 +166,9 @@ public class Crawler {
 	}
 	
 	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
-		if (_queue == null) {
+		//if (_queue == null) {
 			_queue = new LoadBalancingQueue(_tldm);
-		}
+		//}
 		
 		if (_links == null) {
 			_links = new LinkFilterDefault(frontier);
@@ -210,9 +210,11 @@ public class Crawler {
 			_log.info("ROUND " + i + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());
 
+			_log.info("frontier" + frontier);
+			
 			_queue.schedule(frontier);
 
-			_log.fine("new queue: \n" + _queue.toString());
+			_log.info("new queue: \n" + _queue.toString());
 		}
 	}
 	
