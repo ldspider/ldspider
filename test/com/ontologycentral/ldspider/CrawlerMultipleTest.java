@@ -1,6 +1,8 @@
 package com.ontologycentral.ldspider;
 import java.net.URI;
 
+import org.semanticweb.yars.util.CallbackNQOutputStream;
+
 import junit.framework.TestCase;
 
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
@@ -11,33 +13,28 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
 
-public class CrawlerTest extends TestCase {
+public class CrawlerMultipleTest extends TestCase {
 	public void testCrawl() throws Exception {
 		Crawler c = new Crawler(1);
+
+		ErrorHandler eh = new ErrorHandlerLogger(null, null);
+		c.setErrorHandler(eh);
+        c.setFetchFilter(new FetchFilterRdfXml());
+        c.setLinkFilter(new LinkFilterDummy());
+        c.setOutputCallback(new CallbackNQOutputStream(System.out));
 
 		Frontier frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 
-		ErrorHandler eh = new ErrorHandlerLogger(null, null);
-		c.setErrorHandler(eh);
-	
 		c.evaluateLoadBalanced(frontier, 1);
-	}
-	
-	public void testCrawl2() throws Exception {
-		Crawler c = new Crawler(1);
+		
+		System.out.println("===============load balanced done====================");
 
-		Frontier frontier = new BasicFrontier();
+		frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 		frontier.add(new URI("http://umbrich.net/foaf.rdf"));
 
 		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
-
-        c.setFetchFilter(new FetchFilterRdfXml());
-        c.setLinkFilter(new LinkFilterDummy());
-        
-		ErrorHandler eh = new ErrorHandlerLogger(null, null);
-		c.setErrorHandler(eh);
 
 		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS);
 	}

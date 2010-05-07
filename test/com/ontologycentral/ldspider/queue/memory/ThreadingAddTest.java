@@ -15,7 +15,7 @@ import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 
-public class ThreadingTest extends TestCase {
+public class ThreadingAddTest extends TestCase {
 	public static int THREADS = 64;
 	
 	public void testThreading() throws Exception {

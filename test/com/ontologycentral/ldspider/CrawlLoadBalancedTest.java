@@ -11,8 +11,8 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
 
-public class CrawlerTest extends TestCase {
-	public void testCrawl() throws Exception {
+public class CrawlLoadBalancedTest extends TestCase {
+	public void testCrawl1() throws Exception {
 		Crawler c = new Crawler(1);
 
 		Frontier frontier = new BasicFrontier();
@@ -28,18 +28,12 @@ public class CrawlerTest extends TestCase {
 		Crawler c = new Crawler(1);
 
 		Frontier frontier = new BasicFrontier();
-		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
-		frontier.add(new URI("http://umbrich.net/foaf.rdf"));
+		frontier.add(new URI("http://www.biz-nitch.com/index.rdf"));
 
-		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
-
-        c.setFetchFilter(new FetchFilterRdfXml());
-        c.setLinkFilter(new LinkFilterDummy());
-        
 		ErrorHandler eh = new ErrorHandlerLogger(null, null);
 		c.setErrorHandler(eh);
-
-		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS);
+	
+		c.evaluateLoadBalanced(frontier, 1);
 	}
 }
 
