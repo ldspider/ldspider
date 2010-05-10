@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.hooks.content;
+package com.ontologycentral.ldspider.hooks.sink;
 
 import org.semanticweb.yars.nx.parser.Callback;
 

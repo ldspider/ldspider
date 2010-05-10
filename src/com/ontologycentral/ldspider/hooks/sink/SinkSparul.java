@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.hooks.content;
+package com.ontologycentral.ldspider.hooks.sink;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -21,23 +21,45 @@ import com.ontologycentral.ldspider.http.Headers;
 public class SinkSparul implements Sink {
 	
 	/** Maximum number of statements per request. */
-	private int STATEMENTS_PER_REQUEST = 200;
+	private static final int STATEMENTS_PER_REQUEST = 200;
 	
 	private final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 	
+	/** SPARQL/Update endpoint */
 	private final String _endpoint;
 
+	private final String _graphUri;
+
 	/**
+	 * Creates a new SPARQL/Update Sink.
+	 * Each dataset will be written into a separate named graph.
+	 * 
 	 * @param sparulEndpoint The SPARQL/Update endpoint
 	 */
 	public SinkSparul(String sparulEndpoint) {
-		this._endpoint = sparulEndpoint;
+		_endpoint = sparulEndpoint;
+		_graphUri = null;
+	}
+	
+	/**
+	 * Creates a new SPARQL/Update Sink.
+	 * All Statements will be written into the same graph.
+	 * 
+	 * @param sparulEndpoint The SPARQL/Update endpoint
+	 * @param graphUri The graph into which all statements are written
+	 */
+	public SinkSparul(String sparulEndpoint, String graphUri) {
+		_endpoint = sparulEndpoint;
+		_graphUri = graphUri;
 	}
 	
 	public Callback newDataset(Provenance provenance) {
 		return new CallbackSparul(provenance);
 	}
 	
+	/**
+	 * Callback which is used to write a graph to the store.
+	 */
 	private class CallbackSparul implements Callback {
 		
 		private final Provenance _prov;
@@ -84,6 +106,12 @@ public class SinkSparul implements Sink {
 			}
 		}
 		
+		/**
+		 * Begins a new SPARQL/Update request.
+		 * 
+		 * @param newGraph Create a new (empty) graph?
+		 * @throws IOException
+		 */
 		private void beginSparul(boolean newGraph) throws IOException {
 			//Preconditions
 			if(_connection != null) throw new IllegalStateException("Document already openend");
@@ -99,17 +127,25 @@ public class SinkSparul implements Sink {
 
 			//SPARUL Requests	
 			String provUri = URLEncoder.encode(_prov.getUri().toString(), "UTF-8");
+			String graphUri = _graphUri != null ? _graphUri : provUri;
+			
 			_writer.write("request=");
 			if(newGraph) {
-				_writer.write("DROP+SILENT+GRAPH+%3C" + provUri + "%3E+");
-				_writer.write("CREATE+SILENT+GRAPH+%3C" + provUri + "%3E+");
+				//_writer.write("DROP+SILENT+GRAPH+%3C" + graphUri + "%3E+");
+				_writer.write("CREATE+SILENT+GRAPH+%3C" + graphUri + "%3E+");
 			}
-			_writer.write("INSERT+DATA+INTO+%3C" + provUri + "%3E+%7B");
+			_writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B");
 
 			//Write provenance data
 			Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
 		}
 		
+		/**
+		 * Adds a statement to the current SPARQL/Update request.
+		 * 
+		 * @param nodes The statement
+		 * @throws IOException
+		 */
 		private void writeStatement(Node[] nodes) throws IOException {
 			//Preconditions
 			if(_connection == null) throw new IllegalStateException("Must open document before writing statements");
@@ -120,6 +156,11 @@ public class SinkSparul implements Sink {
 			_statements++;
 		}
 		
+		/**
+		 * Ends the current SPARQL/Update request.
+		 * 
+		 * @throws IOException
+		 */
 		private void endSparql() throws IOException {
 		  //Preconditions
 	    if(_connection == null) return;

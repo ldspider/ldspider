@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.hooks.content;
+package com.ontologycentral.ldspider.hooks.sink;
 
 import java.net.URI;
 import org.apache.http.Header;

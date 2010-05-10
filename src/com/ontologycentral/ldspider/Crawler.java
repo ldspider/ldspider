@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.semanticweb.yars.nx.parser.Callback;
-
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.hooks.content.Sink;
-import com.ontologycentral.ldspider.hooks.content.SinkDummy;
+import com.ontologycentral.ldspider.hooks.content.ContentHandler;
+import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.sink.Sink;
+import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
@@ -29,6 +29,7 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class Crawler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
+	ContentHandler _contentHandler;
 	Sink _output;
 	LinkFilter _links;
 	ErrorHandler _eh;
@@ -92,8 +93,13 @@ public class Crawler {
 //	    _sitemaps = new Sitemaps(_cm);
 //	    _sitemaps.setErrorHandler(_eh);
 		
+	  _contentHandler = new ContentHandlerRdfXml();
 		_output = new SinkDummy();
 		_ff = new FetchFilterAllow();
+	}
+	
+	public void setContentHandler(ContentHandler h) {
+		_contentHandler = h;
 	}
 	
 	public void setFetchFilter(FetchFilter ff) {
@@ -139,7 +145,7 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
@@ -188,7 +194,7 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
