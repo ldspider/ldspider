@@ -19,6 +19,14 @@ public class LinkFilterDummy implements LinkFilter {
 	public Set<URI> getLinks() {
 		return new HashSet<URI>();
 	}
+	
+	public void setFollowABox(boolean follow) {
+		;
+	}
+
+	public void setFollowTBox(boolean follow) {
+		;
+	}
 
 	public void startDocument() {
 		;

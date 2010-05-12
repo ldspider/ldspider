@@ -1,13 +1,9 @@
 package com.ontologycentral.ldspider.hooks.links;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.Resource;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -19,25 +15,20 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
  * @author aharth
  *
  */
-public class LinkFilterDomain implements LinkFilter {
-	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
-
-	Frontier _f;
-	ErrorHandler _eh;
+public class LinkFilterDomain extends LinkFilterDefault {
 	
-	Set<String> _hosts;
+	private final Set<String> _prefixes;
 	
 	public LinkFilterDomain(Frontier f) {
-		_f = f;
-		_hosts = new HashSet<String>();
+		super(f);
+		_prefixes = new HashSet<String>();
 	}
-	
+
 	public void addHost(String pld) {
-		_hosts.add(pld);
+		_prefixes.add(pld);
 	}
 	
 	public void setErrorHandler(ErrorHandler eh) {
-		_eh = eh;
 	}
 
 	public void startDocument() {
@@ -47,24 +38,17 @@ public class LinkFilterDomain implements LinkFilter {
 	public void endDocument() {
 		;
 	}
-
-	public void processStatement(Node[] nx) {
-		for (int i = 0; i < nx.length-1; i++) {
-			if (nx[i] instanceof Resource) {
-				try {
-					URI u = new URI(nx[i].toString());
-					if (_hosts.contains(u.getHost())) {
-						_f.add(u);
-						_log.fine("adding " + u + " to frontier");
-					}
-				} catch (URISyntaxException e) {
-					try {
-						_eh.handleError(new URI(nx[nx.length-1].toString()), e);
-					} catch (URISyntaxException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
+	
+	@Override
+	protected void addABox(Node[] nx, int i) {
+		//Only add if the uri has a known prefix
+		boolean found = false;
+		for(String host : _prefixes) {
+			if(nx[i].toString().startsWith(host))
+				found = true;
+		}
+		if (found) {
+			addABox(nx, i);
 		}
 	}
 }

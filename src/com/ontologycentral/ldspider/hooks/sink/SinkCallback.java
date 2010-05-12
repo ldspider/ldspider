@@ -4,7 +4,7 @@ import org.semanticweb.yars.nx.parser.Callback;
 import com.ontologycentral.ldspider.http.Headers;
 
 /**
- * A Sink which used an NxParser Callback to write the statements.
+ * A Sink which uses an NxParser Callback to write the statements.
  * 
  * @author RobertIsele
  */

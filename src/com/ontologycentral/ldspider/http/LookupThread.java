@@ -102,6 +102,7 @@ public class LookupThread implements Runnable {
 								Callback contentCb = _content.newDataset(new Provenance(lu, hres.getAllHeaders(), status));
 								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links } );
 								_contentHandler.handle(lu, type, is, cbs);
+								is.close();
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);

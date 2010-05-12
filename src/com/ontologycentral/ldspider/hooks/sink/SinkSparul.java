@@ -15,6 +15,7 @@ import com.ontologycentral.ldspider.http.Headers;
 
 /**
  * A Sink which writes the content to a triple store using SPARQL/Update.
+ * Optionally uses Named Graphs to represent provenance.
  * 
  * @author RobertIsele
  */

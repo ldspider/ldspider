@@ -33,7 +33,6 @@ import org.semanticweb.yars.util.CallbackNQOutputStream;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
-import com.ontologycentral.ldspider.hooks.content.SinkCallback;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
@@ -42,6 +41,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
+import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 
 public class Main{
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
