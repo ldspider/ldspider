@@ -11,7 +11,8 @@ import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 /**
- * Follow all links (subject, predicate, object).
+ * Default Link Filter
+ * Configurable to follow all ABox and/or TBox links.
  * 
  * @author aharth
  * @author RobertIsele
