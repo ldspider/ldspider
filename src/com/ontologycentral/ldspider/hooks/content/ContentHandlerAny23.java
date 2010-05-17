@@ -75,9 +75,6 @@ public class ContentHandlerAny23 implements ContentHandler {
 	
 	/**
 	 * Handles a document by issuing a request to the Any23 server.
-	 * Requests to Any23 can be made either using HTTP GET or using HTTP POST.
-   * POST is more a efficient as Any23 does not have to make an additional GET request to the provided URI.
-	 * Currently GET is used anyway, because Any23 can not resolve relative URIs for POST requests (just uses http://any23.org/tmp instead) 
 	 * 
 	 * @param uri The URI of the document
 	 * @param mime The MIME type of the document
