@@ -11,13 +11,25 @@ import com.ontologycentral.ldspider.http.Headers;
 public class SinkCallback implements Sink {
 
 	private Callback _callback;
+
 	private boolean _includeProvenance;
 	
+	/**
+	 * Constructs a new SinkCallback which does include provenance.
+	 * 
+	 * @param callback The NxParser callback to receive the statements.
+	 */
 	public SinkCallback(Callback callback) {
 		_callback = callback;
 		_includeProvenance = true;
 	}
 	
+	/**
+	 * Constructs a new SinkCallback which optionally includes provenance.
+	 * 
+	 * @param callback The NxParser callback to receive the statements.
+	 * @param includeProvenance If true, provenance information will be included in the output. 
+	 */
 	public SinkCallback(Callback callback, boolean includeProvenance) {
 		_callback = callback;
 		_includeProvenance = includeProvenance;

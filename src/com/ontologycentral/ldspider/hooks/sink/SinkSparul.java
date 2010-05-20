@@ -29,6 +29,8 @@ public class SinkSparul implements Sink {
 	/** SPARQL/Update endpoint */
 	private final String _endpoint;
 
+	private boolean _includeProvenance;
+	
 	private final String _graphUri;
 
 	/**
@@ -36,9 +38,11 @@ public class SinkSparul implements Sink {
 	 * Each dataset will be written into a separate named graph.
 	 * 
 	 * @param sparulEndpoint The SPARQL/Update endpoint
+	 * @param includeProvenance If true, provenance information will be included in the output. 
 	 */
-	public SinkSparul(String sparulEndpoint) {
+	public SinkSparul(String sparulEndpoint, boolean includeProvenance) {
 		_endpoint = sparulEndpoint;
+		_includeProvenance = includeProvenance;
 		_graphUri = null;
 	}
 	
@@ -47,10 +51,12 @@ public class SinkSparul implements Sink {
 	 * All Statements will be written into the same graph.
 	 * 
 	 * @param sparulEndpoint The SPARQL/Update endpoint
+	 * @param includeProvenance If true, provenance information will be included in the output. 
 	 * @param graphUri The graph into which all statements are written
 	 */
-	public SinkSparul(String sparulEndpoint, String graphUri) {
+	public SinkSparul(String sparulEndpoint, boolean includeProvenance, String graphUri) {
 		_endpoint = sparulEndpoint;
+		_includeProvenance = includeProvenance;
 		_graphUri = graphUri;
 	}
 	
@@ -138,7 +144,9 @@ public class SinkSparul implements Sink {
 			_writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B");
 
 			//Write provenance data
-			Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
+			if(_includeProvenance) {
+				Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
+			}
 		}
 		
 		/**

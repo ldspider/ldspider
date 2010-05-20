@@ -14,6 +14,11 @@ public class ContentHandlers implements ContentHandler {
 
 	private final ContentHandler[] _handlers;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param handlers The content handlers. Content handlers will be prioritized by their sequence order.
+	 */
 	public ContentHandlers(ContentHandler... handlers) {
 		_handlers = handlers;
 	}
