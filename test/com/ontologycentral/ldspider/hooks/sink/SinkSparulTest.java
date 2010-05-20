@@ -26,12 +26,19 @@ import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
 public class SinkSparulTest extends TestCase {
 	
 	private static final String seedUri = "http://dbpedia.org/resource/Germany";
+	//private static final String seedUri = "http://libris.kb.se/data/bib/10294087";
 	
 	private static final String sparqlEndpoint = "http://localhost:2020/sparql";
 	
 	private static final String sparulEndpoint = "http://localhost:2020/service/update";
 	
 	private static final String graph = "http://example.com/SinkSparulTestGraph";
+	
+	private static final boolean includeProvenance = false;
+	
+	private static final boolean includeABox = true;
+	
+	private static final boolean includeTBox = false;
 	
 	public void testCrawl() throws Exception {
 		dropGraph();
@@ -61,11 +68,11 @@ public class SinkSparulTest extends TestCase {
     c.setContentHandler(handler);
 	
     //Sink
-    Sink sink = new SinkSparul(sparulEndpoint, graph);
+    Sink sink = new SinkSparul(sparulEndpoint, includeProvenance, graph);
     c.setOutputCallback(sink);
 	
     //Crawl
-    c.evaluateBreadthFirst(frontier, 1, 5);
+    c.evaluateBreadthFirst(frontier, 2, 5, includeABox, includeTBox);
     System.out.println("Written to triple store");
 	}
 	
