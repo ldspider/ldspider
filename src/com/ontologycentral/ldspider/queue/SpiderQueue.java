@@ -3,7 +3,6 @@ package com.ontologycentral.ldspider.queue;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 

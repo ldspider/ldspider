@@ -35,5 +35,18 @@ public class CrawlLoadBalancedTest extends TestCase {
 	
 		c.evaluateLoadBalanced(frontier, 1);
 	}
+	
+	public void testCrawl3() throws Exception {
+		Crawler c = new Crawler(1);
+
+		Frontier frontier = new BasicFrontier();
+		frontier.add(new URI("http://localhost:8888/company/facebook"));
+
+		ErrorHandler eh = new ErrorHandlerLogger(null, null);
+		c.setErrorHandler(eh);
+	
+		c.evaluateLoadBalanced(frontier, 1);
+	}
+
 }
 

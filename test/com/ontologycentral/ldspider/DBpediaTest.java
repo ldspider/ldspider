@@ -32,7 +32,7 @@ public class DBpediaTest extends TestCase {
 
 	    cb = new org.semanticweb.yars.util.CallbackSet();
 	    
-	    c = new Crawler(1);
+	    //c = new Crawler(1);
 
 	    c.setOutputCallback(cb);
 

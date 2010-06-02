@@ -72,7 +72,7 @@ public class TldManager {
     		String host = url.getHost();
     		if (host == null) {
         		_log.fine("no host for " + url);
-    			return null;
+    			return "nohost";
     		}
     		String[] parts = host.split("\\.");
     		if (parts.length == 2) {
@@ -81,8 +81,8 @@ public class TldManager {
     		String tld = host.substring(host.lastIndexOf(".") + 1, host.length());
     		Tld current = TLDs.get(tld);
     		if(current == null) {
-    			_log.info("no host " + url);
-    			return null;
+    			_log.fine("no host " + url);
+    			return "nohost";
     		}
 
     		if (parts.length == 3) {
