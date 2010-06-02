@@ -196,43 +196,6 @@ public class LoadBalancingQueue extends SpiderQueue {
 		return next;
 	}
 	
-	/**
-	 * Set the redirect.
-	 */
-	public void setRedirect(URI from, URI to, int status) {
-		try {
-			to = Frontier.normalise(to);
-		} catch (URISyntaxException e) {
-			_log.info(to +  " not parsable, skipping " + to);
-			return;
-		}
-		
-		if (from.equals(to)) {
-			_log.info("redirected to same uri " + from);
-			return;
-		}
-		
-		_redirs.put(from, to);
-		_redirsRound.add(to);
-	}
-	
-	/**
-	 * Return redirected URI (if there's a redirect)
-	 * otherwise return original URI.
-	 * 
-	 * @param from
-	 * @return
-	 */
-	URI obtainRedirect(URI from) {
-		URI to = _redirs.getRedirect(from);
-		if (from != to) {
-			_log.info("redir from " + from + " to " + to);
-			return to;
-		}
-		
-		return from;
-	}
-	
 	boolean checkSeen(URI u) {
 		if (u == null) {
 			throw new NullPointerException("u cannot be null");

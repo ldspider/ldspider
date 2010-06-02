@@ -1,7 +1,6 @@
 package com.ontologycentral.ldspider;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -20,8 +19,8 @@ import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
+import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.queue.disk.BDBQueue;
 import com.ontologycentral.ldspider.queue.memory.BreadthFirstQueue;
 import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
@@ -133,9 +132,13 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, boolean followABox, boolean followTBox) {
-		//if (_queue == null) {
-		_queue = new BreadthFirstQueue(_tldm, maxuris);
-		//}
+		if (_queue == null) {
+			_queue = new BreadthFirstQueue(_tldm, maxuris);
+		} else {
+			Redirects r = _queue.getRedirects();
+			_queue = new BreadthFirstQueue(_tldm, maxuris);
+			_queue.setRedirects(r);
+		}
 		
 		if (_links == null) {
 			_links = new LinkFilterDefault(frontier);
@@ -186,10 +189,14 @@ public class Crawler {
 	}
 	
 	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
-		//if (_queue == null) {
+		if (_queue == null) {
 			_queue = new LoadBalancingQueue(_tldm);
-		//}
-		
+		} else {
+			Redirects r = _queue.getRedirects();
+			_queue = new LoadBalancingQueue(_tldm);
+			_queue.setRedirects(r);
+		}
+
 		if (_links == null) {
 			_links = new LinkFilterDefault(frontier);
 		}
@@ -237,24 +244,6 @@ public class Crawler {
 			_log.info("new queue: \n" + _queue.toString());
 		}
 	}
-	
-	public void evaluateLoadBalanced(Frontier frontier, int maxuris, String queueLocation) {
-		if (_queue == null) {
-			try {
-				_queue = new BDBQueue(_tldm, queueLocation, maxuris);
-			} catch (URISyntaxException e) {
-				e.printStackTrace();
-				_log.severe(e.getClass().getSimpleName()+" "+e.getMessage());
-				return;
-			}
-		}
-		
-	    evaluateLoadBalanced(frontier, maxuris);
-
-	    if (_queue instanceof BDBQueue) {
-			((BDBQueue)_queue).close();
-		}
-	}	
 	
 	public void close() {
 		_cm.shutdown();

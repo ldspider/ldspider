@@ -22,8 +22,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	Set<URI> _seen;
-	
-	Redirects _redirs;
 
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
@@ -38,8 +36,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 		_maxuris = maxuris;
 
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
-		_redirs = new Redirects();
-		
+
 		_current = new ConcurrentLinkedQueue<String>();
 	}
 	
@@ -163,28 +160,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 	}
 	
 	/**
-	 * Set the redirect.
-	 */
-	public void setRedirect(URI from, URI to, int status) {
-		try {
-			to = Frontier.normalise(to);
-		} catch (URISyntaxException e) {
-			_log.info(to +  " not parsable, skipping " + to);
-			return;
-		}
-		
-		if (from.equals(to)) {
-			_log.info("redirected to same uri " + from);
-			return;
-		}
-		
-		_redirs.put(from, to);
-		_redirsRound.add(to);
-//			// fetch again, this time redirects are taken into account
-//			addDirectly(from);
-	}
-	
-	/**
 	 * Add URI directly to queues.
 	 * 
 	 * @param u
@@ -209,23 +184,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 		}
 	}
 
-	/**
-	 * Return redirected URI (if there's a redirect)
-	 * otherwise return original URI.
-	 * 
-	 * @param from
-	 * @return
-	 */
-	URI obtainRedirect(URI from) {
-		URI to = _redirs.getRedirect(from);
-		if (from != to) {
-			_log.info("redir from " + from + " to " + to);
-			return to;
-		}
-		
-		return from;
-	}
-	
 	boolean checkSeen(URI u) {
 		if (u == null) {
 			throw new NullPointerException("u cannot be null");

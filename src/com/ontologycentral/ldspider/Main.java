@@ -68,12 +68,13 @@ public class Main{
 
 		OptionGroup strategy = new OptionGroup();
 
+		/*
 		Option ondisk = OptionBuilder.withArgName("directory max-uris")
 		.hasArgs(1)
 		.withDescription("use on-disk queue with URI selection based on frequency")
 		.create("d");
 		strategy.addOption(ondisk);
-
+		*/
 //		Option simple = new Option("a", false, "just fetch URIs from list");
 //		strategy.addOption(simple);
 
@@ -248,13 +249,6 @@ public class Main{
 			_log.info("load balanced crawl with " + threads + " threads, maxuris " + maxuris);
 
 			c.evaluateLoadBalanced(frontier, maxuris);
-		} else if (cmd.hasOption("d")) {
-			String fname = cmd.getOptionValues("d")[0];
-			int maxuris = Integer.parseInt(cmd.getOptionValues("d")[1]);
-
-			_log.info("on-disk optimised crawl with " + threads + " threads, maxuris " + maxuris);
-
-			c.evaluateLoadBalanced(frontier, maxuris, fname);
 		}
 	
 		for (Iterator<ObjectThrowable> it = eh.iterator(); it.hasNext() ; ) {
