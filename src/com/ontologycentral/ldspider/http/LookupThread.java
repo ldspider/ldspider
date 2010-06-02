@@ -15,8 +15,11 @@ import org.semanticweb.yars.util.Callbacks;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.hooks.content.ContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
+import com.ontologycentral.ldspider.hooks.sink.Provenance;
+import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 
@@ -24,7 +27,8 @@ public class LookupThread implements Runnable {
 	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	SpiderQueue _q;
-	Callback _content;
+	ContentHandler _contentHandler;
+	Sink _content;
 	Callback _links;
 	FetchFilter _ff;
 	
@@ -34,9 +38,10 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	public LookupThread(ConnectionManager hc, SpiderQueue q, Callback content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff) {
+	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff) {
 		_hclient = hc;
 		_q = q;
+		_contentHandler = handler;
 		_content = content;
 		_links = links;
 		_robots = robots;
@@ -90,17 +95,14 @@ public class LookupThread implements Runnable {
 					
 					_log.info("lookup on " + lu + " status " + status);
 
-					// write headers in RDF
-					Headers.processHeaders(lu, status, hres.getAllHeaders(), _content);
-
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
-							if (_ff.fetchOk(lu, status, hen) == true) {
+							if (_ff.fetchOk(lu, status, hen) && _contentHandler.canHandle(type)) {
 								InputStream is = hen.getContent();
-
-								Callbacks cbs = new Callbacks(new Callback[] { _content, _links } );
-								RDFXMLParser rxp = new RDFXMLParser(is, true, true, lu.toString(), cbs, new Resource(lu.toString()));
-								rxp = null;
+								Callback contentCb = _content.newDataset(new Provenance(lu, hres.getAllHeaders(), status));
+								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links } );
+								_contentHandler.handle(lu, type, is, cbs);
+								is.close();
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);

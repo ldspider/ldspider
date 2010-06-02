@@ -6,16 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.semanticweb.yars.nx.parser.Callback;
-
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.hooks.content.CallbackDummy;
+import com.ontologycentral.ldspider.hooks.content.ContentHandler;
+import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.sink.Sink;
+import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
@@ -28,7 +29,8 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class Crawler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	Callback _output;
+	ContentHandler _contentHandler;
+	Sink _output;
 	LinkFilter _links;
 	ErrorHandler _eh;
 	FetchFilter _ff;
@@ -91,8 +93,13 @@ public class Crawler {
 //	    _sitemaps = new Sitemaps(_cm);
 //	    _sitemaps.setErrorHandler(_eh);
 		
-		_output = new CallbackDummy();
+	  _contentHandler = new ContentHandlerRdfXml();
+		_output = new SinkDummy();
 		_ff = new FetchFilterAllow();
+	}
+	
+	public void setContentHandler(ContentHandler h) {
+		_contentHandler = h;
 	}
 	
 	public void setFetchFilter(FetchFilter ff) {
@@ -113,7 +120,7 @@ public class Crawler {
 		}
 	}
 	
-	public void setOutputCallback(Callback cb) {
+	public void setOutputCallback(Sink cb) {
 		_output = cb;
 	}
 	
@@ -122,8 +129,12 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris) {
+		evaluateBreadthFirst(frontier, depth, maxuris, true, true);
+	}
+	
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, boolean followABox, boolean followTBox) {
 		//if (_queue == null) {
-			_queue = new BreadthFirstQueue(_tldm, maxuris);
+		_queue = new BreadthFirstQueue(_tldm, maxuris);
 		//}
 		
 		if (_links == null) {
@@ -131,14 +142,23 @@ public class Crawler {
 		}
 		
 		_queue.schedule(frontier);
+		_links.setFollowABox(followABox);
+		_links.setFollowTBox(followTBox);
 		
 		_log.fine(_queue.toString());
 		
-		for (int curRound = 0; curRound <= depth; curRound++) {
+		int rounds = followTBox ? depth + 1 : depth;
+		for (int curRound = 0; curRound <= rounds; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
+			
+			//Extra round to get TBox
+			if(curRound == depth + 1) {
+				_links.setFollowABox(false);
+				_links.setFollowTBox(true);
+			}
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
@@ -181,13 +201,13 @@ public class Crawler {
 		int i = 0;
 		int uris = 0;
 		
-		while (uris < maxuris) {
+		while (uris < maxuris && _queue.size() > 0) {
 			int size = _queue.size();
 			
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
@@ -205,7 +225,7 @@ public class Crawler {
 				}
 			}
 			
-			uris = size - _queue.size();
+			uris += size - _queue.size();
 			
 			_log.info("ROUND " + i + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());

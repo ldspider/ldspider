@@ -12,6 +12,7 @@ import org.semanticweb.yars.nx.parser.Callback;
 
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.hooks.content.SinkCallback;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
@@ -29,7 +30,7 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setErrorHandler(eh);
 	
 	NodeCollector nc = new NodeCollector();
-	c.setOutputCallback(nc);
+	c.setOutputCallback(new SinkCallback(nc));
 	c.setLinkFilter(new LinkFilterDefault(f));
 	c.setFetchFilter(new FetchFilterRdfXml());
 	c.evaluate(f, 0);
@@ -42,7 +43,7 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setErrorHandler(eh);
 	
 	nc = new NodeCollector();
-	c.setOutputCallback(nc);
+	c.setOutputCallback(new SinkCallback(nc));
 	c.setLinkFilter(new LinkFilterDefault(f));
 	c.setFetchFilter(new FetchFilterRdfXml());
 	c.evaluate(f, 0);

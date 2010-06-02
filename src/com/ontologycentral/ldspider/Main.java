@@ -41,6 +41,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
+import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 
 public class Main{
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -231,7 +232,7 @@ public class Main{
 
 		Crawler c = new Crawler(threads);
 		c.setErrorHandler(eh);
-		c.setOutputCallback(new CallbackNQOutputStream(os));
+		c.setOutputCallback(new SinkCallback(new CallbackNQOutputStream(os)));
 		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
 		
