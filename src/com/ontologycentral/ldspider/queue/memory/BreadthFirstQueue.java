@@ -14,14 +14,11 @@ import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class BreadthFirstQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
-
-	Set<URI> _seen;
 
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
@@ -34,8 +31,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 		super(tldm);
 
 		_maxuris = maxuris;
-
-		_seen = Collections.synchronizedSet(new HashSet<URI>());
 
 		_current = new ConcurrentLinkedQueue<String>();
 	}

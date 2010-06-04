@@ -1,8 +1,10 @@
 package com.ontologycentral.ldspider;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
@@ -136,8 +138,10 @@ public class Crawler {
 			_queue = new BreadthFirstQueue(_tldm, maxuris);
 		} else {
 			Redirects r = _queue.getRedirects();
+			Set<URI> seen = _queue.getSeen();
 			_queue = new BreadthFirstQueue(_tldm, maxuris);
 			_queue.setRedirects(r);
+			_queue.setSeen(seen);
 		}
 		
 		if (_links == null) {
@@ -193,8 +197,10 @@ public class Crawler {
 			_queue = new LoadBalancingQueue(_tldm);
 		} else {
 			Redirects r = _queue.getRedirects();
+			Set<URI> seen = _queue.getSeen();
 			_queue = new LoadBalancingQueue(_tldm);
 			_queue.setRedirects(r);
+			_queue.setSeen(seen);
 		}
 
 		if (_links == null) {

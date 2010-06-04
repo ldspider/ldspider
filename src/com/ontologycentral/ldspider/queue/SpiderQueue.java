@@ -23,6 +23,8 @@ public abstract class SpiderQueue implements Serializable{
 	public abstract URI poll();
 	public abstract int size();
 	
+	Set<URI> _seen;
+
 	protected Set<URI> _seenRound = null;
 	protected Set<URI> _redirsRound = null;
 	
@@ -33,6 +35,8 @@ public abstract class SpiderQueue implements Serializable{
 		_tldm = tldm;
 		
 		_redirs = new Redirects();
+		
+		_seen = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
 	/**
@@ -97,4 +101,14 @@ public abstract class SpiderQueue implements Serializable{
 	public void setRedirects(Redirects redirs) {
 		_redirs = redirs;		
 	}
+	
+	
+	public Set<URI> getSeen() {
+		return _seen;
+	}
+
+	public void setSeen(Set<URI> seen) {
+		_seen = seen;
+	}
+
 }

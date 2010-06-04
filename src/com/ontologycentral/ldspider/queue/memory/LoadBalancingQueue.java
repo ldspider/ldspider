@@ -24,10 +24,6 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class LoadBalancingQueue extends SpiderQueue {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	Set<URI> _seen;
-		
-	Redirects _redirs;
-
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
 
@@ -41,9 +37,6 @@ public class LoadBalancingQueue extends SpiderQueue {
 	public LoadBalancingQueue(TldManager tldm) {
 		super(tldm);
 
-		_seen = Collections.synchronizedSet(new HashSet<URI>());
-		_redirs = new Redirects();
-		
 		_current = new ConcurrentLinkedQueue<String>();
 		
 		_mindelay = CrawlerConstants.MIN_DELAY;
