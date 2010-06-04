@@ -5,6 +5,7 @@ import junit.framework.TestCase;
 
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.queue.BreadthFirstQueue;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 

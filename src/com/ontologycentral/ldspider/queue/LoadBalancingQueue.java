@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -17,8 +17,6 @@ import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.queue.Redirects;
-import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class LoadBalancingQueue extends SpiderQueue {

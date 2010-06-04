@@ -12,8 +12,8 @@ import junit.framework.TestCase;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class LoadBalancingQueuePollTest extends TestCase {

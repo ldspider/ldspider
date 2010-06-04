@@ -21,10 +21,10 @@ import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
+import com.ontologycentral.ldspider.queue.BreadthFirstQueue;
+import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.queue.memory.BreadthFirstQueue;
-import com.ontologycentral.ldspider.queue.memory.LoadBalancingQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
