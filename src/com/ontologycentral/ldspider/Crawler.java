@@ -132,7 +132,7 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, boolean followABox, boolean followTBox) {
-		if (_queue == null) {
+		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
 			_queue = new BreadthFirstQueue(_tldm, maxuris);
 		} else {
 			Redirects r = _queue.getRedirects();
@@ -189,7 +189,7 @@ public class Crawler {
 	}
 	
 	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
-		if (_queue == null) {
+		if (_queue == null || !(_queue instanceof LoadBalancingQueue)) {
 			_queue = new LoadBalancingQueue(_tldm);
 		} else {
 			Redirects r = _queue.getRedirects();
@@ -245,6 +245,17 @@ public class Crawler {
 		}
 	}
 	
+	/**
+	 * Set the spider queue
+	 * @param queue
+	 */
+	public void setQueue(final SpiderQueue queue){
+		_queue = queue;
+	}
+	
+	public SpiderQueue getQueue(){
+		return _queue;
+	}
 	public void close() {
 		_cm.shutdown();
 		_eh.close();

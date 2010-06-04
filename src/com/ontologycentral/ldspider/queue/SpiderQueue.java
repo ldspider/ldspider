@@ -1,5 +1,6 @@
 package com.ontologycentral.ldspider.queue;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -12,7 +13,11 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 
 
-public abstract class SpiderQueue {
+public abstract class SpiderQueue implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	public abstract URI poll();
