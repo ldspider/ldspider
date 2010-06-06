@@ -34,7 +34,7 @@ public class Crawler {
 	Sink _output;
 	LinkFilter _links;
 	ErrorHandler _eh;
-	FetchFilter _ff;
+	FetchFilter _ff, _blacklist;
 	ConnectionManager _cm;
 	
 	Robots _robots;
@@ -94,9 +94,11 @@ public class Crawler {
 //	    _sitemaps = new Sitemaps(_cm);
 //	    _sitemaps.setErrorHandler(_eh);
 		
-	  _contentHandler = new ContentHandlerRdfXml();
-		_output = new SinkDummy();
+	    _contentHandler = new ContentHandlerRdfXml();
+	    _output = new SinkDummy();
 		_ff = new FetchFilterAllow();
+		
+		_blacklist = new FetchFilterAllow();
 	}
 	
 	public void setContentHandler(ContentHandler h) {
@@ -106,7 +108,11 @@ public class Crawler {
 	public void setFetchFilter(FetchFilter ff) {
 		_ff = ff;
 	}
-	
+
+	public void setBlacklistFilter(FetchFilter blacklist) {
+		_blacklist = blacklist;
+	}
+
 	public void setErrorHandler(ErrorHandler eh) {
 		_eh = eh;
 		
@@ -165,7 +171,7 @@ public class Crawler {
 			}
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 
@@ -220,7 +226,7 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff);
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
 				ts.add(new Thread(lt,"LookupThread-"+j));		
 			}
 

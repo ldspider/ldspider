@@ -23,8 +23,8 @@
       <classpath refid="classpath"/>
     </javac>
 
-    <copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy>
-	  	
+    <copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy> 
+  	
     <jar jarfile="${dist}/${name}-${version}.jar" basedir="bin">
       <zipfileset src="lib/commons-cli-1.2.jar"/>
       <zipfileset src="lib/httpclient-4.0.1.jar"/>

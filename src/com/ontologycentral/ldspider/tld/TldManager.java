@@ -25,9 +25,8 @@ public class TldManager {
 
     public TldManager() throws IOException {
 		read(TldManager.class.getResourceAsStream("tld.dat"));
-    }
-    	
-    	
+    }   
+    
     void read(InputStream is) throws IOException {
     	TLDs = new HashMap<String, Tld>();
     	
@@ -38,7 +37,6 @@ public class TldManager {
     	}
     }
     
-
     public TldManager(ConnectionManager cm) throws URISyntaxException, IOException {
     	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
     	HttpResponse hres;
@@ -55,6 +53,7 @@ public class TldManager {
     		}
     	} else {
     		_log.info("status " + status + " for " + tu);
+    		throw new IOException("cannot access " + tu.toString() + ": " + status);
     	}
 
     	if (hen != null) {

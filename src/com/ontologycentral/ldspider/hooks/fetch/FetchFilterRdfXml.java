@@ -31,7 +31,7 @@ public class FetchFilterRdfXml implements FetchFilter {
 					return true;
 				}
 			}
-			_log.info("ct " + u + " " + ct.getValue());
+			_log.fine("ct " + u + " " + ct.getValue());
 		} else {
 			Exception e = new IOException("no content type available for " + u);
 			_eh.handleError(u, e);

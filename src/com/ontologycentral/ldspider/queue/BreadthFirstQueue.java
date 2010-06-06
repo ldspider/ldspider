@@ -2,13 +2,13 @@ package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
@@ -17,6 +17,8 @@ import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class BreadthFirstQueue extends SpiderQueue {
+	private static final long serialVersionUID = 1L;
+
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	Map<String, Queue<URI>> _queues;
@@ -74,14 +76,14 @@ public class BreadthFirstQueue extends SpiderQueue {
 				_queues.put(pld, q);
 			}
 		}
-		
+
 		_current.addAll(_queues.keySet());
 		
 		_time = System.currentTimeMillis();
 		
-		_log.info("scheduling done in " + (_time - time) + " ms");
+		_log.info("scheduling " + _current.size() + " plds done in " + (_time - time) + " ms");
 	}
-	
+		
 	/**
 	 * Poll a URI, one PLD after another.
 	 * If queue turnaround is smaller than DELAY, wait for DELAY ms to
@@ -119,8 +121,25 @@ public class BreadthFirstQueue extends SpiderQueue {
 				_log.info("queue turnaround in " + (time1-_time) + " ms");
 
 				_time = System.currentTimeMillis();
+
+				// here apply optimisation heuristics -> that should be a forumula!
+
+				List<String> lipld = getSortedQueuePlds();
+
+				// remove the bottom-20%
+				int bottom = (int)((float)lipld.size()*.2f);
 				
-				_current.addAll(_queues.keySet());
+				for (int i = 0; i < bottom; i++) {
+					lipld.remove(lipld.size()-1);
+				}
+
+				_log.info("removing bottom " + bottom + " from queue");
+				
+				// optimisation end
+				
+				_current.addAll(lipld);
+				
+				//_current.addAll(_queues.keySet());				
 			}
 
 			String pld = _current.poll();
@@ -151,6 +170,20 @@ public class BreadthFirstQueue extends SpiderQueue {
 		} while (next == null && empty < _queues.size());
 
 		return next;
+	}
+	
+	List<String> getSortedQueuePlds() {
+		List<String> li = new ArrayList<String>();
+		
+		for (String pld : _queues.keySet()) {
+			if (!_queues.get(pld).isEmpty()) {
+				li.add(pld);
+			}
+		}
+				
+		Collections.sort(li, new PldCountComparator(_queues));
+		
+		return li;
 	}
 	
 	/**

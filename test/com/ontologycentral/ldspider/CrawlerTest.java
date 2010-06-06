@@ -7,6 +7,7 @@ import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandlerStats;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
@@ -18,7 +19,7 @@ public class CrawlerTest extends TestCase {
 		Frontier frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 
-		ErrorHandler eh = new ErrorHandlerLogger(null, null);
+		ErrorHandler eh = new ErrorHandlerStats(System.out, null);
 		c.setErrorHandler(eh);
 	
 		c.evaluateLoadBalanced(frontier, 1);

@@ -20,6 +20,8 @@ import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class LoadBalancingQueue extends SpiderQueue {
+	private static final long serialVersionUID = 1L;
+
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	Map<String, Queue<URI>> _queues;
@@ -74,11 +76,11 @@ public class LoadBalancingQueue extends SpiderQueue {
 			//f.remove(u);
 		}
 	
-		_current.addAll(getQueuePlds());
+		_current.addAll(getSortedQueuePlds());
 		
 		_mintime = _maxtime = System.currentTimeMillis();
 		
-		_log.info("scheduling depth " + _depth + " with " + size() + " uris and " + getQueuePlds().size() + " plds done in " + (_mintime - time) + " ms");
+		_log.info("scheduling depth " + _depth + " with " + size() + " uris and " + getSortedQueuePlds().size() + " plds done in " + (_mintime - time) + " ms");
 	}
 	
 //	/**
@@ -160,14 +162,14 @@ public class LoadBalancingQueue extends SpiderQueue {
 
 				_mintime = _maxtime = System.currentTimeMillis();
 				
-				_current.addAll(getQueuePlds());
+				_current.addAll(getSortedQueuePlds());
 			} else if ((time1 - _maxtime) > _maxdelay) {
 				_log.info("skipped to start of queue in " + (time1-_maxtime) + " ms, queue size " + size());
 
 				_maxtime = System.currentTimeMillis();
 				
 				_current = new ConcurrentLinkedQueue<String>();
-				_current.addAll(getQueuePlds());				
+				_current.addAll(getSortedQueuePlds());				
 			}
 
 			String pld = _current.poll();
@@ -202,7 +204,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 		}
 	}
 	
-	List<String> getQueuePlds() {
+	List<String> getSortedQueuePlds() {
 		List<String> li = new ArrayList<String>();
 		
 		li.addAll(_queues.keySet());
@@ -229,7 +231,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 		sb.append(_queues.size());
 		sb.append("\n");
 		
-		for (String pld : getQueuePlds()) {
+		for (String pld : getSortedQueuePlds()) {
 			Queue<URI> q = _queues.get(pld);
 			sb.append(pld);
 			sb.append(": ");

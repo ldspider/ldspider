@@ -30,7 +30,7 @@ public class LookupThread implements Runnable {
 	ContentHandler _contentHandler;
 	Sink _content;
 	Callback _links;
-	FetchFilter _ff;
+	FetchFilter _ff, _blacklist;
 	
 	Robots _robots;
 //	Sitemaps _sitemaps;
@@ -38,15 +38,15 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff) {
+	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist) {
 		_hclient = hc;
 		_q = q;
 		_contentHandler = handler;
 		_content = content;
 		_links = links;
 		_robots = robots;
-//		_sitemaps = sitemaps;
 		_ff = ff;
+		_blacklist = blacklist;
 		_eh = eh;
 	}
 	
@@ -75,7 +75,15 @@ public class LookupThread implements Runnable {
 //				_log.info("sitemap surprisingly actually has uris " + li);
 //			}
 			
-			if (_robots.accessOk(lu)) {
+			Header[] headers = null;
+			
+			if (!_blacklist.fetchOk(lu, 0, null)) {
+				_log.info("access denied per blacklist for " + lu);
+				_eh.handleStatus(lu, CrawlerConstants.SKIP_SUFFIX, null, 0, -1);
+			} else if (!_robots.accessOk(lu)) {
+				_log.info("access denied per robots.txt for " + lu);
+				_eh.handleStatus(lu, CrawlerConstants.SKIP_ROBOTS, null, 0, -1);
+			} else {
 				time2 = System.currentTimeMillis();
 
 				HttpGet hget = new HttpGet(lu);
@@ -93,7 +101,7 @@ public class LookupThread implements Runnable {
 						type = hres.getFirstHeader("Content-Type").getValue();
 					}
 					
-					_log.info("lookup on " + lu + " status " + status);
+					_log.fine("lookup on " + lu + " status " + status);
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
@@ -103,6 +111,8 @@ public class LookupThread implements Runnable {
 								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links } );
 								_contentHandler.handle(lu, type, is, cbs);
 								is.close();
+								
+								headers = hres.getAllHeaders();
 							} else {
 								_log.info("disallowed via fetch filter " + lu);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);
@@ -122,6 +132,8 @@ public class LookupThread implements Runnable {
 						// set redirect from original uri to new uri
 						_q.setRedirect(lu, to, status);
 						
+						headers = hres.getAllHeaders();
+						
 						_eh.handleRedirect(lu, to, status);
 					}
 
@@ -139,13 +151,10 @@ public class LookupThread implements Runnable {
 				time3 = System.currentTimeMillis();
 				
 				if (status != 0) {
-					_eh.handleStatus(lu, status, type, (time3-time2), bytes);
+					_eh.handleStatus(lu, status, headers, (time3-time2), bytes);
 				}
 				
-				_log.info(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
-			} else {
-				_log.info("access denied per robots.txt for " + lu);
-				_eh.handleStatus(lu, CrawlerConstants.SKIP_ROBOTS, null, 0, -1);
+				_log.fine(lu + " " + (time1-time) + " ms before lookup, " + (time2-time1) + " ms to check if lookup is ok, " + (time3-time2) + " ms for lookup");
 			}
 
 			lu = _q.poll();

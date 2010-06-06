@@ -14,9 +14,6 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 
 public abstract class SpiderQueue implements Serializable{
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
@@ -106,7 +103,7 @@ public abstract class SpiderQueue implements Serializable{
 	public Set<URI> getSeen() {
 		return _seen;
 	}
-
+	
 	public void setSeen(Set<URI> seen) {
 		_seen = seen;
 	}

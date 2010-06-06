@@ -12,12 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.BasicParser;
@@ -37,6 +34,7 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
+import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
@@ -121,7 +119,7 @@ public class Main{
 		Option log = OptionBuilder.withArgName("file")
 		.hasArgs(1)
 		.withDescription("name of access log file")
-		.create("l");
+		.create("a");
 		options.addOption(log);
 		
 		Option helpO = new Option("h", "help", false, "print help");
@@ -181,8 +179,8 @@ public class Main{
 		}
 				
 		PrintStream ps = System.out;
-		if (cmd.hasOption("l")) {
-			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("l")));			
+		if (cmd.hasOption("a")) {
+			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("a")));			
 		}
 		
 		Callback rcb = null;
@@ -196,7 +194,6 @@ public class Main{
 		
 		Frontier frontier = new RankedFrontier();
 		frontier.setErrorHandler(eh);
-		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
 		frontier.addAll(seeds);
 		
 		_log.info("frontier done");
@@ -228,6 +225,8 @@ public class Main{
 
 		FetchFilterRdfXml ffrdf = new FetchFilterRdfXml();
 		ffrdf.setErrorHandler(eh);
+		
+		FetchFilterSuffix blacklist = new FetchFilterSuffix(CrawlerConstants.BLACKLIST);
 
 		_log.info("init crawler");
 
@@ -236,6 +235,7 @@ public class Main{
 		c.setOutputCallback(new SinkCallback(new CallbackNQOutputStream(os)));
 		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
+		c.setBlacklistFilter(blacklist);
 		
 		if (cmd.hasOption("b")) {
 			int depth = Integer.parseInt(cmd.getOptionValues("b")[0]);

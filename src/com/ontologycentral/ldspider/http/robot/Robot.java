@@ -44,18 +44,22 @@ public class Robot {
 		long time1 = System.currentTimeMillis();
 		long bytes = -1;
 		int status = 0;
-		String type = null;
+//		String type = null;
 
+		Header[] headers = null;
+		
 		try {
 			HttpResponse hres = cm.connect(hget);
 			HttpEntity hen = hres.getEntity();
 
 			status = hres.getStatusLine().getStatusCode();
+
+			headers = hres.getAllHeaders();
 			
-			Header ct = hres.getFirstHeader("Content-Type");
-			if (ct != null) {
-				type = hres.getFirstHeader("Content-Type").getValue();
-			}
+//			Header ct = hres.getFirstHeader("Content-Type");
+//			if (ct != null) {
+//				type = hres.getFirstHeader("Content-Type").getValue();
+//			}
 
 			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {
@@ -87,7 +91,7 @@ public class Robot {
 		}
 
 		if (status != 0) {
-			eh.handleStatus(u, status, type, (System.currentTimeMillis()-time1), bytes);
+			eh.handleStatus(u, status, headers, (System.currentTimeMillis()-time1), bytes);
 		}
 	}
 
