@@ -141,11 +141,11 @@ public class Crawler {
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, boolean followABox, boolean followTBox) {
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
-			_queue = new BreadthFirstQueue(_tldm, maxplds, maxuris);
+			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
 		} else {
 			Redirects r = _queue.getRedirects();
 			Set<URI> seen = _queue.getSeen();
-			_queue = new BreadthFirstQueue(_tldm, maxplds, maxuris);
+			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
 			_queue.setRedirects(r);
 			_queue.setSeen(seen);
 		}
