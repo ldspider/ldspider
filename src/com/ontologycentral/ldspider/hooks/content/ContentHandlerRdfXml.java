@@ -11,6 +11,8 @@ import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
+
 /**
  * Handles RDF/XML documents.
  * 
@@ -21,7 +23,13 @@ public class ContentHandlerRdfXml implements ContentHandler {
 	private final Logger _log = Logger.getLogger(this.getClass().getName());
 	
 	public boolean canHandle(String mime) {
-		return mime.contains("application/rdf+xml");
+		for (String ct : CrawlerConstants.MIMETYPES) {
+			if (mime.contains(ct)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public boolean handle(URI uri, String mime, InputStream source, Callback callback) {
