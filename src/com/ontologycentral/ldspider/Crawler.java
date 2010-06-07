@@ -135,17 +135,17 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris) {
-		evaluateBreadthFirst(frontier, depth, maxuris, true, true);
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds) {
+		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, true, true);
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, boolean followABox, boolean followTBox) {
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, boolean followABox, boolean followTBox) {
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
-			_queue = new BreadthFirstQueue(_tldm, maxuris);
+			_queue = new BreadthFirstQueue(_tldm, maxplds, maxuris);
 		} else {
 			Redirects r = _queue.getRedirects();
 			Set<URI> seen = _queue.getSeen();
-			_queue = new BreadthFirstQueue(_tldm, maxuris);
+			_queue = new BreadthFirstQueue(_tldm, maxplds, maxuris);
 			_queue.setRedirects(r);
 			_queue.setSeen(seen);
 		}
@@ -155,10 +155,11 @@ public class Crawler {
 		}
 		
 		_queue.schedule(frontier);
+		
 		_links.setFollowABox(followABox);
 		_links.setFollowTBox(followTBox);
 		
-		_log.fine(_queue.toString());
+		_log.info(_queue.toString());
 		
 		int rounds = followTBox ? depth + 1 : depth;
 		for (int curRound = 0; curRound <= rounds; curRound++) {
@@ -249,7 +250,7 @@ public class Crawler {
 			_log.info("ROUND " + i + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());
 
-			_log.info("frontier" + frontier);
+			_log.fine("frontier" + frontier);
 			
 			_queue.schedule(frontier);
 

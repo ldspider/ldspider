@@ -27,11 +27,21 @@ public class BreadthFirstQueue extends SpiderQueue {
 	long _time;
 	
 	int _maxuris;
+	
+	int _maxplds;
 
-	public BreadthFirstQueue(TldManager tldm, int maxuris) {
+	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds) {
 		super(tldm);
 
 		_maxuris = maxuris;
+		if (_maxuris == -1) {
+			_maxuris = Integer.MAX_VALUE-1;
+		}
+		
+		_maxplds = maxplds;
+		if (_maxplds == -1) {
+			_maxplds = Integer.MAX_VALUE-1;
+		}
 
 		_current = new ConcurrentLinkedQueue<String>();
 	}
@@ -77,7 +87,21 @@ public class BreadthFirstQueue extends SpiderQueue {
 			}
 		}
 
+		List<String> lipld = getSortedQueuePlds();
+		_log.info("sorted pld list " + lipld.toString());
+		
+		if (_maxplds != -1) {
+			for (int i = _maxplds; i < lipld.size(); i++) {
+				String pld = lipld.get(i);
+				_queues.remove(pld);
+				
+				_log.fine("removing " + pld);
+			}
+		}
+		
 		_current.addAll(_queues.keySet());
+		
+		//_current.addAll(lipld);
 		
 		_time = System.currentTimeMillis();
 		
@@ -127,13 +151,13 @@ public class BreadthFirstQueue extends SpiderQueue {
 				List<String> lipld = getSortedQueuePlds();
 
 				// remove the bottom-20%
-				int bottom = (int)((float)lipld.size()*.2f);
-				
-				for (int i = 0; i < bottom; i++) {
-					lipld.remove(lipld.size()-1);
-				}
-
-				_log.info("removing bottom " + bottom + " from queue");
+//				int bottom = (int)((float)lipld.size()*.2f);
+//				
+//				for (int i = 0; i < bottom; i++) {
+//					lipld.remove(lipld.size()-1);
+//				}
+//
+//				_log.info("removing bottom " + bottom + " from queue");
 				
 				// optimisation end
 				
@@ -205,7 +229,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 			if (q == null) {
 				q = new ConcurrentLinkedQueue<URI>();
 				_queues.put(pld, q);
-				_current.add(pld);
+				//_current.add(pld);
 			}
 			q.add(u);
 		}

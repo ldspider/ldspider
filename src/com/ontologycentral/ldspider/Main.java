@@ -76,9 +76,9 @@ public class Main{
 //		Option simple = new Option("a", false, "just fetch URIs from list");
 //		strategy.addOption(simple);
 
-		Option bfs = new Option("b", false, "do strict breadth-first");
-		bfs.setArgs(2);
-		bfs.setArgName("depth uri-limit");
+		Option bfs = new Option("b", false, "do strict breadth-first (uri-limit and pld-limit optional)");
+		bfs.setArgs(3);
+		bfs.setArgName("depth uri-limit pld-limit");
 		strategy.addOption(bfs);
 
 		Option opti = new Option("c", false, "use load balanced crawling strategy");
@@ -238,11 +238,22 @@ public class Main{
 		c.setBlacklistFilter(blacklist);
 		
 		if (cmd.hasOption("b")) {
-			int depth = Integer.parseInt(cmd.getOptionValues("b")[0]);
-			int maxuris = Integer.parseInt(cmd.getOptionValues("b")[1]);
-			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris);
+			String[] vals = cmd.getOptionValues("b");
 			
-			c.evaluateBreadthFirst(frontier, depth, maxuris);
+			int depth = Integer.parseInt(vals[0]);
+			int maxuris = -1;
+			int maxplds = -1;
+
+			if (vals.length > 1) {
+				maxuris = Integer.parseInt(vals[1]);
+				if (vals.length > 2) {
+					maxplds = Integer.parseInt(vals[2]);
+				}
+			}
+
+			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds);
+			
+			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds);
 		} else if (cmd.hasOption("c")) {
 			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
 

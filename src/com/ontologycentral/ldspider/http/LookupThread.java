@@ -57,6 +57,8 @@ public class LookupThread implements Runnable {
 
 		URI lu = _q.poll();
 
+		_log.fine("got " + lu);
+		
 		while (lu != null) {
 			i++;
 			long time = System.currentTimeMillis();
@@ -101,7 +103,7 @@ public class LookupThread implements Runnable {
 						type = hres.getFirstHeader("Content-Type").getValue();
 					}
 					
-					_log.fine("lookup on " + lu + " status " + status);
+					_log.info("lookup on " + lu + " status " + status);
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {
