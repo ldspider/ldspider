@@ -27,6 +27,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNQOutputStream;
+import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
@@ -96,7 +97,7 @@ public class Main{
 
 		Option stay = OptionBuilder.withArgName("stay")
 		.hasArgs(0)
-		.withDescription("stay on domains of seed uris")
+		.withDescription("stay on hostnames of seed uris")
 		.create("y");
 		options.addOption(stay);
 
@@ -202,8 +203,8 @@ public class Main{
 		
 		if (cmd.hasOption("y")) {
 			LinkFilterDomain lfd = new LinkFilterDomain(frontier);	
-			for (URI pld : seeds) {
-				lfd.addHost(pld.getHost());
+			for (URI u : seeds) {
+				lfd.addHost(u.getHost());
 			}
 			links = lfd;
 		} else if (cmd.hasOption("n")) {
@@ -232,7 +233,7 @@ public class Main{
 
 		Crawler c = new Crawler(threads);
 		c.setErrorHandler(eh);
-		c.setOutputCallback(new SinkCallback(new CallbackNQOutputStream(os)));
+		c.setOutputCallback(new SinkCallback(new CallbackNxOutputStream(os)));
 		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
 		c.setBlacklistFilter(blacklist);

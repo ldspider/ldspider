@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;

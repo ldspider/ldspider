@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue;
 
 import java.net.URI;
 import java.util.Iterator;

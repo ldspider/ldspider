@@ -1,10 +1,11 @@
-package com.ontologycentral.ldspider.queue.memory;
+package com.ontologycentral.ldspider.queue;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
@@ -12,18 +13,16 @@ import junit.framework.TestCase;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
+import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
-public class LoadBalancingQueueTest extends TestCase {
-	public void testPoll() throws Exception {
+public class LoadBalancingQueuePollTest extends TestCase {
+	public void testNormalise() throws Exception {
 		long time = System.currentTimeMillis();
 
 		TldManager tldm = new TldManager();
 		
-		LoadBalancingQueue fq = new LoadBalancingQueue(tldm);
-		
-		fq.setMinDelay(0);
-		fq.setMaxDelay(Integer.MAX_VALUE);
+		SpiderQueue fq = new LoadBalancingQueue(tldm);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		
@@ -48,17 +47,6 @@ public class LoadBalancingQueueTest extends TestCase {
 		
 		fq.schedule(f);
 		
-		//System.out.println(fq);
-		
-		URI u = fq.poll();
-		
-		int j = 0;
-		
-		while (u != null) {
-			j++;
-			u = fq.poll();
-		}
-		
-		System.out.println("read " + i + " lines, polled " + j + " uris");
+		System.out.println(fq);
 	}
 }
