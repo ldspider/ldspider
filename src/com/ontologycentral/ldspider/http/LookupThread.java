@@ -9,10 +9,8 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
-import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.Callbacks;
-import org.semanticweb.yars2.rdfxml.RDFXMLParser;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
@@ -145,8 +143,7 @@ public class LookupThread implements Runnable {
 					hget.abort();
 				} catch (Throwable e) {
 					hget.abort();
-					_log.info("Exception " + e.getClass().getName());
-					e.printStackTrace();
+					_log.warning("Exception " + e.getClass().getName());
 					_eh.handleError(lu, e);
 				}
 				

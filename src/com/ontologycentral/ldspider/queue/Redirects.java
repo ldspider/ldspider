@@ -1,13 +1,19 @@
 package com.ontologycentral.ldspider.queue;
 
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.logging.Logger;
 
-public class Redirects {
-	Logger _log = Logger.getLogger(this.getClass().getName());
+public class Redirects implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private final static Logger _log = Logger.getLogger(Redirects.class.getName());
 
 	Map<URI, URI> _map;
 	

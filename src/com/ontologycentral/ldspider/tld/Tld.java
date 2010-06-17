@@ -1,8 +1,13 @@
 package com.ontologycentral.ldspider.tld;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class Tld {
+public class Tld implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private boolean hasOneLvlSffxes; // tld generally allows one-level suffixes e.g. ie, de
 	private boolean hasTwoLvlSffxes; // tld generally allows two-level suffices e.g. co.uk
 	

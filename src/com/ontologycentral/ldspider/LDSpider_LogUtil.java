@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 /**
  * Provides specific application logger configuration methods.
  */
-public class LogUtil {
+public class LDSpider_LogUtil {
 
     public static void setDefaultLogging() {
         Logger.getLogger("").setLevel(Level.WARNING);

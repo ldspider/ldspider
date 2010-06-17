@@ -19,7 +19,7 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class BreadthFirstQueue extends SpiderQueue {
 	private static final long serialVersionUID = 1L;
 
-	Logger _log = Logger.getLogger(this.getClass().getName());
+	private static final  Logger _log = Logger.getLogger(BreadthFirstQueue.class.getName());
 
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;

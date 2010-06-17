@@ -15,12 +15,12 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 public abstract class SpiderQueue implements Serializable{
 	private static final long serialVersionUID = 1L;
-	Logger _log = Logger.getLogger(this.getClass().getName());
+	private static final Logger _log = Logger.getLogger(SpiderQueue.class.getName());
 
 	public abstract URI poll();
 	public abstract int size();
 	
-	Set<URI> _seen;
+	protected Set<URI> _seen;
 
 	protected Set<URI> _seenRound = null;
 	protected Set<URI> _redirsRound = null;

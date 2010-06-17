@@ -6,12 +6,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
@@ -22,7 +20,8 @@ import com.ontologycentral.ldspider.tld.TldManager;
 public class LoadBalancingQueue extends SpiderQueue {
 	private static final long serialVersionUID = 1L;
 
-	Logger _log = Logger.getLogger(this.getClass().getName());
+	private static final  Logger _log = Logger.getLogger(LoadBalancingQueue.class.getName());
+
 
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;

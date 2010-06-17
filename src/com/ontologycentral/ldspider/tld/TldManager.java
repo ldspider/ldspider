@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -18,8 +19,13 @@ import org.apache.http.client.methods.HttpGet;
 
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
-public class TldManager {
-    private static Logger _log = Logger.getLogger(TldManager.class.getName());
+public class TldManager implements Serializable{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private static Logger _log = Logger.getLogger(TldManager.class.getName());
 
     HashMap<String, Tld> TLDs = null;	// map of tlds to their properties
 
