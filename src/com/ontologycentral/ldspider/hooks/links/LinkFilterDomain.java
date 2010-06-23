@@ -36,20 +36,4 @@ public class LinkFilterDomain extends LinkFilterDefault {
 	public void endDocument() {
 		;
 	}
-	
-	@Override
-	protected void addABox(Node[] nx, int i) {
-		try {
-			URI u = new URI(nx[i].toString());
-			if (_hosts.contains(u.getHost())) {
-				super.addABox(nx, i);
-			}
-		} catch (URISyntaxException e) {
-			try {
-				_eh.handleError(new URI(nx[nx.length-1].toString()), e);
-			} catch (URISyntaxException e1) {
-				e1.printStackTrace();
-			}
-		}
-	}
 }

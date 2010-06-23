@@ -37,17 +37,4 @@ public class LinkFilterPrefix extends LinkFilterDefault {
 	public void endDocument() {
 		;
 	}
-	
-	@Override
-	protected void addABox(Node[] nx, int i) {
-		//Only add if the uri has a known prefix
-		boolean found = false;
-		for(String prefix : _prefixes) {
-			if(nx[i].toString().startsWith(prefix))
-				found = true;
-		}
-		if (found) {
-			super.addABox(nx, i);
-		}
-	}
 }

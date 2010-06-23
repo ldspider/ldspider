@@ -1,4 +1,4 @@
-package com.ontologycentral.ldspider.http;
+package com.ontologycentral.ldspider.http.internal;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;

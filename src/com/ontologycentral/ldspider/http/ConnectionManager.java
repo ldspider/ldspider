@@ -27,6 +27,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.http.internal.CloseIdleConnectionThread;
 import com.ontologycentral.ldspider.http.internal.HttpRequestRetryHandler;
 import com.ontologycentral.ldspider.http.internal.ResponseGzipUncompress;
 

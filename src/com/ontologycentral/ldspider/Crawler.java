@@ -136,10 +136,10 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds) {
-		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, true, true);
-	}
-	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, boolean followABox, boolean followTBox) {
+//		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, true, true);
+//	}
+//	
+//	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, boolean followABox, boolean followTBox) {
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
 			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
 		} else {
@@ -156,20 +156,22 @@ public class Crawler {
 		
 		_queue.schedule(frontier);
 		
-		_links.setFollowABox(followABox);
-		_links.setFollowTBox(followTBox);
+//		_links.setFollowABox(followABox);
+//		_links.setFollowTBox(followTBox);
 		
 		_log.info(_queue.toString());
 		
-		int rounds = followTBox ? depth + 1 : depth;
+//		int rounds = followTBox ? depth + 1 : depth;
+		int rounds = depth;
+		
 		for (int curRound = 0; curRound <= rounds; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
 			
 			//Extra round to get TBox
-			if(curRound == depth + 1) {
-				_links.setFollowABox(false);
-				_links.setFollowTBox(true);
-			}
+//			if(curRound == depth + 1) {
+//				_links.setFollowABox(false);
+//				_links.setFollowTBox(true);
+//			}
 
 			for (int j = 0; j < _threads; j++) {
 				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
