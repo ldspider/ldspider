@@ -4,8 +4,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Resource;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 
@@ -17,7 +19,8 @@ import com.ontologycentral.ldspider.frontier.Frontier;
  *
  */
 public class LinkFilterDomain extends LinkFilterDefault {
-	
+	final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
+
 	Set<String> _hosts;
 	
 	public LinkFilterDomain(Frontier f) {
@@ -35,5 +38,20 @@ public class LinkFilterDomain extends LinkFilterDefault {
 	
 	public void endDocument() {
 		;
+	}
+	
+	/**
+	 * Adds a new uri to the frontier.
+	 */
+	protected void addUri(Resource r) {
+		try {
+			URI u = new URI(r.toString());
+			if (_hosts.contains(u.getHost())) {
+				_f.add(u);
+				_log.fine("adding " + u + " to frontier");
+			}
+		} catch (URISyntaxException e) {
+			_eh.handleError(null, e);
+		}
 	}
 }
