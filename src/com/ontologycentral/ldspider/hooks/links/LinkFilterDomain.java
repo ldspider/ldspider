@@ -43,9 +43,10 @@ public class LinkFilterDomain extends LinkFilterDefault {
 	/**
 	 * Adds a new uri to the frontier.
 	 */
-	protected void addUri(Resource r) {
+	@Override
+	protected void addUri(Node[] nx, int i) {
 		try {
-			URI u = new URI(r.toString());
+			URI u = new URI(nx[i].toString());
 			if (_hosts.contains(u.getHost())) {
 				_f.add(u);
 				_log.fine("adding " + u + " to frontier");

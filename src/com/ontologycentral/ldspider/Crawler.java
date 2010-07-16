@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.http.Header;
+import org.semanticweb.yars.nx.parser.Callback;
+
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
 import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
@@ -16,7 +19,9 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.sink.Provenance;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
+import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
@@ -45,6 +50,44 @@ public class Crawler {
 	SpiderQueue _queue = null;
 	
 	int _threads;
+	
+	/**
+	 * The Crawling mode.
+	 * Defines whether ABox and/or TBox links are followed and whether an extra TBox round is done.
+	 */
+	enum Mode
+	{
+		/** Only crawl ABox statements */
+		ABOX_ONLY(true, false, false),
+		/** Only crawl TBox statements */
+		TBOX_ONLY(false, true, false),
+		/** Crawl ABox and TBox statements */
+		ABOX_AND_TBOX(true, true, false),
+		/** Crawl ABox and TBox statements and do an extra round to get the TBox of the statements retrieved in the final round */
+		ABOX_AND_TBOX_EXTRAROUND(true, true, true);
+		
+		private boolean aBox;
+		private boolean tBox;
+		private boolean extraRound;
+	
+	    private Mode(boolean aBox, boolean tBox, boolean extraRound) {
+	    	this.aBox = aBox;
+	    	this.tBox = tBox;
+	    	this.extraRound = extraRound;
+		}
+
+		public boolean followABox() {
+			return aBox;
+		}
+
+		public boolean followTBox() {
+			return tBox;
+		}
+
+		public boolean doExtraRound() {
+			return extraRound;
+		}
+	}
 	
 	public Crawler() {
 		this(CrawlerConstants.DEFAULT_NB_THREADS);
@@ -127,8 +170,12 @@ public class Crawler {
 		}
 	}
 	
-	public void setOutputCallback(Sink cb) {
-		_output = cb;
+	public void setOutputCallback(Callback cb) {
+		_output = new SinkCallback(cb);
+	}
+	
+	public void setOutputCallback(Sink sink) {
+		_output = sink;
 	}
 	
 	public void setLinkFilter(LinkFilter links) {
@@ -136,10 +183,10 @@ public class Crawler {
 	}
 	
 	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds) {
-//		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, true, true);
-//	}
-//	
-//	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, boolean followABox, boolean followTBox) {
+		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Mode.ABOX_AND_TBOX);
+	}
+	
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, Mode crawlingMode) {
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
 			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
 		} else {
@@ -156,22 +203,20 @@ public class Crawler {
 		
 		_queue.schedule(frontier);
 		
-//		_links.setFollowABox(followABox);
-//		_links.setFollowTBox(followTBox);
+		_links.setFollowABox(crawlingMode.followABox());
+		_links.setFollowTBox(crawlingMode.followTBox());
 		
 		_log.info(_queue.toString());
 		
-//		int rounds = followTBox ? depth + 1 : depth;
-		int rounds = depth;
-		
+		int rounds = crawlingMode.doExtraRound() ? depth + 1 : depth;
 		for (int curRound = 0; curRound <= rounds; curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
 			
 			//Extra round to get TBox
-//			if(curRound == depth + 1) {
-//				_links.setFollowABox(false);
-//				_links.setFollowTBox(true);
-//			}
+			if(curRound == depth + 1) {
+				_links.setFollowABox(false);
+				_links.setFollowTBox(true);
+			}
 
 			for (int j = 0; j < _threads; j++) {
 				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
