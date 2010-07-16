@@ -55,7 +55,7 @@ public class Crawler {
 	 * The Crawling mode.
 	 * Defines whether ABox and/or TBox links are followed and whether an extra TBox round is done.
 	 */
-	enum Mode
+	public enum Mode
 	{
 		/** Only crawl ABox statements */
 		ABOX_ONLY(true, false, false),

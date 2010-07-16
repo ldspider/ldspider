@@ -10,7 +10,6 @@ import java.net.URLEncoder;
 import junit.framework.TestCase;
 
 import com.ontologycentral.ldspider.Crawler;
-import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
@@ -36,9 +35,7 @@ public class SinkSparulTest extends TestCase {
 	
 	private static final boolean includeProvenance = false;
 	
-	private static final boolean includeABox = true;
-	
-	private static final boolean includeTBox = false;
+	private static final Crawler.Mode crawlerMode = Crawler.Mode.ABOX_ONLY;
 	
 	public void testCrawl() throws Exception {
 		dropGraph();
@@ -60,7 +57,6 @@ public class SinkSparulTest extends TestCase {
     
     //Frontier
     Frontier frontier = new BasicFrontier();
-    frontier.setBlacklist(CrawlerConstants.BLACKLIST);
     frontier.add(new URI(seedUri));
 		
     //ContentHandler
@@ -72,7 +68,7 @@ public class SinkSparulTest extends TestCase {
     c.setOutputCallback(sink);
 	
     //Crawl
-    c.evaluateBreadthFirst(frontier, 2, 5, includeABox, includeTBox);
+    c.evaluateBreadthFirst(frontier, 2, 5, 5, crawlerMode);
     System.out.println("Written to triple store");
 	}
 	
