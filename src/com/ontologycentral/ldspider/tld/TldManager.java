@@ -82,7 +82,7 @@ public class TldManager {
     		Tld current = TLDs.get(tld);
     		if(current == null) {
     			_log.info("no host " + url);
-    			return null;
+    			return host;
     		}
 
     		if (parts.length == 3) {
