@@ -39,7 +39,7 @@ public class LinkFilterPrefix extends LinkFilterDefault {
 	}
 	
 	@Override
-	protected void addABox(Node[] nx, int i) {
+	protected void addUri(Node[] nx, int i) {
 		//Only add if the uri has a known prefix
 		boolean found = false;
 		for(String prefix : _prefixes) {
@@ -47,7 +47,7 @@ public class LinkFilterPrefix extends LinkFilterDefault {
 				found = true;
 		}
 		if (found) {
-			super.addABox(nx, i);
+			super.addUri(nx, i);
 		}
 	}
 }
