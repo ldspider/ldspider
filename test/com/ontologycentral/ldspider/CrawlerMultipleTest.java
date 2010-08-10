@@ -9,13 +9,15 @@ import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
+import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
+import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
 
 public class CrawlerMultipleTest extends TestCase {
 	public void testCrawl() throws Exception {
-		Crawler c = new Crawler(1);
+		Crawler c = new Crawler(CrawlerConstants.DEFAULT_NB_THREADS);
 
 		ErrorHandler eh = new ErrorHandlerLogger(null, null);
 		c.setErrorHandler(eh);
@@ -36,9 +38,11 @@ public class CrawlerMultipleTest extends TestCase {
 		frontier.add(new URI("http://umbrich.net/foaf.rdf"));
 		frontier.add(new URI("http://dbpedia.org/resource/Germany"));
 
-		frontier.setBlacklist(CrawlerConstants.BLACKLIST);
+		FetchFilter BLACKLIST_FILTER = new FetchFilterSuffix(CrawlerConstants.BLACKLIST);
+		c.setBlacklistFilter(BLACKLIST_FILTER);
 
-		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS);
+		int breadthfirstdepth = 1;
+		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS,12);
 	}
 }
 

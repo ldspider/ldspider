@@ -36,7 +36,7 @@ public class RedirectTest extends TestCase {
 		c.setErrorHandler(eh);
 		c.setLinkFilter(new LinkFilterDummy());
 
-		c.evaluate(f, 1);
+		c.evaluateBreadthFirst(f,1,-1,-1);
 	}
 }
 

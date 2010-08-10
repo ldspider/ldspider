@@ -1,11 +1,13 @@
 package com.ontologycentral.ldspider.http.robot;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
 import junit.framework.TestCase;
 
 import org.apache.http.util.EntityUtils;
 import org.osjava.norbert.NoRobotClient;
+import org.osjava.norbert.NoRobotException;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
@@ -36,5 +38,21 @@ public class RobotsTest extends TestCase {
 		URL u = new URL("http://example.org/interests");
 		
 		System.out.println(nrc.isUrlAllowed(u));
+	}
+	
+	public void testRobots3(){
+		NoRobotClient nrc = new NoRobotClient(CrawlerConstants.USERAGENT_NAME);
+		try {
+			nrc.parse(new URL("http://www.bbc.co.uk/"));
+			System.err.println(nrc.isUrlAllowed(new URL("http://www.bbc.co.uk/programmes/p002hb5m")));
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoRobotException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
 }
