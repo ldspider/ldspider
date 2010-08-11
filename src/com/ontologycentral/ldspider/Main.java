@@ -40,7 +40,9 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
+import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
+import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
 
 public class Main{
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -65,6 +67,7 @@ public class Main{
 		input.addOption(uri);
 		options.addOptionGroup(input);
 
+		//Strategy
 		OptionGroup strategy = new OptionGroup();
 
 		/*
@@ -101,6 +104,7 @@ public class Main{
 		.create("y");
 		options.addOption(stay);
 
+		//Redirects
 		Option redirs = OptionBuilder.withArgName("redirects")
 		.hasArgs(1)
 		.withDescription("write redirects.nx file")
@@ -111,12 +115,24 @@ public class Main{
 		noLinks.setArgs(0);
 		options.addOption(noLinks);
 		
-		Option output = OptionBuilder.withArgName("file")
+		//Output
+		OptionGroup output = new OptionGroup();
+		
+		Option outputFile = OptionBuilder.withArgName("file")
 		.hasArgs(1)
 		.withDescription("name of NQuad file with output")
 		.create("o");
-		options.addOption(output);
+		output.addOption(outputFile);
+		
+		Option outputEndpoint = OptionBuilder.withArgName("uri")
+		.hasArgs(1)
+		.withDescription("URI of a Triple Store endpoint supporting SPARQL/Update")
+		.create("oe");
+		output.addOption(outputEndpoint);
+		
+		options.addOptionGroup(output);
 
+		//Logging
 		Option log = OptionBuilder.withArgName("file")
 		.hasArgs(1)
 		.withDescription("name of access log file")
@@ -174,9 +190,17 @@ public class Main{
 		
 		_log.info("no of seed uris " + seeds.size());
 		
-		OutputStream os = System.out;
+		Sink sink;
+		OutputStream os = null;
 		if (cmd.hasOption("o")) {
 			os = new FileOutputStream(cmd.getOptionValue("o"));
+			sink = new SinkCallback(new CallbackNxOutputStream(os));
+		}
+		else if(cmd.hasOption("oe")) {
+			sink = new SinkSparul(cmd.getOptionValue("oe"), true);
+		}
+		else {
+			sink = new SinkCallback(new CallbackNxOutputStream(System.out));
 		}
 				
 		PrintStream ps = System.out;
@@ -233,7 +257,7 @@ public class Main{
 
 		Crawler c = new Crawler(threads);
 		c.setErrorHandler(eh);
-		c.setOutputCallback(new SinkCallback(new CallbackNxOutputStream(os)));
+		c.setOutputCallback(sink);
 		c.setLinkFilter(links);
 		c.setFetchFilter(ffrdf);
 		c.setBlacklistFilter(blacklist);
@@ -274,10 +298,12 @@ public class Main{
 
 		long time1 = System.currentTimeMillis();
 		
-		try {
-			os.close();
-		} catch (IOException e) {
-			_log.warning("could not close output stream: " + e.getMessage());
+		if(os != null) {
+			try {
+				os.close();
+			} catch (IOException e) {
+				_log.warning("could not close output stream: " + e.getMessage());
+			}
 		}
 		
 		if (rcb != null) {
