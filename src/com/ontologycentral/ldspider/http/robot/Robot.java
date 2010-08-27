@@ -96,11 +96,16 @@ public class Robot {
 	}
 
 	public boolean isUrlAllowed(URL uri) {
-		if (_nrc == null) {
-			_log.fine("_nrc == null ");
-    		return true;
-    	}
+		try{
+			if (_nrc == null) {
+				_log.fine("_nrc == null ");
+    			return true;
+    		}
 
-    	return _nrc.isUrlAllowed(uri);
+    		return _nrc.isUrlAllowed(uri);
+		}catch(IllegalArgumentException iae){
+			
+			return true;			
+		}
     }
 }

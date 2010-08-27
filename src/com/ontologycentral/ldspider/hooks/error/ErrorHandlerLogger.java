@@ -24,17 +24,17 @@ public class ErrorHandlerLogger implements ErrorHandler {
 
 	List<ObjectThrowable> _errors;
 
-	Map<Integer, Integer> _status;
-	Map<Integer, Integer> _rostatus;
+	protected final Map<Integer, Integer> _status;
+	protected final Map<Integer, Integer> _rostatus;
 
-	Map<String, Integer> _cache;
-	Map<String, Integer> _rocache;
+	protected final Map<String, Integer> _cache;
+	protected final Map<String, Integer> _rocache;
 
-	Map<String, Integer> _type;
-	Map<String, Integer> _rotype;
+	protected final Map<String, Integer> _type;
+	protected final Map<String, Integer> _rotype;
 
-	Map<Integer, Integer> _time;
-	Map<Integer, Integer> _rotime;
+	protected final Map<Integer, Integer> _time;
+	protected final Map<Integer, Integer> _rotime;
 	
 	PrintStream _logger = null;
 	

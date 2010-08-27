@@ -92,26 +92,55 @@ public class Crawler {
 	public Crawler() {
 		this(CrawlerConstants.DEFAULT_NB_THREADS);
 	}
-	
 	public Crawler(int threads) {
+		this(threads,null,null,null,null);
+	}
+	
+	/**
+	 * 
+	 * @param threads
+	 * @param proxyHost - the proxy host or <code>null</code> to use System.getProperties().get("http.proxyHost")
+	 * @param proxyPort - the proxy port or <code>null</code> to use System.getProperties().get("http.proxyPort")
+	*/
+	public Crawler(int threads,String proxyHost, String proxyPort){
+		this(threads,proxyHost,proxyPort,null,null);
+	}
+	
+	/**
+	 * 
+	 * @param threads
+	 * @param proxyHost - the proxy host or <code>null</code> to use System.getProperties().get("http.proxyHost")
+	 * @param proxyPort - the proxy port or <code>null</code> to use System.getProperties().get("http.proxyPort")
+	 * @param proxyUser - the proxy user or <code>null</code> to use System.getProperties().get("http.proxyUser")
+	 * @param proxyPassword - the proxy user password or <code>null</code> to use System.getProperties().get("http.proxyPassword")
+	 */
+	public Crawler(int threads,String proxyHost, String proxyPort, String proxyUser, String proxyPassword) {
 		_threads = threads;
 		
-		String phost = null;
-		int pport = 0;		
-		String puser = null;
-		String ppassword = null;
+		String phost = proxyHost;
+		int pport = 0;
+		if(proxyPort!=null){
+			try{
+				pport = Integer.parseInt(proxyPort);
+			}catch(NumberFormatException nfe){
+				pport = 0;
+			}
+		}
+		String puser = proxyUser;
+		String ppassword = proxyPassword;
 		
-		if (System.getProperties().get("http.proxyHost") != null) {
+		
+		if (phost == null && System.getProperties().get("http.proxyHost") != null) {
 			phost = System.getProperties().get("http.proxyHost").toString();
 		}
-		if (System.getProperties().get("http.proxyPort") != null) {
+		if (pport==0 && System.getProperties().get("http.proxyPort") != null) {
 			pport = Integer.parseInt(System.getProperties().get("http.proxyPort").toString());
 		}
 		
-		if (System.getProperties().get("http.proxyUser") != null) {
+		if (puser == null && System.getProperties().get("http.proxyUser") != null) {
 			puser = System.getProperties().get("http.proxyUser").toString();
 		}
-		if (System.getProperties().get("http.proxyPassword") != null) {
+		if (ppassword == null && System.getProperties().get("http.proxyPassword") != null) {
 			ppassword = System.getProperties().get("http.proxyPassword").toString();
 		}
 		
@@ -305,6 +334,30 @@ public class Crawler {
 		}
 	}
 	
+	
+	
+	public void run(SpiderQueue queue){
+		List<Thread> ts = new ArrayList<Thread>();
+
+		for (int j = 0; j < _threads; j++) {
+			LookupThread lt = new LookupThread(_cm, queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
+			ts.add(new Thread(lt,"LookupThread-"+j));		
+		}
+
+		
+		for (Thread t : ts) {
+			t.start();
+		}
+
+		for (Thread t : ts) {
+			try {
+				t.join();
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+		}
+	}
+	
 	/**
 	 * Set the spider queue
 	 * @param queue
@@ -312,9 +365,16 @@ public class Crawler {
 	public void setQueue(final SpiderQueue queue){
 		_queue = queue;
 	}
-	
+	/**
+	 * 
+	 * @return - the current used {@link SpiderQueue}
+	 */
 	public SpiderQueue getQueue(){
 		return _queue;
+	}
+	
+	public TldManager getTldManager(){
+		return _tldm;
 	}
 	public void close() {
 		_cm.shutdown();
