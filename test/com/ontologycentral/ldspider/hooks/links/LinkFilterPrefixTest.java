@@ -22,13 +22,13 @@ public class LinkFilterPrefixTest extends TestCase {
 
 		String statements = 
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/enzymes/1> " +
-      "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> " +
-      "<http://www4.wiwiss.fu-berlin.de/drugbank/resource/enzymes> ." +
-		  "\n" + 
+			"<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> " +
+			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/enzymes> ." +
+			"\n" + 
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugs/DB00623> " +
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/enzyme> " +
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/enzymes/1> ." +
-	    "\n" + 
+			"\n" + 
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/enzymes/1> " +
 			"<http://www4.wiwiss.fu-berlin.de/drugbank/resource/swissprotPage> " +
 			"<http://www.uniprot.org/uniprot/P20815> .";
@@ -39,7 +39,7 @@ public class LinkFilterPrefixTest extends TestCase {
 		assertEquals("Don't add ABox URIs with unknown prefixes", 0, count(statements, "http://UnknownPrefix", true, false));
 		
 		//TBox
-		assertEquals("Add all 4 unique TBox URIs", 4, count(statements, prefix, false, true));
+		assertEquals("Add all 4 unique TBox", 4, count(statements, prefix, false, true));
 		assertEquals("Add all TBox URIs, even with unknown prefixes", 4, count(statements, "http://UnknownPrefix", false, true));
 	}
 	
@@ -56,7 +56,7 @@ public class LinkFilterPrefixTest extends TestCase {
 		while(parser.hasNext()) {
 			filter.processStatement(parser.next());
 		}
-		
+
 		//Count filtered URIs
 		int c = 0;
 		Iterator<URI> iter = frontier.iterator();
