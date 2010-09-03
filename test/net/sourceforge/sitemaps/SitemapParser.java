@@ -22,14 +22,13 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-
 
 import net.sourceforge.sitemaps.Sitemap.SitemapType;
 
@@ -104,7 +103,7 @@ public class SitemapParser {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public SitemapType processSitemap(Sitemap sitemap, String contentType, String content) throws UnknownFormatException, IOException, InterruptedException {
+	public SitemapType processSitemap(Sitemap sitemap, String contentType, InputStream content) throws UnknownFormatException, IOException, InterruptedException {
 		
 		this.sitemap = sitemap;
 		URL url = sitemap.getUrl();
@@ -152,11 +151,9 @@ public class SitemapParser {
 	 * @return
 	 * @throws UnknownFormatException 
 	 */
-	private void processXml(URL sitemapUrl, String xmlContent) throws UnknownFormatException {
-		
-		InputSource is = new InputSource();
-        is.setCharacterStream(new StringReader(xmlContent));	        
-        processXml(sitemapUrl, is);	        
+	private void processXml(URL sitemapUrl, InputStream xmlContent) throws UnknownFormatException {
+		        
+        processXml(sitemapUrl, new InputSource(xmlContent));	        
 	}
 	
 	/**Parse the given XML content.
@@ -548,13 +545,13 @@ public class SitemapParser {
 	 * @param content
 	 * @throws IOException
 	 */
-	private void processText(String content) throws IOException { 
+	private void processText(InputStream content) throws IOException { 
 		
 		if (DEBUG) System.out.println("Processing textual Sitemap");
 		
 		sitemap.setType(SitemapType.TEXT);
 		   	
-		BufferedReader reader = new BufferedReader(new StringReader(content));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(content, "UTF-8"));
 		
 		String line;
 		

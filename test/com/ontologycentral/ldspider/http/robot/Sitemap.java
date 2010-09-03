@@ -15,8 +15,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 
@@ -62,10 +60,8 @@ public class Sitemap {
 			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {
 					_sm = new net.sourceforge.sitemaps.Sitemap(u.toURL());
-					String content = EntityUtils.toString(hen);
-					_log.fine(content);
 					SitemapParser sp = new SitemapParser();
-					sp.processSitemap(_sm, type, content);
+					sp.processSitemap(_sm, type, hen.getContent());
 				} else {
 					_sm = null;
 				}
