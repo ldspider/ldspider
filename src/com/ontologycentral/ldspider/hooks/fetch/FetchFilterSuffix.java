@@ -4,8 +4,6 @@ import java.net.URI;
 
 import org.apache.http.HttpEntity;
 
-import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
-
 public class FetchFilterSuffix implements FetchFilter {
 	String[] _suffixes = { };
 

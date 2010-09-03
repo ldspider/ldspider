@@ -5,9 +5,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 
-import com.ontologycentral.ldspider.http.robot.Sitemap;
-import com.ontologycentral.ldspider.http.robot.SitemapParser;
-import com.ontologycentral.ldspider.http.robot.Sitemap.SitemapType;
+import net.sourceforge.sitemaps.Sitemap;
 
 import junit.framework.TestCase;
 
@@ -34,7 +32,7 @@ public class SitemapTest extends TestCase {
 		
 		//System.out.println(sb.toString());
 		
-		SitemapType st = sp.processSitemap(s, "text/xml", sb.toString());
+		Sitemap.SitemapType st = sp.processSitemap(s, "text/xml", sb.toString());
 		
 		System.out.println(st);
 		System.out.println(s);

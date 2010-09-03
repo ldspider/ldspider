@@ -1,9 +1,7 @@
 package com.ontologycentral.ldspider;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.semanticweb.yars.nx.Node;
@@ -12,11 +10,11 @@ import org.semanticweb.yars.nx.parser.Callback;
 
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.hooks.content.SinkCallback;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 
 
 public class FetchTest {
@@ -33,7 +31,7 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setOutputCallback(new SinkCallback(nc));
 	c.setLinkFilter(new LinkFilterDefault(f));
 	c.setFetchFilter(new FetchFilterRdfXml());
-	c.evaluate(f, 0);
+	c.evaluateBreadthFirst(f, 1, CrawlerConstants.DEFAULT_NB_URIS, 12);
 	c=null;
 	nc=null;
 	
@@ -46,7 +44,7 @@ public static void main(String[] args) throws URISyntaxException {
 	c.setOutputCallback(new SinkCallback(nc));
 	c.setLinkFilter(new LinkFilterDefault(f));
 	c.setFetchFilter(new FetchFilterRdfXml());
-	c.evaluate(f, 0);
+	c.evaluateBreadthFirst(f, 1, CrawlerConstants.DEFAULT_NB_URIS, 12);
 	
 	
 	System.out.println(nc.getContent());

@@ -29,7 +29,7 @@ import com.ontologycentral.ldspider.http.ConnectionManager;
 public class Sitemap {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 	
-	com.ontologycentral.ldspider.http.robot.Sitemap _sm;
+	net.sourceforge.sitemaps.Sitemap _sm;
 	
 	public Sitemap(ConnectionManager cm, ErrorHandler eh, String host) {
 		URI u;
@@ -46,9 +46,10 @@ public class Sitemap {
 		long bytes = -1;
 		int status = 0;
 		String type = null;
+		HttpResponse hres = null;
 
 		try {
-			HttpResponse hres = cm.connect(hget);
+			hres = cm.connect(hget);
 			HttpEntity hen = hres.getEntity();
 
 			status = hres.getStatusLine().getStatusCode();
@@ -60,7 +61,7 @@ public class Sitemap {
 
 			if (status == HttpStatus.SC_OK) {
 				if (hen != null) {
-					_sm = new com.ontologycentral.ldspider.http.robot.Sitemap(u.toURL());
+					_sm = new net.sourceforge.sitemaps.Sitemap(u.toURL());
 					String content = EntityUtils.toString(hen);
 					_log.fine(content);
 					SitemapParser sp = new SitemapParser();
@@ -84,7 +85,7 @@ public class Sitemap {
 		}
 
 		if (status != 0) {
-			eh.handleStatus(u, status, type, (System.currentTimeMillis()-time1), bytes);
+			eh.handleStatus(u, status, hres.getAllHeaders(), (System.currentTimeMillis()-time1), bytes);
 		}
 	}
 

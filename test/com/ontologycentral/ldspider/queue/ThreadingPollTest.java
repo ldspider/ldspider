@@ -21,7 +21,7 @@ public class ThreadingPollTest extends TestCase {
 	public void testThreading() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		SpiderQueue fq = new BreadthFirstQueue(tldm, 5);
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 5, 5);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		

@@ -1,4 +1,5 @@
 package com.ontologycentral.ldspider;
+
 import java.net.URI;
 
 import junit.framework.TestCase;
@@ -7,9 +8,6 @@ import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
-import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
-import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
-
 
 public class CrawlLoadBalancedTest extends TestCase {
 	public void testCrawl1() throws Exception {

@@ -42,10 +42,10 @@ import java.util.List;
  // TODO: Make this package private?
 class RulesEngine {
 
-    private List rules;
+    private List<Rule> rules;
 
     public RulesEngine() {
-        this.rules = new ArrayList();
+        this.rules = new ArrayList<Rule>();
     }
 
     public void allowPath(String path) {
@@ -68,7 +68,7 @@ class RulesEngine {
      */
     public Boolean isAllowed(String path) {
 
-        Iterator iterator = this.rules.iterator();
+        Iterator<Rule> iterator = this.rules.iterator();
         while(iterator.hasNext()) {
             Rule rule = (Rule)iterator.next();
             Boolean test = rule.isAllowed(path);

@@ -1,9 +1,7 @@
 package com.ontologycentral.ldspider.http;
 
 import java.io.IOException;
-import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.util.IdleConnectionTimeoutThread;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
@@ -33,8 +31,6 @@ import com.ontologycentral.ldspider.http.internal.ResponseGzipUncompress;
 
 public class ConnectionManager {
 
-    private final static Logger _log = Logger.getLogger(ConnectionManager.class.getName());
-    
     private DefaultHttpClient _client;
 
 	private CloseIdleConnectionThread _ciThread;

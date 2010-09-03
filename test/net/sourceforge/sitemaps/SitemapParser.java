@@ -31,13 +31,13 @@ import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 
+import net.sourceforge.sitemaps.Sitemap.SitemapType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-
-import com.ontologycentral.ldspider.http.robot.Sitemap.SitemapType;
 
 
 /**

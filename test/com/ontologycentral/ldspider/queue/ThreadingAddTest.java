@@ -23,7 +23,7 @@ public class ThreadingAddTest extends TestCase {
 	public void testThreading() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		SpiderQueue fq = new BreadthFirstQueue(tldm, 5);
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 5, 5);
 		Frontier f = new BasicFrontier();
 		
 		Thread[] ts = new Thread[THREADS];

@@ -21,7 +21,7 @@ public class PerformanceTest extends TestCase {
 
 		TldManager tldm = new TldManager();
 		
-		BreadthFirstQueue fq = new BreadthFirstQueue(tldm, Integer.MAX_VALUE);
+		BreadthFirstQueue fq = new BreadthFirstQueue(tldm, Integer.MAX_VALUE, Integer.MAX_VALUE);
 		
 		InputStream is = new GZIPInputStream(new FileInputStream("test/uris.txt.gz"));
 		

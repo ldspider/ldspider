@@ -114,7 +114,7 @@ public class LookupThread implements Runnable {
 								
 								headers = hres.getAllHeaders();
 							} else {
-								_log.info("disallowed via fetch filter " + lu);
+								_log.info("disallowed via fetch filter " + lu + " type " + type);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);
 								hget.abort();
 								hen = null;

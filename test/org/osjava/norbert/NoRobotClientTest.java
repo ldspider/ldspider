@@ -31,14 +31,11 @@
  */
 package org.osjava.norbert;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-import junit.textui.TestRunner;
-
 import java.io.File;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+
+import junit.framework.TestCase;
 
 public class NoRobotClientTest extends TestCase {
 

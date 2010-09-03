@@ -14,7 +14,7 @@ public class RedirectTest extends TestCase {
 	public void testNormalise() throws Exception {
 		TldManager tldm = new TldManager();
 		
-		SpiderQueue fq = new BreadthFirstQueue(tldm, 1);
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 1, 1);
 		
 		URI u = new URI("http://dbpedia.org/resource/Karlsruhe");
 

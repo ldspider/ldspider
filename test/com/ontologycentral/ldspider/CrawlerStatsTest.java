@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
-import com.ontologycentral.ldspider.hooks.error.ErrorHandlerStats;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 
 
 public class CrawlerStatsTest extends TestCase {
@@ -16,10 +16,10 @@ public class CrawlerStatsTest extends TestCase {
 		Frontier frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
 
-		ErrorHandler eh = new ErrorHandlerStats(System.out, null);
+		ErrorHandler eh = new ErrorHandlerLogger(System.out, null);
 		c.setErrorHandler(eh);
 
-		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS);
+		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS, 12);
 	}
 }
 

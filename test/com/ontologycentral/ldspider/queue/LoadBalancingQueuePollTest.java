@@ -5,21 +5,16 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
-import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
-import com.ontologycentral.ldspider.queue.SpiderQueue;
 import com.ontologycentral.ldspider.tld.TldManager;
 
 public class LoadBalancingQueuePollTest extends TestCase {
 	public void testNormalise() throws Exception {
-		long time = System.currentTimeMillis();
-
 		TldManager tldm = new TldManager();
 		
 		SpiderQueue fq = new LoadBalancingQueue(tldm);

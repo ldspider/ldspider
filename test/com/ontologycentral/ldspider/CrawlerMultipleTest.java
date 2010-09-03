@@ -1,7 +1,8 @@
 package com.ontologycentral.ldspider;
+
 import java.net.URI;
 
-import org.semanticweb.yars.util.CallbackNQOutputStream;
+import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import junit.framework.TestCase;
 
@@ -14,7 +15,6 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 
-
 public class CrawlerMultipleTest extends TestCase {
 	public void testCrawl() throws Exception {
 		Crawler c = new Crawler(CrawlerConstants.DEFAULT_NB_THREADS);
@@ -23,7 +23,7 @@ public class CrawlerMultipleTest extends TestCase {
 		c.setErrorHandler(eh);
         c.setFetchFilter(new FetchFilterRdfXml());
         c.setLinkFilter(new LinkFilterDummy());
-        c.setOutputCallback(new CallbackNQOutputStream(System.out));
+        c.setOutputCallback(new CallbackNxOutputStream(System.out));
 
 		Frontier frontier = new BasicFrontier();
 		frontier.add(new URI("http://harth.org/andreas/foaf.rdf"));
@@ -42,7 +42,7 @@ public class CrawlerMultipleTest extends TestCase {
 		c.setBlacklistFilter(BLACKLIST_FILTER);
 
 		int breadthfirstdepth = 1;
-		c.evaluateBreadthFirst(frontier, 1, CrawlerConstants.DEFAULT_NB_URIS,12);
+		c.evaluateBreadthFirst(frontier, breadthfirstdepth, CrawlerConstants.DEFAULT_NB_URIS,12);
 	}
 }
 

@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.Resource;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 

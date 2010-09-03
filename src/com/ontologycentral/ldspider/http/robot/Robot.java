@@ -1,6 +1,5 @@
 package com.ontologycentral.ldspider.http.robot;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;

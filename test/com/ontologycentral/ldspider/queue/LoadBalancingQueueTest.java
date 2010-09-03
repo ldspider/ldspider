@@ -16,8 +16,6 @@ import com.ontologycentral.ldspider.tld.TldManager;
 
 public class LoadBalancingQueueTest extends TestCase {
 	public void testPoll() throws Exception {
-		long time = System.currentTimeMillis();
-
 		TldManager tldm = new TldManager();
 		
 		LoadBalancingQueue fq = new LoadBalancingQueue(tldm);

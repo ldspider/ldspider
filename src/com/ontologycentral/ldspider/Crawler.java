@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.http.Header;
 import org.semanticweb.yars.nx.parser.Callback;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
@@ -19,7 +18,6 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
-import com.ontologycentral.ldspider.hooks.sink.Provenance;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkDummy;

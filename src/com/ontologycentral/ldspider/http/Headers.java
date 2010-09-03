@@ -11,6 +11,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.NumericLiteral;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.nx.parser.NxParser;
 
 public class Headers {
 	final static String httpNS = "http://www.w3.org/2006/http#";
@@ -86,7 +87,7 @@ public class Headers {
 		for (int i = 0; i < headerFields.length; i++) {
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
 				cb.processStatement(new Node[] {
-						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(Literal.escapeForNx(headerFields[i].getValue())), ruri
+						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(NxParser.escapeForNx(headerFields[i].getValue())), ruri
 					});
 			}
 		}	

@@ -138,7 +138,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		} 
 	}
 	
-	void increment(Map m, Object key) {
+	<T> void increment(Map<T, Integer> m, T key) {
 		if (key != null) {
 			Integer count = (Integer)m.get(key);
 			if (count == null) {
@@ -186,12 +186,11 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		return sb.toString();
 	}
 	
-	public StringBuffer toStringBuffer(Map map) {
+	public StringBuffer toStringBuffer(Map<? extends Object, Integer> map) {
 		StringBuffer sb = new StringBuffer();
 		
 		int sum = 0;
-		for (Object o : map.entrySet()) {
-			Map.Entry en = (Map.Entry)o;
+		for (Map.Entry<? extends Object, Integer> en : map.entrySet()) {
 			sb.append(en.getKey() + ": " + en.getValue() + "\n");
 			sum += (Integer)en.getValue();
 		}

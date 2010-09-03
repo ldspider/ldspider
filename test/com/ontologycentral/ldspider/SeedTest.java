@@ -1,8 +1,6 @@
 package com.ontologycentral.ldspider;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 
 import junit.framework.TestCase;
 
@@ -23,7 +21,7 @@ public class SeedTest extends TestCase {
 		c.setErrorHandler(eh);
 		c.setFetchFilter(new FetchFilterRdfXml());
 
-		c.evaluate(f, 0);
+		c.evaluateBreadthFirst(f, 1, CrawlerConstants.DEFAULT_NB_URIS,12);
 		
 		eh.close();
 	}	

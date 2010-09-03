@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import org.semanticweb.yars.nx.Node;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
 public class LinkFilterSelect extends LinkFilterDefault{
 	Logger _log = Logger.getLogger(this.getClass().getName());

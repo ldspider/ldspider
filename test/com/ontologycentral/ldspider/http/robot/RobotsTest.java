@@ -5,14 +5,10 @@ import java.net.URL;
 
 import junit.framework.TestCase;
 
-import org.apache.http.util.EntityUtils;
 import org.osjava.norbert.NoRobotClient;
 import org.osjava.norbert.NoRobotException;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
-import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
-import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
-import com.ontologycentral.ldspider.http.ConnectionManager;
 
 public class RobotsTest extends TestCase {
 //	public void testRobots() throws Exception {

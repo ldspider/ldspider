@@ -26,7 +26,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.semanticweb.yars.nx.parser.Callback;
-import org.semanticweb.yars.util.CallbackNQOutputStream;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
@@ -211,7 +210,7 @@ public class Main{
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
 			FileOutputStream fos = new FileOutputStream(cmd.getOptionValue("r"));
-			rcb = new CallbackNQOutputStream(fos);
+			rcb = new CallbackNxOutputStream(fos);
 			rcb.startDocument();
 		}
 	
