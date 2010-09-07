@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="lib/commons-cli-1.2.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-nio-4.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/nxparser.jar"/>
+	<classpathentry kind="lib" path="lib/nxparser.jar" sourcepath="/nxparser"/>
 	<classpathentry kind="lib" path="lib/httpclient-4.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/httpmime-4.0.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>

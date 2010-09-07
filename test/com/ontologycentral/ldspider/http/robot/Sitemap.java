@@ -61,7 +61,7 @@ public class Sitemap {
 				if (hen != null) {
 					_sm = new net.sourceforge.sitemaps.Sitemap(u.toURL());
 					SitemapParser sp = new SitemapParser();
-					sp.processSitemap(_sm, type, hen.getContent());
+//					sp.processSitemap(_sm, type, hen.getContent());
 				} else {
 					_sm = null;
 				}
