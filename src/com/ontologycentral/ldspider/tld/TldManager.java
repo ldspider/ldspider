@@ -24,6 +24,8 @@ public class TldManager implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	String TLD_URI = "http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/effective_tld_names.dat?raw=1";
 
 	private static Logger _log = Logger.getLogger(TldManager.class.getName());
 
@@ -44,7 +46,7 @@ public class TldManager implements Serializable{
     }
     
     public TldManager(ConnectionManager cm) throws URISyntaxException, IOException {
-    	URI tu = new URI("http://mxr.mozilla.org/mozilla-central/source/netwerk/dns/src/effective_tld_names.dat?raw=1");
+    	URI tu = new URI(TLD_URI);
     	HttpResponse hres;
 
     	HttpGet hget = new HttpGet(tu);

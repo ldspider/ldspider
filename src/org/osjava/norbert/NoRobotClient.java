@@ -71,36 +71,36 @@ public class NoRobotClient {
      *
      * @param baseUrl of the site
      */
-    public void parse(URL baseUrl) throws NoRobotException {
-
-        this.rules = new RulesEngine();
-
-        this.baseUrl = baseUrl;
-
-        URL txtUrl = null;
-        try {
-            // fetch baseUrl+"robots.txt"
-            txtUrl = new URL(baseUrl, "robots.txt");
-        } catch(MalformedURLException murle) {
-            throw new NoRobotException("Bad URL: "+baseUrl+", robots.txt. ", murle);
-        }
-
-        String txt = null;
-        try {
-            txt = loadContent(txtUrl, this.userAgent);
-            if(txt == null) {
-                throw new NoRobotException("No content found for: "+txtUrl);
-            }
-        } catch(IOException ioe) {
-            throw new NoRobotException("Unable to get content for: "+txtUrl, ioe);
-        }
-
-        try {
-            parseText(txt);
-        } catch(NoRobotException nre) {
-            throw new NoRobotException("Problem while parsing "+txtUrl, nre);
-        }
-    }
+//    public void parse(URL baseUrl) throws NoRobotException {
+//
+//        this.rules = new RulesEngine();
+//
+//        this.baseUrl = baseUrl;
+//
+//        URL txtUrl = null;
+//        try {
+//            // fetch baseUrl+"robots.txt"
+//            txtUrl = new URL(baseUrl, "robots.txt");
+//        } catch(MalformedURLException murle) {
+//            throw new NoRobotException("Bad URL: "+baseUrl+", robots.txt. ", murle);
+//        }
+//
+//        String txt = null;
+//        try {
+//            txt = loadContent(txtUrl, this.userAgent);
+//            if(txt == null) {
+//                throw new NoRobotException("No content found for: "+txtUrl);
+//            }
+//        } catch(IOException ioe) {
+//            throw new NoRobotException("Unable to get content for: "+txtUrl, ioe);
+//        }
+//
+//        try {
+//            parseText(txt);
+//        } catch(NoRobotException nre) {
+//            throw new NoRobotException("Problem while parsing "+txtUrl, nre);
+//        }
+//    }
 
     public void parse(String txt, URL baseUrl) throws NoRobotException {
     	this.baseUrl = baseUrl;
@@ -225,26 +225,26 @@ public class NoRobotClient {
         return allowed.booleanValue();
     }
 
-    // INLINE: as such from genjava/gj-core's net package. Simple method 
-    // stolen from Payload too.
-    private static String loadContent(URL url, String userAgent) throws IOException {
-        URLConnection urlConn = url.openConnection();
-        if(urlConn instanceof HttpURLConnection) {
-            if(userAgent != null) {
-                ((HttpURLConnection)urlConn).addRequestProperty("User-Agent", userAgent);
-            }
-        }
-        InputStream in = urlConn.getInputStream();
-        BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
-        StringBuffer buffer = new StringBuffer();
-        String line = "";
-        while( (line = rdr.readLine()) != null) {
-            buffer.append(line);
-            buffer.append("\n");
-        }
-        in.close();
-        return buffer.toString();
-    }
+//    // INLINE: as such from genjava/gj-core's net package. Simple method 
+//    // stolen from Payload too.
+//    private static String loadContent(URL url, String userAgent) throws IOException {
+//        URLConnection urlConn = url.openConnection();
+//        if(urlConn instanceof HttpURLConnection) {
+//            if(userAgent != null) {
+//                ((HttpURLConnection)urlConn).addRequestProperty("User-Agent", userAgent);
+//            }
+//        }
+//        InputStream in = urlConn.getInputStream();
+//        BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
+//        StringBuffer buffer = new StringBuffer();
+//        String line = "";
+//        while( (line = rdr.readLine()) != null) {
+//            buffer.append(line);
+//            buffer.append("\n");
+//        }
+//        in.close();
+//        return buffer.toString();
+//    }
     
     public String toString() {
     	return this.rules.toString() + " " + this.wildcardRules.toString();

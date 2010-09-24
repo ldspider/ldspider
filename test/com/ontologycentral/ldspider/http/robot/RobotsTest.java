@@ -36,19 +36,19 @@ public class RobotsTest extends TestCase {
 		System.out.println(nrc.isUrlAllowed(u));
 	}
 	
-	public void testRobots3(){
-		NoRobotClient nrc = new NoRobotClient(CrawlerConstants.USERAGENT_NAME);
-		try {
-			nrc.parse(new URL("http://www.bbc.co.uk/"));
-			System.err.println(nrc.isUrlAllowed(new URL("http://www.bbc.co.uk/programmes/p002hb5m")));
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NoRobotException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
-	}
+//	public void testRobots3(){
+//		NoRobotClient nrc = new NoRobotClient(CrawlerConstants.USERAGENT_NAME);
+//		try {
+//			nrc.parse(new URL("http://www.bbc.co.uk/"));
+//			System.err.println(nrc.isUrlAllowed(new URL("http://www.bbc.co.uk/programmes/p002hb5m")));
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (NoRobotException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		
+//	}
 }

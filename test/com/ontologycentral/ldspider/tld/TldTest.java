@@ -8,6 +8,8 @@ import java.util.zip.GZIPInputStream;
 
 import junit.framework.TestCase;
 
+import com.ontologycentral.ldspider.http.ConnectionManager;
+
 
 public class TldTest extends TestCase {
 	public void testNormalise() throws Exception {
@@ -58,5 +60,15 @@ public class TldTest extends TestCase {
 		long time1 = System.currentTimeMillis();
 		
 		System.out.println(i + " uris in " + (time1-time) + " ms");
+	}
+	
+	public void testLookup() throws Exception {
+	    ConnectionManager cm = new ConnectionManager(null, 0, null, null, 1);
+
+		TldManager tldm = new TldManager(cm);
+				
+		URI u = new URI("http://www.mademan.com/chickipedia/Special:URIResolver/angela_merkel");
+		
+		System.out.println(tldm.getPLD(u));
 	}
 }
