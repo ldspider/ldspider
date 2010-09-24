@@ -260,7 +260,8 @@ public class Crawler {
 				try {
 					t.join();
 				} catch (InterruptedException e1) {
-					e1.printStackTrace();
+					_log.info(e1.getMessage());
+					//e1.printStackTrace();
 				}
 			}
 			
@@ -315,7 +316,8 @@ public class Crawler {
 				try {
 					t.join();
 				} catch (InterruptedException e1) {
-					e1.printStackTrace();
+					_log.info(e1.getMessage());
+					//e1.printStackTrace();
 				}
 			}
 			
@@ -351,7 +353,8 @@ public class Crawler {
 			try {
 				t.join();
 			} catch (InterruptedException e1) {
-				e1.printStackTrace();
+				_log.info(e1.getMessage());
+				//e1.printStackTrace();
 			}
 		}
 	}
