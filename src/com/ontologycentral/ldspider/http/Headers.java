@@ -74,9 +74,9 @@ public class Headers {
 			}			
 		}
 		
-		BNode bNode = new BNode("header" + uri.hashCode()+ "-" + System.currentTimeMillis());
+		BNode bNode = new BNode("header" + Math.abs(uri.hashCode()) + System.currentTimeMillis());
 		
-		Resource ruri = new Resource(uri.toString());
+		Resource ruri = new Resource(NxParser.escapeForNx(uri.toString()));
 		
 		cb.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri } );
 		cb.processStatement(new Node[] { bNode,
