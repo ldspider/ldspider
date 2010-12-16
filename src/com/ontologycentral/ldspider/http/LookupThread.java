@@ -126,8 +126,14 @@ public class LookupThread implements Runnable {
 					} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
 						// treating all redirects the same but shouldn't: 301 -> rename context URI, 302 -> keep original context URI, 303 -> spec inconclusive
 						Header[] loc = hres.getHeaders("location");
-						_log.info("redirecting (" + status + ") to " + loc[0].getValue());
-						URI to = new URI(loc[0].getValue());
+						String path = loc[0].getValue();
+						_log.info("redirecting (" + status + ") to " + path);
+						URI to = new URI(path);
+						
+						// handle local redirects
+						if (!to.isAbsolute()) {
+							to = lu.resolve(path);
+						}
 
 						// set redirect from original uri to new uri
 						_q.setRedirect(lu, to, status);
