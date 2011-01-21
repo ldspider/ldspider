@@ -92,7 +92,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 						type = type.substring(0, type.indexOf(';'));
 					}
 				} else if ("x-cache".equals(name)) {
-					cache = value.substring(0, value.indexOf(' '));
+					if(value.indexOf(' ') > 0)
+						cache = value.substring(0, value.indexOf(' '));
 				}
 			}
 		}
