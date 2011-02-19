@@ -40,7 +40,9 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	Callback _redirects = null;
 	
-	// XXX why redirects handling here?
+	/**
+	 * logging redirects to file
+	 */
 	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
 		_logger = out;
 		
@@ -236,5 +238,15 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		}
 
 		return size;
+	}
+
+	public void handleLink(Node from, Node to) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void handleNextRound() {
+		// TODO Auto-generated method stub
+		
 	}
 }

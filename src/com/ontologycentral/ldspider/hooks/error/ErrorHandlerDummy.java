@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.http.Header;
+import org.semanticweb.yars.nx.Node;
 
 public class ErrorHandlerDummy implements ErrorHandler {
 
@@ -30,5 +31,15 @@ public class ErrorHandlerDummy implements ErrorHandler {
 
 	public void handleStatus(URI u, int status, Header[] headers, long duration, long contentLength) {
 		;
+	}
+
+	public void handleLink(Node from, Node to) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void handleNextRound() {
+		// TODO Auto-generated method stub
+		
 	}
 }

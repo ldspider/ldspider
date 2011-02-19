@@ -269,6 +269,7 @@ public class Crawler {
 			_log.fine("old queue: \n" + _queue.toString());
 
 			_queue.schedule(frontier);
+			_eh.handleNextRound();
 
 			_log.fine("new queue: \n" + _queue.toString());
 		}
@@ -334,7 +335,46 @@ public class Crawler {
 		}
 	}
 	
-	
+	public void evaluateSequential(Frontier frontier) {
+		_queue = new BreadthFirstQueue(_tldm, Integer.MAX_VALUE, Integer.MAX_VALUE);
+		_queue.schedule(frontier);
+		
+		_log.info(_queue.toString());
+		
+		int i = 0;
+		
+		while (_queue.size() > 0 && i <= CrawlerConstants.MAX_REDIRECTS) {
+			List<Thread> ts = new ArrayList<Thread>();
+
+			for (int j = 0; j < _threads; j++) {
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
+				ts.add(new Thread(lt,"LookupThread-"+j));		
+			}
+
+			_log.info("Starting threads round " + i++ + " with " + _queue.size() + " uris");
+
+			for (Thread t : ts) {
+				t.start();
+			}
+
+			for (Thread t : ts) {
+				try {
+					t.join();
+				} catch (InterruptedException e1) {
+					_log.info(e1.getMessage());
+					//e1.printStackTrace();
+				}
+			}
+
+			_queue.schedule(frontier);
+			
+			_log.info("ROUND " + i + " DONE with " + _queue.size() + " uris remaining in queue");
+
+			_log.info("new queue: \n" + _queue.toString());
+		}
+		
+		_log.info("DONE with " + _queue.size() + " uris remaining in queue");
+	}
 	
 	public void run(SpiderQueue queue){
 		List<Thread> ts = new ArrayList<Thread>();

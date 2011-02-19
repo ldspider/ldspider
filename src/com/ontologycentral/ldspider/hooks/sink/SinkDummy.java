@@ -15,6 +15,10 @@ public class SinkDummy implements Sink {
 	public Callback newDataset(Provenance provenance) {
 		return callback;
 	}
+	
+	public Callback newDataset(Provenance provenance, boolean header) {
+		return callback;
+	}
 
 	/**
 	 * Do nothing

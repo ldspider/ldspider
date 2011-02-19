@@ -103,6 +103,7 @@ public class LinkFilterDefault implements LinkFilter {
 		try {
 			_f.add(new URI(nx[i].toString()));
 			_log.fine("adding " + nx[i].toString() + " to frontier");
+			_eh.handleLink(nx[nx.length-1], nx[i]);
 		} catch (URISyntaxException e) {
 			try {
 				_eh.handleError(new URI(nx[nx.length-1].toString()), e);

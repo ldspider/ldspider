@@ -21,8 +21,8 @@ public class CrawlerConstants {
 	
 	public static String[] BLACKLIST = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 	
-	public static final int CONNECTION_TIMEOUT = 4000;
-	public static final int SOCKET_TIMEOUT = 8000;
+	public static final int CONNECTION_TIMEOUT = 16*4000;
+	public static final int SOCKET_TIMEOUT = 16*8000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
@@ -36,7 +36,7 @@ public class CrawlerConstants {
 	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
 	
 	// avoid hammering plds
-	public static final long MIN_DELAY = 2000;
+	public static final long MIN_DELAY = 1000;
 	// should be adapted based on no of URIs in queue
 	public static final long MAX_DELAY = 50*MIN_DELAY;
 	

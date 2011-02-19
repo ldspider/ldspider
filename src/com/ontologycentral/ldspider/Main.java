@@ -12,10 +12,11 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Logger;
 
-import com.ontologycentral.ldspider.hooks.links.*;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -24,18 +25,22 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.hooks.content.ZipContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
+import com.ontologycentral.ldspider.hooks.error.ErrorHandlerRounds;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
+import com.ontologycentral.ldspider.hooks.links.LinkFilter;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
@@ -86,7 +91,19 @@ public class Main{
 		opti.setArgName("max-uris");
 		strategy.addOption(opti);
 		
+		Option raw = new Option("d", false, "download seed URIs and archive raw data");
+		raw.setArgs(1);
+		raw.setArgName("directory");
+		//options.addOption(raw);
+		strategy.addOption(raw);
+		
+		strategy.setRequired(true);
+		
 		options.addOptionGroup(strategy);
+
+		Option header = new Option("e", false, "omit header triple in data");
+		header.setArgs(0);
+		options.addOption(header);
 		
 		Option threads = OptionBuilder.withArgName("threads")
 		.hasArgs(1)
@@ -94,24 +111,11 @@ public class Main{
 		.create("t");
 		options.addOption(threads);
 
-    //Link Filters
-    OptionGroup linkFilterOptions = new OptionGroup();
-
 		Option stay = OptionBuilder.withArgName("stay")
 		.hasArgs(0)
 		.withDescription("stay on hostnames of seed uris")
 		.create("y");
-		linkFilterOptions.addOption(stay);
-
-    Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
-		noLinks.setArgs(0);
-		linkFilterOptions.addOption(noLinks);
-
-    Option follow = new Option("follow", false, "only follow a specific predicate");
-		follow.setArgs(1);
-		linkFilterOptions.addOption(follow);
-
-    options.addOptionGroup(linkFilterOptions);
+		options.addOption(stay);
 
 		//Redirects
 		Option redirs = OptionBuilder.withArgName("redirects")
@@ -119,6 +123,10 @@ public class Main{
 		.withDescription("write redirects.nx file")
 		.create("r");
 		options.addOption(redirs);
+
+		Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
+		noLinks.setArgs(0);
+		options.addOption(noLinks);
 		
 		//Output
 		OptionGroup output = new OptionGroup();
@@ -143,7 +151,13 @@ public class Main{
 		.withDescription("name of access log file")
 		.create("a");
 		options.addOption(log);
-		
+
+		Option vis = OptionBuilder.withArgName("file")
+		.hasArgs(1)
+		.withDescription("name of file logging rounds")
+		.create("v");
+		options.addOption(vis);
+
 		Option helpO = new Option("h", "help", false, "print help");
 		options.addOption(helpO);
 
@@ -195,14 +209,20 @@ public class Main{
 		
 		_log.info("no of seed uris " + seeds.size());
 		
+		boolean header = true;
+		if (cmd.hasOption("e")) {
+			header = false;
+		}
+
 		Sink sink;
 		OutputStream os = null;
 		if (cmd.hasOption("o")) {
 			os = new FileOutputStream(cmd.getOptionValue("o"));
-			sink = new SinkCallback(new CallbackNxOutputStream(os));
+			
+			sink = new SinkCallback(new CallbackNxOutputStream(os), header);
 		}
 		else if(cmd.hasOption("oe")) {
-			sink = new SinkSparul(cmd.getOptionValue("oe"), true);
+			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
 		}
 		else {
 			sink = new SinkCallback(new CallbackNxOutputStream(System.out));
@@ -212,7 +232,12 @@ public class Main{
 		if (cmd.hasOption("a")) {
 			ps = new PrintStream(new FileOutputStream(cmd.getOptionValue("a")));			
 		}
-		
+
+		PrintStream rounds = null;
+		if (cmd.hasOption("v")) {
+			rounds = new PrintStream(new FileOutputStream(cmd.getOptionValue("v")));			
+		}
+
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
 			FileOutputStream fos = new FileOutputStream(cmd.getOptionValue("r"));
@@ -220,7 +245,13 @@ public class Main{
 			rcb.startDocument();
 		}
 	
-		ErrorHandler eh = new ErrorHandlerLogger(ps, rcb);
+		ErrorHandler eh = null;
+		
+		if (rounds != null) {
+			eh = new ErrorHandlerRounds(ps, rounds, rcb);			
+		} else {
+			eh = new ErrorHandlerLogger(ps, rcb);
+		}
 		
 		Frontier frontier = new RankedFrontier();
 		frontier.setErrorHandler(eh);
@@ -239,10 +270,6 @@ public class Main{
 		} else if (cmd.hasOption("n")) {
 			LinkFilterDummy d = new LinkFilterDummy();
 			links = d;
-    } else if(cmd.hasOption("follow")) {
-      List<Node> predicates = new ArrayList<Node>();
-      predicates.add(new Resource(cmd.getOptionValue("follow")));
-      links = new LinkFilterSelect(frontier, predicates, true);
 		} else {
 			links = new LinkFilterDefault(frontier);	
 		}
@@ -294,6 +321,18 @@ public class Main{
 			_log.info("load balanced crawl with " + threads + " threads, maxuris " + maxuris);
 
 			c.evaluateLoadBalanced(frontier, maxuris);
+		} else if (cmd.hasOption("d")) {
+			_log.info("sequential download with " + threads + " threads");
+			ZipContentHandler zch = new ZipContentHandler(new File(cmd.getOptionValue("d")));
+			c.setContentHandler(zch);
+			
+			c.evaluateSequential(frontier);
+
+			try {
+				zch.close();
+			} catch (IOException e) {
+				_log.severe(e.getMessage());
+			}
 		}
 	
 		for (Iterator<ObjectThrowable> it = eh.iterator(); it.hasNext() ; ) {

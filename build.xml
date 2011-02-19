@@ -18,6 +18,7 @@
   <target name="dist" depends="prepare">
     <javac destdir="bin"
 	   srcdir="src"
+	   includeantruntime="false"
 	   includes="com/ontologycentral/ldspider/**,org/osjava/norbert/**,net/sourceforge/**"
            source="1.5" target="1.5">
       <classpath refid="classpath"/>
