@@ -12,11 +12,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
+import com.ontologycentral.ldspider.hooks.links.*;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -25,6 +24,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
 
@@ -37,10 +38,6 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandlerRounds;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
-import com.ontologycentral.ldspider.hooks.links.LinkFilter;
-import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
-import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
-import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
@@ -111,11 +108,21 @@ public class Main{
 		.create("t");
 		options.addOption(threads);
 
-		Option stay = OptionBuilder.withArgName("stay")
-		.hasArgs(0)
-		.withDescription("stay on hostnames of seed uris")
-		.create("y");
-		options.addOption(stay);
+    //Link Filters
+    OptionGroup linkFilterOptions = new OptionGroup();
+
+		Option stay = new Option("y", "stay", false, "stay on hostnames of seed uris");
+		linkFilterOptions.addOption(stay);
+
+    Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
+		linkFilterOptions.addOption(noLinks);
+
+    Option follow = new Option("f", "follow", true, "only follow specific predicates");
+		follow.setArgs(1);
+    follow.setArgName("uris");
+		linkFilterOptions.addOption(follow);
+
+    options.addOptionGroup(linkFilterOptions);
 
 		//Redirects
 		Option redirs = OptionBuilder.withArgName("redirects")
@@ -123,10 +130,6 @@ public class Main{
 		.withDescription("write redirects.nx file")
 		.create("r");
 		options.addOption(redirs);
-
-		Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
-		noLinks.setArgs(0);
-		options.addOption(noLinks);
 		
 		//Output
 		OptionGroup output = new OptionGroup();
@@ -270,6 +273,12 @@ public class Main{
 		} else if (cmd.hasOption("n")) {
 			LinkFilterDummy d = new LinkFilterDummy();
 			links = d;
+    } else if(cmd.hasOption("f")) {
+      List<Node> predicates = new ArrayList<Node>();
+      for(String uri : cmd.getOptionValues("f")) {
+        predicates.add(new Resource(uri));
+      }
+      links = new LinkFilterSelect(frontier, predicates, true);
 		} else {
 			links = new LinkFilterDefault(frontier);	
 		}
