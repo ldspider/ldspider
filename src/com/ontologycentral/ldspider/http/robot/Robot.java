@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -60,7 +59,7 @@ public class Robot {
 //				type = hres.getFirstHeader("Content-Type").getValue();
 //			}
 
-			if (status == HttpStatus.SC_OK) {
+			if (status == 200) {
 				if (hen != null) {
 					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT_LINE);
 					String content = EntityUtils.toString(hen);

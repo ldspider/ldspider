@@ -69,6 +69,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 			it.remove();
 		}
 
+		// maxuris means maximum uris per pay-level-domain
 		for (String pld : _queues.keySet()) {
 			Queue<URI> q = _queues.get(pld);
 			if (q.size() > _maxuris) {
@@ -87,6 +88,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 			}
 		}
 
+		// maxplds means keep only the max number of plds with the largest amount of uris
 		List<String> lipld = getSortedQueuePlds();
 		_log.info("sorted pld list " + lipld.toString());
 		

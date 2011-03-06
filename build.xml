@@ -28,6 +28,7 @@
   	
     <jar jarfile="${dist}/${name}-${version}.jar" basedir="bin">
       <zipfileset src="lib/commons-cli-1.2.jar"/>
+      <zipfileset src="lib/commons-logging-1.1.1.jar"/>
       <zipfileset src="lib/httpclient-4.0.1.jar"/>
       <zipfileset src="lib/httpcore-4.0.1.jar"/>
       <zipfileset src="lib/httpcore-nio-4.0.1.jar"/>
