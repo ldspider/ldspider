@@ -129,6 +129,7 @@ public class SinkSparul implements Sink {
 			_connection.setRequestMethod("POST");
 			_connection.setDoOutput(true);
 			_connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+      _connection.setRequestProperty("Accept", "application/rdf+xml");
 			_writer = new OutputStreamWriter(_connection.getOutputStream(), "UTF-8");
 			_statements = 0;
 
