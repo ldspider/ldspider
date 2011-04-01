@@ -240,7 +240,7 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 			
 			//Extra round to get TBox
-			if(curRound == depth + 1) {
+			if(curRound == depth) {
 				_links.setFollowABox(false);
 				_links.setFollowTBox(true);
 			}
