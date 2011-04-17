@@ -12,8 +12,10 @@ import java.util.logging.Logger;
 
 import org.apache.http.Header;
 import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.nx.parser.NxParser;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 
@@ -215,8 +217,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		if (_redirects != null) {
 			Node[] nx = new Node[2];
 
-			nx[0] = new Resource(from.toString());
-			nx[1] = new Resource(to.toString());
+			nx[0] = new Resource(NxParser.escapeForNx(from.toString()));
+			nx[1] = new Resource(NxParser.escapeForNx(to.toString()));
 
 			_redirects.processStatement(nx);		
 		}
