@@ -21,7 +21,7 @@ import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
 
-public class LookupThread implements Runnable {
+public class LookupThread extends Thread {
 	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	SpiderQueue _q;
@@ -36,7 +36,7 @@ public class LookupThread implements Runnable {
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
 
-	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist) {
+	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist, int no) {
 		_hclient = hc;
 		_q = q;
 		_contentHandler = handler;
@@ -46,6 +46,8 @@ public class LookupThread implements Runnable {
 		_ff = ff;
 		_blacklist = blacklist;
 		_eh = eh;
+		
+		setName("LookupThread-"+no);
 	}
 	
 	public void run() {
@@ -101,7 +103,7 @@ public class LookupThread implements Runnable {
 						type = hres.getFirstHeader("Content-Type").getValue();
 					}
 					
-					_log.info("lookup on " + lu + " status " + status);
+					_log.info("lookup on " + lu + " status " + status + " " + getName());
 
 					if (status == HttpStatus.SC_OK) {				
 						if (hen != null) {

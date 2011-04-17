@@ -246,8 +246,8 @@ public class Crawler {
 			}
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
-				ts.add(new Thread(lt,"LookupThread-"+j));		
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist, j);
+				ts.add(lt); //new Thread(lt,"LookupThread-"+j));		
 			}
 
 			_log.info("Starting threads round " + curRound + " with " + _queue.size() + " uris");
@@ -303,8 +303,8 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
-				ts.add(new Thread(lt,"LookupThread-"+j));		
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist, j);
+				ts.add(lt); //new Thread(lt,"LookupThread-"+j));		
 			}
 
 			_log.info("Starting threads round " + i++ + " with " + _queue.size() + " uris");
@@ -347,8 +347,8 @@ public class Crawler {
 			List<Thread> ts = new ArrayList<Thread>();
 
 			for (int j = 0; j < _threads; j++) {
-				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
-				ts.add(new Thread(lt,"LookupThread-"+j));		
+				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist, j);
+				ts.add(lt); //new Thread(lt,"LookupThread-"+j));		
 			}
 
 			_log.info("Starting threads round " + i++ + " with " + _queue.size() + " uris");
@@ -380,8 +380,8 @@ public class Crawler {
 		List<Thread> ts = new ArrayList<Thread>();
 
 		for (int j = 0; j < _threads; j++) {
-			LookupThread lt = new LookupThread(_cm, queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist);
-			ts.add(new Thread(lt,"LookupThread-"+j));		
+			LookupThread lt = new LookupThread(_cm, queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist, j);
+			ts.add(lt); //new Thread(lt,"LookupThread-"+j));		
 		}
 
 		
