@@ -98,7 +98,10 @@ public abstract class SpiderQueue implements Serializable{
 	public void setRedirects(Redirects redirs) {
 		_redirs = redirs;		
 	}
-	
+
+	public void addSeen(URI u) {
+		_seen.add(u);
+	}
 	
 	public Set<URI> getSeen() {
 		return _seen;

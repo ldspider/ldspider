@@ -125,6 +125,7 @@ public class LookupThread implements Runnable {
 
 									_q.setRedirect(lu, to, status);
 									_eh.handleRedirect(lu, to, status);
+									_q.addSeen(to);
 								}
 							} else {
 								_log.info("disallowed via fetch filter " + lu + " type " + type);
