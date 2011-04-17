@@ -113,6 +113,19 @@ public class LookupThread implements Runnable {
 								is.close();
 								
 								headers = hres.getAllHeaders();
+
+								Header hloc = hres.getFirstHeader("Content-Location");
+								if (hloc != null) {
+									URI to = new URI(hloc.getValue());
+									
+									// handle local redirects
+									if (!to.isAbsolute()) {
+										to = lu.resolve(hloc.getValue());
+									}
+
+									_q.setRedirect(lu, to, status);
+									_eh.handleRedirect(lu, to, status);
+								}
 							} else {
 								_log.info("disallowed via fetch filter " + lu + " type " + type);
 								_eh.handleStatus(lu, CrawlerConstants.SKIP_MIMETYPE, null, 0, -1);
@@ -137,10 +150,9 @@ public class LookupThread implements Runnable {
 
 						// set redirect from original uri to new uri
 						_q.setRedirect(lu, to, status);
-						
-						headers = hres.getAllHeaders();
-						
 						_eh.handleRedirect(lu, to, status);
+	
+						headers = hres.getAllHeaders();
 					}
 
 					if (hen != null) {
