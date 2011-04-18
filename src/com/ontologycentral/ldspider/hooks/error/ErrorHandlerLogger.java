@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 
 import org.apache.http.Header;
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
@@ -42,12 +41,20 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	Callback _redirects = null;
 	
+	boolean _summary;
+
+	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
+		this(out, redirects, false);
+	}
+	
 	/**
 	 * logging redirects to file
 	 */
-	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
+	public ErrorHandlerLogger(PrintStream out, Callback redirects, boolean summary) {
 		_logger = out;
 		
+		_summary = summary;
+
 		_redirects = redirects;
 		
 		_errors = Collections.synchronizedList(new ArrayList<ObjectThrowable>());
@@ -144,13 +151,15 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	}
 	
 	<T> void increment(Map<T, Integer> m, T key) {
-		if (key != null) {
-			Integer count = (Integer)m.get(key);
-			if (count == null) {
-				m.put(key, 1);
-			} else {
-				count++;
-				m.put(key, count);
+		if (_summary) {
+			if (key != null) {
+				Integer count = (Integer)m.get(key);
+				if (count == null) {
+					m.put(key, 1);
+				} else {
+					count++;
+					m.put(key, count);
+				}
 			}
 		}
 	}

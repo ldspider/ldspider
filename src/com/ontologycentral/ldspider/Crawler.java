@@ -252,6 +252,9 @@ public class Crawler {
 
 			_log.info("Starting threads round " + curRound + " with " + _queue.size() + " uris");
 			
+			Monitor m = new Monitor(ts, System.err, 1000*10);
+			m.start();
+
 			for (Thread t : ts) {
 				t.start();
 			}
@@ -264,6 +267,8 @@ public class Crawler {
 					//e1.printStackTrace();
 				}
 			}
+			
+			m.shutdown();
 			
 			_log.info("ROUND " + curRound + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());
@@ -312,6 +317,9 @@ public class Crawler {
 			for (Thread t : ts) {
 				t.start();
 			}
+			
+			Monitor m = new Monitor(ts, System.err, 1000*10);
+			m.start();
 
 			for (Thread t : ts) {
 				try {
@@ -321,6 +329,8 @@ public class Crawler {
 					//e1.printStackTrace();
 				}
 			}
+			
+			m.shutdown();
 			
 			uris += size - _queue.size();
 			
@@ -357,6 +367,9 @@ public class Crawler {
 				t.start();
 			}
 
+			Monitor m = new Monitor(ts, System.err, 1000*10);
+			m.start();
+
 			for (Thread t : ts) {
 				try {
 					t.join();
@@ -365,6 +378,8 @@ public class Crawler {
 					//e1.printStackTrace();
 				}
 			}
+			
+			m.shutdown();
 
 			_queue.schedule(frontier);
 			

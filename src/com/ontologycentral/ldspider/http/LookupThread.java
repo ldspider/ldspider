@@ -35,6 +35,8 @@ public class LookupThread extends Thread {
 	
 	ErrorHandler _eh;
 	ConnectionManager _hclient;
+	
+	int _no;
 
 	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist, int no) {
 		_hclient = hc;
@@ -47,7 +49,9 @@ public class LookupThread extends Thread {
 		_blacklist = blacklist;
 		_eh = eh;
 		
-		setName("LookupThread-"+no);
+		_no = no;
+		
+		setName("LT-"+_no);
 	}
 	
 	public void run() {
@@ -60,6 +64,8 @@ public class LookupThread extends Thread {
 		_log.fine("got " + lu);
 		
 		while (lu != null) {
+			setName("LT-"+_no+":"+lu.toString());
+			
 			i++;
 			long time = System.currentTimeMillis();
 			

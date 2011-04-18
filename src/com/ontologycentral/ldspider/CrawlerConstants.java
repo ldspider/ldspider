@@ -21,8 +21,8 @@ public class CrawlerConstants {
 	
 	public static String[] BLACKLIST = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 	
-	public static final int CONNECTION_TIMEOUT = 16*4000;
-	public static final int SOCKET_TIMEOUT = 16*8000;
+	public static final int CONNECTION_TIMEOUT = 4*1000;
+	public static final int SOCKET_TIMEOUT = 4*1000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	

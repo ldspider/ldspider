@@ -122,6 +122,8 @@ public class BreadthFirstQueue extends SpiderQueue {
 			return null;
 		}
 		
+		long time = System.currentTimeMillis();
+		
 		URI next = null;
 
 		int empty = 0;
@@ -194,6 +196,10 @@ public class BreadthFirstQueue extends SpiderQueue {
 				empty++;
 			}
 		} while (next == null && empty < _queues.size());
+
+		long time1 = System.currentTimeMillis();
+		
+		_log.info("poll for " + next + " done in " + (time1 - time) + " ms");
 
 		return next;
 	}
