@@ -32,8 +32,9 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 
+import com.ontologycentral.ldspider.frontier.BasicFrontier;
+import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.hooks.content.ZipContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
@@ -57,22 +58,22 @@ public class Main {
 	public static void main(String[] args) {
 		Options options = new Options();
 
-		OptionGroup input = new OptionGroup();
+//		OptionGroup input = new OptionGroup();
 
 		Option seeds = OptionBuilder.withArgName("file")
 		.hasArgs(1)
 		.withDescription("location of seed list")
 		.create("s");
 		seeds.setRequired(true);
-		input.addOption(seeds);
+		options.addOption(seeds);
 
-		Option uri = OptionBuilder.withArgName("uri")
-		.hasArgs(1)
-		.withDescription("uri of an instance")
-		.create("u");
-		uri.setRequired(true);
-		input.addOption(uri);
-		options.addOptionGroup(input);
+//		Option uri = OptionBuilder.withArgName("uri")
+//		.hasArgs(1)
+//		.withDescription("uri of an instance")
+//		.create("u");
+//		uri.setRequired(true);
+//		input.addOption(uri);
+//		options.addOptionGroup(input);
 
 		//Strategy
 		OptionGroup strategy = new OptionGroup();
@@ -86,7 +87,7 @@ public class Main {
 		 */
 		//		Option simple = new Option("a", false, "just fetch URIs from list");
 		//		strategy.addOption(simple);
-
+		
 		Option bfs = new Option("b", false, "do strict breadth-first (uri-limit and pld-limit optional)");
 		bfs.setArgs(3);
 		bfs.setArgName("depth uri-limit pld-limit");
@@ -110,6 +111,11 @@ public class Main {
 		Option header = new Option("e", false, "omit header triple in data");
 		header.setArgs(0);
 		options.addOption(header);
+
+		Option memory = new Option("m", false, "memory-optimised (puts frontier on disk)");
+		memory.setArgs(1);
+		memory.setArgName("frontier-file");
+		options.addOption(memory);
 
 		Option threads = OptionBuilder.withArgName("threads")
 		.hasArgs(1)
@@ -151,7 +157,7 @@ public class Main {
 
 		Option outputEndpoint = OptionBuilder.withArgName("uri")
 		.hasArgs(1)
-		.withDescription("URI of a Triple Store endpoint supporting SPARQL/Update")
+		.withDescription("SPARQL/Update endpoint for output")
 		.create("oe");
 		output.addOption(outputEndpoint);
 
@@ -181,16 +187,16 @@ public class Main {
 			if (cmd.hasOption("h") || cmd.hasOption("help")) {
 				formatter.printHelp(80," ","Crawling and lookups on the linked data web\n", options,"\nFeedback and comments are welcome",true );
 				System.exit(0);
-			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
-				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
-				System.exit(-1);    
+//			} else if (!cmd.hasOption("s") && !cmd.hasOption("u")) {
+//				formatter.printHelp(80," ","ERROR: Missing required option: s or u \n", options,"\nError occured! Please see the error message above",true );
+//				System.exit(-1);    
 			}
 
 			run(cmd);
 		} catch (org.apache.commons.cli.ParseException e) {
 			formatter.printHelp(80," ","ERROR: "+e.getMessage()+"\n", options,"\nError occured! Please see the error message above",true );
 			System.exit(-1);
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			formatter.printHelp(80," ","ERROR: "+e.getMessage()+"\n", options,"\nError occured! Please see the error message above",true );
 			System.exit(-1);
 		} catch (NumberFormatException e) {
@@ -199,25 +205,25 @@ public class Main {
 		}
 	}
 
-	private static void run(CommandLine cmd) throws FileNotFoundException {
+	private static void run(CommandLine cmd) throws FileNotFoundException, IOException {
 		// check seed file
 		Set<URI> seeds = null;
-		if (cmd.hasOption("s")) {
+//		if (cmd.hasOption("s")) {
 			File seedList = new File(cmd.getOptionValue("s"));
 			if (!seedList.exists()) {
 				throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
 			}
 			seeds = readSeeds(seedList);
-		} else if (cmd.hasOption("u")) {
-			seeds = new HashSet<URI>();
-			try {
-				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
-			} catch (Exception e) {
-				_log.warning("Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
-				e.printStackTrace();
-				System.exit(-1);
-			}
-		}
+//		} else if (cmd.hasOption("u")) {
+//			seeds = new HashSet<URI>();
+//			try {
+//				seeds.add(new URL(cmd.getOptionValue("u").trim()).toURI());
+//			} catch (Exception e) {
+//				_log.warning("Discard invalid uri "+e.getMessage()+" for "+cmd.hasOption("u"));
+//				e.printStackTrace();
+//				System.exit(-1);
+//			}
+//		}
 
 		_log.info("no of seed uris " + seeds.size());
 
@@ -232,11 +238,9 @@ public class Main {
 			os = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("o")));
 
 			sink = new SinkCallback(new CallbackNxBufferedOutputStream(os), header);
-		}
-		else if(cmd.hasOption("oe")) {
+		} else if (cmd.hasOption("oe")) {
 			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
-		}
-		else {
+		} else {
 			sink = new SinkCallback(new CallbackNxBufferedOutputStream(System.out));
 		}
 
@@ -265,7 +269,16 @@ public class Main {
 			eh = new ErrorHandlerLogger(ps, rcb, false);
 		}
 
-		Frontier frontier = new RankedFrontier();
+//		Frontier frontier = new RankedFrontier();
+//		frontier.setErrorHandler(eh);
+//		frontier.addAll(seeds);
+
+		Frontier frontier = new BasicFrontier();
+		
+		if (cmd.hasOption("m")) {
+			frontier = new DiskFrontier(new File(cmd.getOptionValue("m")));
+		}
+		
 		frontier.setErrorHandler(eh);
 		frontier.addAll(seeds);
 

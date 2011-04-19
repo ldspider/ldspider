@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.tld.TldManager;
 
@@ -105,6 +106,11 @@ public class BreadthFirstQueue extends SpiderQueue {
 		
 		//_current.addAll(lipld);
 		
+		// now just forgets what's happened in the previous round; means that we might
+		// starve of URIs but helps the crawler move on
+		if (f instanceof DiskFrontier) {
+			f.reset();
+		}
 		_time = System.currentTimeMillis();
 		
 		_log.info("scheduling " + _current.size() + " plds done in " + (_time - time) + " ms");

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.tld.TldManager;
 
@@ -41,7 +42,9 @@ public abstract class SpiderQueue implements Serializable{
 	 */
 	public void schedule(Frontier f) {
 		if (_seenRound != null) {
-			f.removeAll(_seenRound);
+			if (!(f instanceof DiskFrontier)) {
+				f.removeAll(_seenRound);
+			}
 		}
 		if (_redirsRound != null) {
 			f.addAll(_redirsRound);

@@ -145,7 +145,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 
 			synchronized(this) {
 				_logger.println(sb.toString());
-				_logger.flush();
+				//_logger.flush();
 			}
 		} 
 	}

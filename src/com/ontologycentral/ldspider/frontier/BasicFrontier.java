@@ -22,16 +22,16 @@ public class BasicFrontier extends Frontier {
 		}
 	}
 	
-	public void remove(URI u) {
-		_data.remove(u);
-	}
-
 	public Iterator<URI> iterator() {
 		return _data.iterator();
 	}
 
 	public void removeAll(Collection<URI> c) {
 		_data.removeAll(c);
+	}
+	
+	public void reset() {
+		_data = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
 	public String toString() {

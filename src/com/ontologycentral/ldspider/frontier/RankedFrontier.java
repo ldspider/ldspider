@@ -53,6 +53,10 @@ public class RankedFrontier extends Frontier {
 			remove(u);
 		}
 	}
+	
+	public void reset() {
+		_data = Collections.synchronizedMap(new HashMap<URI, Integer>());
+	}
 }
 
 class CountComparator implements Comparator<URI> {

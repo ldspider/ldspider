@@ -70,11 +70,12 @@ public abstract class Frontier {
 	public void addAll(Collection<URI> c) {
 		for (URI u : c) {
 			add(u);
-			
 		}
 		c = null;
 	}
-	public abstract void remove(URI u);
+
+//	public abstract void remove(URI u);
 	public abstract void removeAll(Collection<URI> c);
+	public abstract void reset();
 	public abstract Iterator<URI> iterator();
 }
