@@ -205,7 +205,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 		long time1 = System.currentTimeMillis();
 		
-		_log.info("poll for " + next + " done in " + (time1 - time) + " ms");
+		_log.fine("poll for " + next + " done in " + (time1 - time) + " ms");
 
 		return next;
 	}

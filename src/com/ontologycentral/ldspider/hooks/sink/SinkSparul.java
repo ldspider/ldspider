@@ -20,17 +20,17 @@ import com.ontologycentral.ldspider.http.Headers;
  * @author RobertIsele
  */
 public class SinkSparul implements Sink {
-	
+
 	/** Maximum number of statements per request. */
 	private static final int STATEMENTS_PER_REQUEST = 200;
-	
+
 	private final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
-	
+
 	/** SPARQL/Update endpoint */
 	private final String _endpoint;
 
 	private boolean _includeProvenance;
-	
+
 	private final String _graphUri;
 
 	/**
@@ -45,7 +45,7 @@ public class SinkSparul implements Sink {
 		_includeProvenance = includeProvenance;
 		_graphUri = null;
 	}
-	
+
 	/**
 	 * Creates a new SPARQL/Update Sink.
 	 * All Statements will be written into the same graph.
@@ -59,29 +59,29 @@ public class SinkSparul implements Sink {
 		_includeProvenance = includeProvenance;
 		_graphUri = graphUri;
 	}
-	
+
 	public Callback newDataset(Provenance provenance) {
 		return new CallbackSparul(provenance);
 	}
-	
+
 	/**
 	 * Callback which is used to write a graph to the store.
 	 */
 	private class CallbackSparul implements Callback {
-		
+
 		private final Provenance _prov;
-		
+
 		private HttpURLConnection _connection = null;
-		
+
 		private Writer _writer = null;
-		
+
 		private int _statements = 0;
-		
+
 		public CallbackSparul(Provenance prov) {
 			if(prov == null) throw new NullPointerException("prov must not be null");
 			_prov = prov;
 		}
-		
+
 		public void startDocument() {
 			try {
 				beginSparul(true);
@@ -103,7 +103,7 @@ public class SinkSparul implements Sink {
 				throw new RuntimeException(e);
 			}
 		}
-		
+
 		public void endDocument() {
 			try {
 				endSparql();
@@ -112,7 +112,7 @@ public class SinkSparul implements Sink {
 				throw new RuntimeException(e);
 			}
 		}
-		
+
 		/**
 		 * Begins a new SPARQL/Update request.
 		 * 
@@ -122,21 +122,21 @@ public class SinkSparul implements Sink {
 		private void beginSparul(boolean newGraph) throws IOException {
 			//Preconditions
 			if(_connection != null) throw new IllegalStateException("Document already openend");
-			
+
 			//Open a new HTTP connection
 			URL url = new URL(_endpoint);
 			_connection = (HttpURLConnection)url.openConnection();
 			_connection.setRequestMethod("POST");
 			_connection.setDoOutput(true);
 			_connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-      _connection.setRequestProperty("Accept", "application/rdf+xml");
+			_connection.setRequestProperty("Accept", "application/rdf+xml");
 			_writer = new OutputStreamWriter(_connection.getOutputStream(), "UTF-8");
 			_statements = 0;
 
 			//SPARUL Requests	
 			String provUri = URLEncoder.encode(_prov.getUri().toString(), "UTF-8");
 			String graphUri = _graphUri != null ? _graphUri : provUri;
-			
+
 			_writer.write("request=");
 			if(newGraph) {
 				//_writer.write("DROP+SILENT+GRAPH+%3C" + graphUri + "%3E+");
@@ -149,7 +149,7 @@ public class SinkSparul implements Sink {
 				Headers.processHeaders(_prov.getUri(), _prov.getHttpStatus(), _prov.getHttpHeaders(), this);
 			}
 		}
-		
+
 		/**
 		 * Adds a statement to the current SPARQL/Update request.
 		 * 
@@ -161,24 +161,24 @@ public class SinkSparul implements Sink {
 			if(_connection == null) throw new IllegalStateException("Must open document before writing statements");
 			if(nodes == null) throw new NullPointerException("nodes must not be null");
 			if(nodes.length < 3) throw new IllegalArgumentException("A statement must consist of at least 3 nodes");
-			
+
 			_writer.write(URLEncoder.encode(nodes[0].toN3() + " " + nodes[1].toN3() + " " + nodes[2].toN3() + " .\n", "UTF-8"));
 			_statements++;
 		}
-		
+
 		/**
 		 * Ends the current SPARQL/Update request.
 		 * 
 		 * @throws IOException
 		 */
 		private void endSparql() throws IOException {
-		  //Preconditions
-	    if(_connection == null) return;
-			
-	    //End request
+			//Preconditions
+			if(_connection == null) return;
+
+			//End request
 			_writer.write("%7D");
 			_writer.close();
-			
+
 			//Check response
 			if(_connection.getResponseCode() == 200) {
 				_log.info(_statements + " statements written to Store.");

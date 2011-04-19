@@ -10,7 +10,9 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class DiskFrontier extends Frontier {
@@ -81,8 +83,11 @@ public class DiskFrontier extends Frontier {
 class DiskFrontierIterator implements Iterator<URI> {
 	BufferedReader _br = null;
 	URI _next = null;
+	Set<URI> _unique;
 	
 	public DiskFrontierIterator(File f) {
+		_unique = new HashSet<URI>();
+		
 		try {
 			_br = new BufferedReader(new InputStreamReader(new FileInputStream(f)));
 
@@ -129,8 +134,9 @@ class DiskFrontierIterator implements Iterator<URI> {
 		
 		while ((line = _br.readLine()) != null) {
 			URI u = new URI(line);
-			if (u != null) {
+			if (u != null && !_unique.contains(u)) {
 				next = u;
+				_unique.add(u);
 				break;
 			}
 		}

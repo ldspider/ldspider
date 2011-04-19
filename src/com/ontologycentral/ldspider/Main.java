@@ -233,15 +233,18 @@ public class Main {
 		}
 
 		Sink sink;
-		OutputStream os = null;
-		if (cmd.hasOption("o")) {
-			os = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("o")));
-
-			sink = new SinkCallback(new CallbackNxBufferedOutputStream(os), header);
-		} else if (cmd.hasOption("oe")) {
+		OutputStream os = System.out;
+		CallbackNxBufferedOutputStream cbos = null;
+		if (cmd.hasOption("oe")) {
 			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
 		} else {
-			sink = new SinkCallback(new CallbackNxBufferedOutputStream(System.out));
+			if (cmd.hasOption("o")) {
+				os = new FileOutputStream(cmd.getOptionValue("o"));
+			}
+			
+			cbos = new CallbackNxBufferedOutputStream(new BufferedOutputStream(os));
+			
+			sink = new SinkCallback(cbos, header);
 		}
 
 		PrintStream ps = System.out;
@@ -377,7 +380,11 @@ public class Main {
 
 		long time1 = System.currentTimeMillis();
 
-		if(os != null) {
+		if (cbos != null) {
+			cbos.close();
+		}
+
+		if (os != null) {
 			try {
 				os.close();
 			} catch (IOException e) {
@@ -387,8 +394,11 @@ public class Main {
 
 		if (rcb != null) {
 			rcb.endDocument();
+			if (rcb instanceof CallbackNxBufferedOutputStream) {
+				((CallbackNxBufferedOutputStream)rcb).close();
+			}
 		}
-
+		
 		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec");
 	}
 

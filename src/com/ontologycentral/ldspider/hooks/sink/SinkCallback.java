@@ -1,6 +1,7 @@
 package com.ontologycentral.ldspider.hooks.sink;
 
 import org.semanticweb.yars.nx.parser.Callback;
+
 import com.ontologycentral.ldspider.http.Headers;
 
 /**

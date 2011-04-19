@@ -19,6 +19,11 @@ public class SinkDummy implements Sink {
 	public Callback newDataset(Provenance provenance, boolean header) {
 		return callback;
 	}
+	
+
+	public void close() {
+		;
+	}
 
 	/**
 	 * Do nothing

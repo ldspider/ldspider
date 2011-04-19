@@ -42,6 +42,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	Callback _redirects = null;
 	
 	boolean _summary;
+	
+	long _lookups;
 
 	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
 		this(out, redirects, false);
@@ -70,6 +72,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		
 		_time = Collections.synchronizedMap(new TreeMap<Integer, Integer>());
 		_rotime = Collections.synchronizedMap(new TreeMap<Integer, Integer>());
+		
+		_lookups = 0;
 	}
 
 	public void handleError(Throwable e) {
@@ -90,8 +94,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 
 	public void handleStatus(URI u, int status, Header[] headers, long duration, long contentLength) {
 		String type = null;
-		String cache = null;
-
+		String cache = "MISS";
+		
 		if (headers != null) {
 			for (Header h : headers) {
 				String name = h.getName().toLowerCase();
@@ -103,12 +107,13 @@ public class ErrorHandlerLogger implements ErrorHandler {
 						type = type.substring(0, type.indexOf(';'));
 					}
 				} else if ("x-cache".equals(name)) {
-					if(value.indexOf(' ') > 0)
+					if (value.indexOf(' ') > 0) {
 						cache = value.substring(0, value.indexOf(' '));
+					}
 				}
 			}
 		}
-
+		
 		if ("/robots.txt".equals(u.getPath())) {
 			increment(_rostatus, status);
 			increment(_rocache, cache);
@@ -123,6 +128,10 @@ public class ErrorHandlerLogger implements ErrorHandler {
 
 			int tbracket = (int)((float)duration/(float)RESOLUTION);
 			increment(_time, tbracket);
+			
+			if (status != CrawlerConstants.SKIP_SUFFIX && status != CrawlerConstants.SKIP_ROBOTS) {
+				_lookups++;
+			}
 		}
 
 		if (_logger != null) {
@@ -134,7 +143,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			sb.append(System.currentTimeMillis()/1000);
 			sb.append(" ");
 			sb.append(duration);
-			sb.append(" 127.0.0.1 TCP_HIT/");
+			sb.append(" 127.0.0.1 TCP_" + cache + "/");
 			sb.append(status);
 			sb.append(" ");
 			sb.append(contentLength);
@@ -241,14 +250,16 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	 * return only "real" lookups, no robots.txt lookups and no filters w/o lookups
 	 */
 	public long lookups() {
-		long size = 0;
-		for (Integer status : _status.keySet()) {
-			if (status != CrawlerConstants.SKIP_SUFFIX && status != CrawlerConstants.SKIP_ROBOTS) {
-				size += _status.get(status);
-			}
-		}
-
-		return size;
+		return _lookups;
+		
+//		long size = 0;
+//		for (Integer status : _status.keySet()) {
+//			if (status != CrawlerConstants.SKIP_SUFFIX && status != CrawlerConstants.SKIP_ROBOTS) {
+//				size += _status.get(status);
+//			}
+//		}
+//
+//		return size;
 	}
 
 	public void handleLink(Node from, Node to) {
