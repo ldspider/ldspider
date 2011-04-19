@@ -24,6 +24,8 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
+	
+//	static final String[] SLOWDOWN = { "l3s.de" };
 
 	long _time;
 	
@@ -73,13 +75,18 @@ public class BreadthFirstQueue extends SpiderQueue {
 		// maxuris means maximum uris per pay-level-domain
 		for (String pld : _queues.keySet()) {
 			Queue<URI> q = _queues.get(pld);
-			if (q.size() > _maxuris) {
+			// hack to avoid hanging at slow dblp.l3s.de server
+			int maxuris = _maxuris;
+			if ("l3s.de".equals(pld)) {
+				maxuris = maxuris/10;
+			}
+			if (q.size() > maxuris) {
 				int n = 0;
 				Queue<URI> nq = new ConcurrentLinkedQueue<URI>();
 				for (URI u: q) {
 					nq.add(u);
 					n++;
-					if (n >= _maxuris) {
+					if (n >= maxuris) {
 						break;
 					}
 				}
