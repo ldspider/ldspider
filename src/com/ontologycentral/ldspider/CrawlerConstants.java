@@ -41,9 +41,9 @@ public class CrawlerConstants {
 	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
 	
 	// avoid hammering plds
-	public static final long MIN_DELAY = 4*1000;
-	// should be adapted based on no of URIs in queue
-	public static final long MAX_DELAY = 50*MIN_DELAY;
+	public static final long MIN_DELAY = 2*1000;
+	// for bfs queue: max time after plds get re-visited
+	public static final long MAX_DELAY = 2*MIN_DELAY;
 	
 	// close idle connections
 	public static final int CLOSE_IDLE = 60000;

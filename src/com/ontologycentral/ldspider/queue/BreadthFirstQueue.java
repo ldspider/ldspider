@@ -145,14 +145,15 @@ public class BreadthFirstQueue extends SpiderQueue {
 		int empty = 0;
 
 		do {	
-			if (_current.isEmpty()) {
+			long time1 = System.currentTimeMillis();
+
+			// randomly start from the beginning of the queue to spread out lookupt to large sites
+			if (_current.isEmpty() || (time1 - _time) > CrawlerConstants.MAX_DELAY) {
 				// queue is empty, done for this round
 				if (size() == 0) {
 					return null;
 				}
-				
-				long time1 = System.currentTimeMillis();
-				
+							
 				if ((time1 - _time) < CrawlerConstants.MIN_DELAY) {
 					try {
 						_log.info("delaying queue " + CrawlerConstants.MIN_DELAY + " ms ...");

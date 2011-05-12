@@ -72,7 +72,7 @@ class PWorker implements Runnable {
 					throw new RuntimeException(u + " == " + _uri);
 				}
 				_uri = u;
-				System.out.print(".");
+				System.out.print(u);
 			}
 		} while (u != null);
 	}
