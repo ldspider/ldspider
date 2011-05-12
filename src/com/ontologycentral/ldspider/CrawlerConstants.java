@@ -19,11 +19,12 @@ public class CrawlerConstants {
 		new BasicHeader("Accept-Encoding", "gzip")
 	};
 	
-	public static String[] BLACKLIST = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
+	public static String[] BLACKLIST = { ".txt", ".html", ".xhtml", ".json", ".ttl", ".nt", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
 
 	public static String[] SITES_NO_RDF = { "wikipedia.org", "imdb.com", "twimg.com", "dblp.uni-trier.de", "flickr.com", "amazon.com", "last.fm" };
 
-	public static String[] SITES_SLOW = { "l3s.de", "semantictweet.com", "kaufkauf.net", "rpi.edu",  };
+	public static String[] SITES_SLOW = { "l3s.de", "semantictweet.com", "kaufkauf.net", "rpi.edu", "uniprot.org" };
+	public static final int SLOW_DIV = 50;
 
 	public static final int CONNECTION_TIMEOUT = 4*1000;
 	public static final int SOCKET_TIMEOUT = 4*1000;
@@ -40,7 +41,7 @@ public class CrawlerConstants {
 	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
 	
 	// avoid hammering plds
-	public static final long MIN_DELAY = 1000;
+	public static final long MIN_DELAY = 4*1000;
 	// should be adapted based on no of URIs in queue
 	public static final long MAX_DELAY = 50*MIN_DELAY;
 	

@@ -25,8 +25,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
 	
-//	static final String[] SLOWDOWN = { "l3s.de" };
-
 	long _time;
 	
 	int _maxuris;
@@ -80,7 +78,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 			int maxuris = _maxuris;
 			for (String s : CrawlerConstants.SITES_SLOW) {
 				if (s.equals(pld)) {
-					maxuris = maxuris/20;
+					maxuris = maxuris/CrawlerConstants.SLOW_DIV;
 				}
 			}
 			
