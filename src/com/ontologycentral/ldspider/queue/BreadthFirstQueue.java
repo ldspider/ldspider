@@ -168,24 +168,9 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 				_time = System.currentTimeMillis();
 
-				// here apply optimisation heuristics -> that should be a forumula!
-
 				List<String> lipld = getSortedQueuePlds();
-
-				// remove the bottom-20%
-//				int bottom = (int)((float)lipld.size()*.2f);
-//				
-//				for (int i = 0; i < bottom; i++) {
-//					lipld.remove(lipld.size()-1);
-//				}
-//
-//				_log.info("removing bottom " + bottom + " from queue");
-				
-				// optimisation end
 				
 				_current.addAll(lipld);
-				
-				//_current.addAll(_queues.keySet());				
 			}
 
 			String pld = _current.poll();
@@ -193,23 +178,12 @@ public class BreadthFirstQueue extends SpiderQueue {
 			
 			if (q != null && !q.isEmpty()) {
 				next = q.poll();
-
-//					// we have to do a in-queue check for seen if we put redirects directly back into the queue
-//					if (checkSeen(to) == true) {
-//						_log.info("redirect to " + to + " already seen");
-//						next = null;
-//					} else {	
-//						next = to;
-//					}
-//				}
-//				
-//				// argh - if uri comes from file and a redirect, seen does not catch it
-//				if (checkSeen(next) == true) {
-//					_log.info("uri " + next + " already seen");
-//					next = null;
-//				}
 				
-				setSeen(next);
+				if (checkSeen(next)) {
+					next = null;
+				} else {			
+					setSeen(next);
+				}
 			} else {
 				empty++;
 			}

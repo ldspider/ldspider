@@ -52,4 +52,32 @@ public class RedirectTest extends TestCase {
 		System.out.println(page.getPath());
 		System.out.println(Frontier.normalise(page));
 	}
+	
+	public void testRedirect() throws Exception {
+		TldManager tldm = new TldManager();
+		
+		SpiderQueue fq = new BreadthFirstQueue(tldm, 1, 1);
+		
+		URI u = new URI("http://dbpedia.org/resource/Karlsruhe");
+
+		Frontier f = new BasicFrontier();
+		f.add(u);
+		
+		fq.schedule(f);
+		
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+		fq.addDirectly(new URI("http://dbpedia.org/data/Karlsruhe"));
+
+		URI poll = fq.poll();
+		while (poll != null) {
+			System.out.println(poll);
+			poll = fq.poll();
+		}
+	}
 }
