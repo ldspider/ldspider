@@ -24,7 +24,7 @@ public abstract class SpiderQueue implements Serializable{
 	protected Set<URI> _seen;
 
 	protected Set<URI> _seenRound = null;
-	protected Set<URI> _redirsRound = null;
+	//protected Set<URI> _redirsRound = null;
 	
 	protected TldManager _tldm;
 	protected Redirects _redirs;
@@ -46,12 +46,12 @@ public abstract class SpiderQueue implements Serializable{
 				f.removeAll(_seenRound);
 			}
 		}
-		if (_redirsRound != null) {
-			f.addAll(_redirsRound);
-		}
+//		if (_redirsRound != null) {
+//			f.addAll(_redirsRound);
+//		}
 		
 		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
-		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
+//		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
 	/**
@@ -74,9 +74,16 @@ public abstract class SpiderQueue implements Serializable{
 		}
 		
 		_redirs.put(from, to);
-		_redirsRound.add(to);
+//		_redirsRound.add(to);
+		
+		if (checkSeen(to) == false) {
+			_log.info("adding " + to + " directly to queue");
+			addDirectly(to);
+		}
 	}
-	
+		
+	abstract void addDirectly(URI u);
+
 	/**
 	 * Return redirected URI (if there's a redirect)
 	 * otherwise return original URI.
@@ -113,5 +120,19 @@ public abstract class SpiderQueue implements Serializable{
 	public void setSeen(Set<URI> seen) {
 		_seen = seen;
 	}
-
+	
+	public boolean checkSeen(URI u) {
+		if (u == null) {
+			throw new NullPointerException("u cannot be null");
+		}
+		
+		return _seen.contains(u);
+	}
+	
+	void setSeen(URI u) {
+		if (u != null) {
+			_seen.add(u);
+			_seenRound.add(u);
+		}
+	}
 }

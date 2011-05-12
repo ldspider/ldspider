@@ -192,21 +192,6 @@ public class LoadBalancingQueue extends SpiderQueue {
 		return next;
 	}
 	
-	boolean checkSeen(URI u) {
-		if (u == null) {
-			throw new NullPointerException("u cannot be null");
-		}
-		
-		return _seen.contains(u);
-	}
-	
-	void setSeen(URI u) {
-		if (u != null) {
-			_seen.add(u);
-			_seenRound.add(u);
-		}
-	}
-	
 	List<String> getSortedQueuePlds() {
 		List<String> li = new ArrayList<String>();
 		

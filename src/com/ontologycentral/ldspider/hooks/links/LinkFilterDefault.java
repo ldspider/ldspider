@@ -6,7 +6,9 @@ import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
+import org.semanticweb.yars.nx.namespace.RDF;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 
@@ -26,9 +28,7 @@ public class LinkFilterDefault implements LinkFilter {
 	
 	protected boolean _followABox;
 	protected boolean _followTBox;
-	
-	private static final String RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-	
+		
 	public LinkFilterDefault(Frontier f) {
 		_f = f;
 		_followABox = true;
@@ -67,7 +67,7 @@ public class LinkFilterDefault implements LinkFilter {
 					if(_followTBox) addTBox(nx, i);
 				}
 				//Object (TBox)
-				else if(i == 2 && nx[1].toString().equals(RDF_TYPE)) {
+				else if(i == 2 && nx[1].toString().equals(RDF.TYPE)) {
 					if(_followTBox) addTBox(nx, i);
 				}
 				//Object (ABox)
@@ -101,9 +101,20 @@ public class LinkFilterDefault implements LinkFilter {
 	 */
 	protected void addUri(Node[] nx, int i) {
 		try {
-			_f.add(new URI(nx[i].toString()));
-			_log.fine("adding " + nx[i].toString() + " to frontier");
-			_eh.handleLink(nx[nx.length-1], nx[i]);
+			URI u = new URI(nx[i].toString());
+
+			// @@@ HACK to throw out non-RDF sites early
+			boolean add = true;
+			for (String s : CrawlerConstants.SITES_NO_RDF) {
+				if (u.getHost().contains(s)) {
+					add = false;
+				}
+			}
+			if (add) {
+				_f.add(u);
+				_log.fine("adding " + nx[i].toString() + " to frontier");
+				_eh.handleLink(nx[nx.length-1], nx[i]);
+			}
 		} catch (URISyntaxException e) {
 			try {
 				_eh.handleError(new URI(nx[nx.length-1].toString()), e);

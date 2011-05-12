@@ -75,14 +75,18 @@ public class BreadthFirstQueue extends SpiderQueue {
 		// maxuris means maximum uris per pay-level-domain
 		for (String pld : _queues.keySet()) {
 			Queue<URI> q = _queues.get(pld);
-			// hack to avoid hanging at slow dblp.l3s.de server
+			
+			// HACK to avoid hanging at slow servers
 			int maxuris = _maxuris;
-			if ("l3s.de".equals(pld)) {
-				maxuris = maxuris/10;
+			for (String s : CrawlerConstants.SITES_SLOW) {
+				if (s.equals(pld)) {
+					maxuris = maxuris/20;
+				}
 			}
+			
 			if (q.size() > maxuris) {
 				int n = 0;
-				Queue<URI> nq = new ConcurrentLinkedQueue<URI>();
+				ConcurrentLinkedQueue<URI> nq = new ConcurrentLinkedQueue<URI>();
 				for (URI u: q) {
 					nq.add(u);
 					n++;
@@ -121,6 +125,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 		_time = System.currentTimeMillis();
 		
 		_log.info("scheduling " + _current.size() + " plds done in " + (_time - time) + " ms");
+		_log.info(toString());
 	}
 		
 	/**
@@ -256,21 +261,6 @@ public class BreadthFirstQueue extends SpiderQueue {
 		}
 	}
 
-	boolean checkSeen(URI u) {
-		if (u == null) {
-			throw new NullPointerException("u cannot be null");
-		}
-		
-		return _seen.contains(u);
-	}
-	
-	void setSeen(URI u) {
-		if (u != null) {
-			_seen.add(u);
-			_seenRound.add(u);
-		}
-	}
-	
 	public int size() {
 		int size = 0;
 		

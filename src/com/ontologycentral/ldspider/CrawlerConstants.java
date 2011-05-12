@@ -20,7 +20,11 @@ public class CrawlerConstants {
 	};
 	
 	public static String[] BLACKLIST = { ".txt", ".html", ".jpg", ".pdf", ".htm", ".png", ".jpeg", ".gif" };
-	
+
+	public static String[] SITES_NO_RDF = { "wikipedia.org", "imdb.com", "twimg.com", "dblp.uni-trier.de", "flickr.com", "amazon.com", "last.fm" };
+
+	public static String[] SITES_SLOW = { "l3s.de", "semantictweet.com", "kaufkauf.net", "rpi.edu",  };
+
 	public static final int CONNECTION_TIMEOUT = 4*1000;
 	public static final int SOCKET_TIMEOUT = 4*1000;
 
