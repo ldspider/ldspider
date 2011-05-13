@@ -31,7 +31,13 @@ public class BreadthFirstQueue extends SpiderQueue {
 	
 	int _maxplds;
 
+	boolean _optimised;
+
 	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds) {
+		this(tldm, maxuris, maxplds, false);
+	}
+	
+	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds, boolean optimised) {
 		super(tldm);
 
 		_maxuris = maxuris;
@@ -46,6 +52,7 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 		_current = new ConcurrentLinkedQueue<String>();
 	}
+
 	
 	/**
 	 * Put URIs from frontier to queue
@@ -144,8 +151,10 @@ public class BreadthFirstQueue extends SpiderQueue {
 
 		int empty = 0;
 
+		long time1 = 0l;
+
 		do {	
-			long time1 = System.currentTimeMillis();
+			time1 = System.currentTimeMillis();
 
 			// randomly start from the beginning of the queue to spread out lookupt to large sites
 			if (_current.isEmpty() || (time1 - _time) > CrawlerConstants.MAX_DELAY) {
@@ -186,9 +195,9 @@ public class BreadthFirstQueue extends SpiderQueue {
 			} else {
 				empty++;
 			}
-		} while (next == null && empty < _queues.size());
+		} while (next == null && empty < _queues.size() || (_optimised && (time1 -time <= 1)));
 
-		long time1 = System.currentTimeMillis();
+		time1 = System.currentTimeMillis();
 		
 		_log.fine("poll for " + next + " done in " + (time1 - time) + " ms");
 
