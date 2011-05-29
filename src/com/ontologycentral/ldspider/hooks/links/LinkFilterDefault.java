@@ -117,7 +117,7 @@ public class LinkFilterDefault implements LinkFilter {
 				}
 				if (add) {
 					_f.add(u);
-					_log.info("adding " + nx[i].toString() + " to frontier");
+					_log.fine("adding " + nx[i].toString() + " to frontier");
 					_eh.handleLink(nx[nx.length-1], nx[i]);
 				}
 			} catch (URISyntaxException e) {

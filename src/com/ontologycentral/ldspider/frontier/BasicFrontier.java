@@ -16,7 +16,6 @@ public class BasicFrontier extends Frontier {
 	}
 	
 	public synchronized void add(URI u) {
-		_log.info("frontier " + u);
 		u = process(u);
 		if (u != null) {
 			_data.add(u);
