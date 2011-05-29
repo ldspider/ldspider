@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars2.rdfxml.RDFXMLParser;
@@ -40,6 +41,8 @@ public class ContentHandlerRdfXml implements ContentHandler {
 				Node[] nx = r.next();
 				
 				callback.processStatement(nx);
+				
+				_log.info("processing " + Nodes.toN3(nx));
 			}
 			//, callback, new Resource(uri.toString()))
 			

@@ -15,7 +15,8 @@ public class BasicFrontier extends Frontier {
 		_data = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
-	public void add(URI u) {
+	public synchronized void add(URI u) {
+		_log.info("frontier " + u);
 		u = process(u);
 		if (u != null) {
 			_data.add(u);

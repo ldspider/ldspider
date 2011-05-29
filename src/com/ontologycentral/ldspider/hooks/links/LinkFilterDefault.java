@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
+import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.namespace.RDF;
 
@@ -52,12 +53,14 @@ public class LinkFilterDefault implements LinkFilter {
 	}
 	
 	public void endDocument() {
-		;
+		_log.info("document done");
 	}
 
-	public void processStatement(Node[] nx) {
+	public synchronized void processStatement(Node[] nx) {
+		_log.fine("seeing " + Nodes.toN3(nx));
 		for (int i = 0; i < Math.min(nx.length, 3); i++) {
 			if (nx[i] instanceof Resource) {
+				addUri(nx, i);
 				//Subject
 				if(i == 0 && _followABox) {
 					if(_followABox) addABox(nx, i);
@@ -83,7 +86,7 @@ public class LinkFilterDefault implements LinkFilter {
 	 * Override this in sub classes to modify ABox handling.
 	 * 
 	 */
-	protected void addABox(Node[] nx, int i) {
+	protected synchronized void addABox(Node[] nx, int i) {
 		addUri(nx, i);
 	}
 	
@@ -92,35 +95,42 @@ public class LinkFilterDefault implements LinkFilter {
 	 * Override this in sub classes to modify TBox handling.
 	 * 
 	 */
-	protected void addTBox(Node[] nx, int i) {
+	protected synchronized void addTBox(Node[] nx, int i) {
 		addUri(nx, i);
 	}
 	
 	/**
 	 * Adds a new uri to the frontier.
 	 */
-	protected void addUri(Node[] nx, int i) {
+	protected synchronized void addUri(Node[] nx, int i) {
 		try {
-			URI u = new URI(nx[i].toString());
+			_log.fine("adduri " + nx[i].toString());
+			try {
+				URI u = new URI(nx[i].toString());
 
-			// @@@ HACK to throw out non-RDF sites early
-			boolean add = true;
-			for (String s : CrawlerConstants.SITES_NO_RDF) {
-				if (u.getHost().contains(s)) {
-					add = false;
+				// @@@ HACK to throw out non-RDF sites early
+				boolean add = true;
+				for (String s : CrawlerConstants.SITES_NO_RDF) {
+					if (u.getHost() != null && u.getHost().contains(s)) {
+						add = false;
+					}
+				}
+				if (add) {
+					_f.add(u);
+					_log.info("adding " + nx[i].toString() + " to frontier");
+					_eh.handleLink(nx[nx.length-1], nx[i]);
+				}
+			} catch (URISyntaxException e) {
+				try {
+					_eh.handleError(new URI(nx[nx.length-1].toString()), e);
+				} catch (URISyntaxException e1) {
+					System.err.println(e1.getMessage());
+					e1.printStackTrace();
 				}
 			}
-			if (add) {
-				_f.add(u);
-				_log.fine("adding " + nx[i].toString() + " to frontier");
-				_eh.handleLink(nx[nx.length-1], nx[i]);
-			}
-		} catch (URISyntaxException e) {
-			try {
-				_eh.handleError(new URI(nx[nx.length-1].toString()), e);
-			} catch (URISyntaxException e1) {
-				e1.printStackTrace();
-			}
+		} catch (NullPointerException e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }
