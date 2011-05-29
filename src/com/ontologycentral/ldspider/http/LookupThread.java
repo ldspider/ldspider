@@ -120,6 +120,8 @@ public class LookupThread extends Thread {
 								_contentHandler.handle(lu, type, is, cbs);
 								is.close();
 								
+								System.out.println("done with " + lu);
+								
 								headers = hres.getAllHeaders();
 
 								Header hloc = hres.getFirstHeader("Content-Location");

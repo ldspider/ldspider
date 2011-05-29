@@ -239,10 +239,11 @@ public class Main {
 			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
 		} else {
 			if (cmd.hasOption("o")) {
-				os = new FileOutputStream(cmd.getOptionValue("o"));
+				os = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("o")));
+				//os = new FileOutputStream(cmd.getOptionValue("o"));			
 			}
 			
-			cbos = new CallbackNxOutputStream(new BufferedOutputStream(os));
+			cbos = new CallbackNxOutputStream(os);
 			
 			sink = new SinkCallback(cbos, header);
 		}
