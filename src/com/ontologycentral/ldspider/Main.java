@@ -31,6 +31,7 @@ import org.apache.commons.cli.Options;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
@@ -47,7 +48,6 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterSelect;
-import com.ontologycentral.ldspider.hooks.sink.CallbackNxBufferedOutputStream;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
@@ -234,7 +234,7 @@ public class Main {
 
 		Sink sink;
 		OutputStream os = System.out;
-		CallbackNxBufferedOutputStream cbos = null;
+		CallbackNxOutputStream cbos = null;
 		if (cmd.hasOption("oe")) {
 			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
 		} else {
@@ -242,7 +242,7 @@ public class Main {
 				os = new FileOutputStream(cmd.getOptionValue("o"));
 			}
 			
-			cbos = new CallbackNxBufferedOutputStream(new BufferedOutputStream(os));
+			cbos = new CallbackNxOutputStream(new BufferedOutputStream(os));
 			
 			sink = new SinkCallback(cbos, header);
 		}
@@ -260,7 +260,7 @@ public class Main {
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
 			OutputStream fos = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("r")));
-			rcb = new CallbackNxBufferedOutputStream(fos);
+			rcb = new CallbackNxOutputStream(fos);
 			rcb.startDocument();
 		}
 
@@ -380,10 +380,6 @@ public class Main {
 
 		long time1 = System.currentTimeMillis();
 
-		if (cbos != null) {
-			cbos.close();
-		}
-
 		if (os != null) {
 			try {
 				os.close();
@@ -394,9 +390,6 @@ public class Main {
 
 		if (rcb != null) {
 			rcb.endDocument();
-			if (rcb instanceof CallbackNxBufferedOutputStream) {
-				((CallbackNxBufferedOutputStream)rcb).close();
-			}
 		}
 		
 		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec");
