@@ -23,9 +23,11 @@ public abstract class SpiderQueue implements Serializable{
 	
 	protected Set<URI> _seen;
 
-	protected Set<URI> _seenRound = null;
+	//protected Set<URI> _seenRound = null;
 	//protected Set<URI> _redirsRound = null;
-	
+
+	//protected Set<URI> _urisRound = null;
+
 	protected TldManager _tldm;
 	protected Redirects _redirs;
 	
@@ -35,22 +37,24 @@ public abstract class SpiderQueue implements Serializable{
 		_redirs = new Redirects();
 		
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
+		
+//		_urisRound = new HashSet<URI>();
 	}
 	
 	/**
 	 * Schedule URIs in Frontier (i.e. put URIs in Frontier into the queue for the next round)
 	 */
 	public void schedule(Frontier f) {
-		if (_seenRound != null) {
-			if (!(f instanceof DiskFrontier)) {
-				f.removeAll(_seenRound);
-			}
-		}
-//		if (_redirsRound != null) {
-//			f.addAll(_redirsRound);
+//		if (_seenRound != null) {
+//			if (!(f instanceof DiskFrontier)) {
+//				f.removeAll(_seenRound);
+//			}
+//		}
+//		if (_urisRound != null) {
+//			uris
 //		}
 		
-		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
+//		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
 //		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
 	}
 	
@@ -132,7 +136,7 @@ public abstract class SpiderQueue implements Serializable{
 	void setSeen(URI u) {
 		if (u != null) {
 			_seen.add(u);
-			_seenRound.add(u);
+//			_seenRound.add(u);
 		}
 	}
 }

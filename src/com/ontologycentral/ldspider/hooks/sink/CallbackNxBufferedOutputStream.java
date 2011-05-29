@@ -1,12 +1,16 @@
 package com.ontologycentral.ldspider.hooks.sink;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.Callback;
 
 public class CallbackNxBufferedOutputStream implements Callback {
+	private final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
+
 	final OutputStream _out;
 	
 	final static int BUF_SIZE = 8*1024;
@@ -18,57 +22,36 @@ public class CallbackNxBufferedOutputStream implements Callback {
 	public final static byte[] SPACE = " ".getBytes();
 	public final static byte[] DOT_NEWLINE = ("."+System.getProperty("line.separator")).getBytes();
 	
-	Node[][] _buffer;
-	int _i;
-	
 	public CallbackNxBufferedOutputStream(OutputStream out) {
 		this(out, false);
 	}
 	
 	public CallbackNxBufferedOutputStream(OutputStream out, boolean close) {
-		_out = out;
+		_out = new BufferedOutputStream(out);
 		_close = close;
 		
-		_buffer = new Node[BUF_SIZE][];
-		_i = 0;
 	}
 	
 	public synchronized void processStatement(Node[] nx) {
-		_buffer[_i] = nx;
-		_i++;
-
-		if (_i >= (BUF_SIZE-1)) {
-			try {
-				flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			} finally {
-				_i = 0;
+		try {
+			for (Node n : nx) {
+				_out.write(n.toN3().getBytes());
+				_out.write(SPACE);
 			}
+			_out.write(DOT_NEWLINE);
+		} catch (IOException e) {
+			_log.severe(e.getMessage());
 		}
 		
 		_cnt++;
 	}
 	
-	void flush() throws IOException {
-		for (int i = 0; i < _i; i++) {
-			for (Node n:_buffer[i]) {
-				_out.write(n.toN3().getBytes());
-				_out.write(SPACE);
-			}
-			_out.write(DOT_NEWLINE);
-		}
-	}
-
 	public void startDocument() {
 		_time = System.currentTimeMillis();
 	}
 
 	public void close() {
 		try {
-			flush();
-
 			if(_close) {
 				_out.close();
 			} else {
@@ -85,7 +68,7 @@ public class CallbackNxBufferedOutputStream implements Callback {
 	public void endDocument() {
 		;
 	}
-	
+
 	public String toString() {
 		return _cnt + " tuples in " + (_time1-_time) + " ms";
 	}

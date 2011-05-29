@@ -30,14 +30,14 @@ public class BreadthFirstQueue extends SpiderQueue {
 	int _maxuris;
 	
 	int _maxplds;
-
-	boolean _optimised;
-
-	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds) {
-		this(tldm, maxuris, maxplds, false);
-	}
 	
-	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds, boolean optimised) {
+	/**
+	 * 
+	 * @param tldm
+	 * @param maxuris
+	 * @param maxplds
+	 */
+	public BreadthFirstQueue(TldManager tldm, int maxuris, int maxplds) {
 		super(tldm);
 
 		_maxuris = maxuris;
@@ -195,8 +195,8 @@ public class BreadthFirstQueue extends SpiderQueue {
 			} else {
 				empty++;
 			}
-		} while (next == null && empty < _queues.size() || (_optimised && (time1 -time <= 1)));
-
+		} while (next == null && empty < _queues.size());
+		
 		time1 = System.currentTimeMillis();
 		
 		_log.fine("poll for " + next + " done in " + (time1 - time) + " ms");
