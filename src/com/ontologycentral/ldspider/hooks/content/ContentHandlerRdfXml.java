@@ -42,7 +42,7 @@ public class ContentHandlerRdfXml implements ContentHandler {
 				
 				callback.processStatement(nx);
 				
-				_log.info("processing " + Nodes.toN3(nx));
+				//_log.info("processing " + Nodes.toN3(nx));
 			}
 			//, callback, new Resource(uri.toString()))
 			
