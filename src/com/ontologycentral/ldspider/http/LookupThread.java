@@ -172,7 +172,7 @@ public class LookupThread extends Thread {
 					hget.abort();
 				} catch (Throwable e) {
 					hget.abort();
-					_log.warning("Exception " + e.getClass().getName());
+					_log.warning("Exception " + e.getClass().getName() + " " + lu);
 					_eh.handleError(lu, e);
 				}
 				
