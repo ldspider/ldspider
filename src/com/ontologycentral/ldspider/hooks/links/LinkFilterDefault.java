@@ -118,14 +118,18 @@ public class LinkFilterDefault implements LinkFilter {
 				if (add) {
 					_f.add(u);
 					_log.fine("adding " + nx[i].toString() + " to frontier");
-					_eh.handleLink(nx[nx.length-1], nx[i]);
+					if (_eh != null) {
+						_eh.handleLink(nx[nx.length-1], nx[i]);
+					}
 				}
 			} catch (URISyntaxException e) {
-				try {
-					_eh.handleError(new URI(nx[nx.length-1].toString()), e);
-				} catch (URISyntaxException e1) {
-					System.err.println(e1.getMessage());
-					e1.printStackTrace();
+				if (_eh != null) {
+					try {
+						_eh.handleError(new URI(nx[nx.length-1].toString()), e);
+					} catch (URISyntaxException e1) {
+						System.err.println(e1.getMessage());
+						e1.printStackTrace();
+					}
 				}
 			}
 		} catch (NullPointerException e) {

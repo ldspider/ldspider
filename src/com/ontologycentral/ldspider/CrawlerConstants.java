@@ -26,8 +26,8 @@ public class CrawlerConstants {
 	public static String[] SITES_SLOW = { "l3s.de", "semantictweet.com", "kaufkauf.net", "rpi.edu", "uniprot.org", "geonames.org", "dbtune" };
 	public static final int SLOW_DIV = 20;
 
-	public static final int CONNECTION_TIMEOUT = 4*1000;
-	public static final int SOCKET_TIMEOUT = 4*1000;
+	public static final int CONNECTION_TIMEOUT = 16*1000;
+	public static final int SOCKET_TIMEOUT = 16*1000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	
@@ -41,7 +41,7 @@ public class CrawlerConstants {
 	public static final int DEFAULT_NB_URIS = Integer.MAX_VALUE;
 	
 	// avoid hammering plds
-	public static final long MIN_DELAY = 2*1000;
+	public static final long MIN_DELAY = 2*10;
 	// for bfs queue: max time after plds get re-visited
 	public static final long MAX_DELAY = 2*MIN_DELAY;
 	
