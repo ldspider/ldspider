@@ -137,7 +137,7 @@ public class SinkSparul implements Sink {
 			String provUri = URLEncoder.encode(_prov.getUri().toString(), "UTF-8");
 			String graphUri = _graphUri != null ? _graphUri : provUri;
 
-			_writer.write("request=");
+			_writer.write("query=");
 			if(newGraph) {
 				//_writer.write("DROP+SILENT+GRAPH+%3C" + graphUri + "%3E+");
 				_writer.write("CREATE+SILENT+GRAPH+%3C" + graphUri + "%3E+");
