@@ -1,8 +1,6 @@
 package com.ontologycentral.ldspider.hooks.sink;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -139,7 +137,6 @@ public class SinkSparul implements Sink {
 
 			_writer.write("query=");
 			if(newGraph) {
-				//_writer.write("DROP+SILENT+GRAPH+%3C" + graphUri + "%3E+");
 				_writer.write("CREATE+SILENT+GRAPH+%3C" + graphUri + "%3E+");
 			}
 			_writer.write("INSERT+DATA+INTO+%3C" + graphUri + "%3E+%7B");
@@ -183,7 +180,22 @@ public class SinkSparul implements Sink {
 			if(_connection.getResponseCode() == 200) {
 				_log.info(_statements + " statements written to Store.");
 			} else {
-				_log.warning("Cannot write to Store. Server response: " + _connection.getResponseCode() + " " + _connection.getResponseMessage() + ".");		
+        InputStream errorStream = _connection.getErrorStream();
+        if (errorStream != null) {
+          //Read the error stream from the server
+          BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+          StringBuilder errorMessage = new StringBuilder();
+          String line = "";
+          while(line != null) {
+            errorMessage.append(line);
+            line = reader.readLine();
+          }
+          reader.close();
+          _log.warning("SPARQL/Update query on " + _endpoint + " failed. Error Message: '" + errorMessage + "'.");
+        }
+        else {
+          _log.warning("SPARQL/Update query on " + _endpoint + " failed. Server response: " + _connection.getResponseCode() + " " + _connection.getResponseMessage() + ".");
+        }
 			}
 
 			_connection = null;
