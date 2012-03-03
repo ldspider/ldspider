@@ -12,8 +12,14 @@ import org.semanticweb.yars.nx.NumericLiteral;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
+import org.semanticweb.yars.nx.util.NxUtil;
 
 public class Headers {
+	
+	public static enum Treatment {
+		INCLUDE, DUMP, DROP
+	}
+	
 	final static String httpNS = "http://www.w3.org/2006/http#";
 
 	public static final Resource HEADERINFO = new Resource("http://code.google.com/p/ldspider/ns#headerInfo");
@@ -76,20 +82,21 @@ public class Headers {
 		
 		BNode bNode = new BNode("header" + Math.abs(uri.hashCode()) + System.currentTimeMillis());
 		
-		Resource ruri = new Resource(NxParser.escapeForNx(uri.toString()));
-		
-		cb.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri } );
+		Resource ruri = new Resource(uri);
+
+		cb.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri });
 		cb.processStatement(new Node[] { bNode,
-				           new Resource(httpNS+"responseCode"),
-				           new NumericLiteral(Integer.valueOf(status)),
-				           ruri } );
-		
+				new Resource(httpNS + "responseCode"),
+				new NumericLiteral(Integer.valueOf(status)), ruri });
+
 		for (int i = 0; i < headerFields.length; i++) {
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
 				cb.processStatement(new Node[] {
-						bNode, HEADER_MAP.get(headerFields[i].getName()), new Literal(NxParser.escapeForNx(headerFields[i].getValue())), ruri
-					});
+						bNode,
+						HEADER_MAP.get(headerFields[i].getName()),
+						new Literal(NxUtil.escapeForNx(headerFields[i]
+								.getValue())), ruri });
 			}
-		}	
+		}
 	}
 }

@@ -8,9 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.semanticweb.yars.tld.TldManager;
+
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.tld.TldManager;
+
 
 
 
@@ -31,10 +33,10 @@ public abstract class SpiderQueue implements Serializable{
 	protected TldManager _tldm;
 	protected Redirects _redirs;
 	
-	public SpiderQueue(TldManager tldm) {
+	public SpiderQueue(TldManager tldm, Redirects redirs) {
 		_tldm = tldm;
 		
-		_redirs = new Redirects();
+		_redirs = redirs;
 		
 		_seen = Collections.synchronizedSet(new HashSet<URI>());
 		
@@ -82,11 +84,17 @@ public abstract class SpiderQueue implements Serializable{
 		
 		if (checkSeen(to) == false) {
 			_log.info("adding " + to + " directly to queue");
-			addDirectly(to);
+			addRedirect(to);
 		}
 	}
-		
-	abstract void addDirectly(URI u);
+
+	void add(URI u) {
+		add(u, false);
+	}
+
+	abstract void add(URI u, boolean uriHasAlreadyBeenProcessed);
+
+	abstract void addRedirect(URI u);
 
 	/**
 	 * Return redirected URI (if there's a redirect)
@@ -114,7 +122,8 @@ public abstract class SpiderQueue implements Serializable{
 	}
 
 	public void addSeen(URI u) {
-		_seen.add(u);
+		if (u != null)
+			_seen.add(u);
 	}
 	
 	public Set<URI> getSeen() {
@@ -134,9 +143,10 @@ public abstract class SpiderQueue implements Serializable{
 	}
 	
 	void setSeen(URI u) {
-		if (u != null) {
-			_seen.add(u);
+		addSeen(u);
+//		if (u != null) {
+//			_seen.add(u);
 //			_seenRound.add(u);
-		}
+//		}
 	}
 }

@@ -13,11 +13,12 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Logger;
 
+import org.semanticweb.yars.tld.TldManager;
+
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
-import com.ontologycentral.ldspider.tld.TldManager;
 
-public class LoadBalancingQueue extends SpiderQueue {
+public class LoadBalancingQueue extends RedirectsFavouringSpiderQueue {
 	private static final long serialVersionUID = 1L;
 
 	private static final  Logger _log = Logger.getLogger(LoadBalancingQueue.class.getName());
@@ -33,8 +34,8 @@ public class LoadBalancingQueue extends SpiderQueue {
 	
 	static Queue<String> POISON = new ConcurrentLinkedQueue<String>();
 	
-	public LoadBalancingQueue(TldManager tldm) {
-		super(tldm);
+	public LoadBalancingQueue(TldManager tldm, Redirects r) {
+		super(tldm, r);
 
 		_current = new ConcurrentLinkedQueue<String>();
 		
@@ -69,7 +70,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 		while (it.hasNext()) {
 			URI u = it.next();
 			if (!checkSeen(u)) {
-				addDirectly(u);
+				add(u);
 			}
 			it.remove();
 			//f.remove(u);
@@ -101,12 +102,14 @@ public class LoadBalancingQueue extends SpiderQueue {
 	 * 
 	 * @param u
 	 */
-	synchronized void addDirectly(URI u) {
-		try {
-			u = Frontier.normalise(u);
-		} catch (URISyntaxException e) {
-			_log.info(u +  " not parsable, skipping " + u);
-			return;
+	public synchronized void add(URI u, boolean uriHasBeenProcessed) {
+		if (!uriHasBeenProcessed) {
+			try {
+				u = Frontier.normalise(u);
+			} catch (URISyntaxException e) {
+				_log.info(u + " not parsable, skipping " + u);
+				return;
+			}
 		}
 
 		String pld = _tldm.getPLD(u);
@@ -128,7 +131,7 @@ public class LoadBalancingQueue extends SpiderQueue {
 	 * 
 	 * @return URI
 	 */
-	public synchronized URI poll() {
+	synchronized URI pollInternal() {
 		if (_current == null) {
 			return null;
 		}

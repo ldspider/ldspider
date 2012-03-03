@@ -1,13 +1,17 @@
 package com.ontologycentral.ldspider;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.tld.TldManager;
 
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
@@ -25,10 +29,10 @@ import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.BreadthFirstQueue;
+import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
-import com.ontologycentral.ldspider.tld.TldManager;
 
 public class Crawler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
@@ -39,6 +43,9 @@ public class Crawler {
 	ErrorHandler _eh;
 	FetchFilter _ff, _blacklist;
 	ConnectionManager _cm;
+	String _dumpFrontierBaseFilename = null;
+	
+	Class<? extends Redirects> _redirsClass;
 	
 	Robots _robots;
 //	Sitemaps _sitemaps;
@@ -142,20 +149,32 @@ public class Crawler {
 			ppassword = System.getProperties().get("http.proxyPassword").toString();
 		}
 		
-	    _cm = new ConnectionManager(phost, pport, puser, ppassword, threads*CrawlerConstants.MAX_CONNECTIONS_PER_THREAD);
-	    _cm.setRetries(CrawlerConstants.RETRIES);
-	    
-	    try { 
-		    _tldm = new TldManager(_cm);
-		} catch (Exception e) {
-			_log.info("cannot get tld file online " + e.getMessage());
-			try {
-				_tldm = new TldManager();
-			} catch (IOException e1) {
-				_log.info("cannot get tld file locally " + e.getMessage());
-			}
-		}
+		_cm = new ConnectionManager(phost, pport, puser, ppassword, threads
+				* CrawlerConstants.MAX_CONNECTIONS_PER_THREAD);
+		_cm.setRetries(CrawlerConstants.RETRIES);
 
+		// Always use the local TldManager implementation. Changed for the one
+		// from NxParser for two reasons:
+		// * I fixed a couple of bugs there
+		// * I updated the Public suffix list and made a change to it to support
+		//   .asia
+		// try {
+		// _tldm = new TldManager(_cm);
+		// } catch (Exception e) {
+		// _log.info("cannot get tld file online " + e.getMessage());
+		// try {
+		// _tldm = new TldManager();
+		// } catch (IOException e1) {
+		// _log.info("cannot get tld file locally " + e.getMessage());
+		// }
+		// }
+
+		try {
+			_tldm = new TldManager();
+		} catch (IOException e1) {
+			_log.info("cannot get tld file locally " + e1.getMessage());
+		}
+	    
 		_eh = new ErrorHandlerDummy();
 
 	    _robots = new Robots(_cm);
@@ -209,17 +228,29 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds) {
-		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Mode.ABOX_AND_TBOX);
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds) {
+		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, minActPlds, Mode.ABOX_AND_TBOX);
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, Mode crawlingMode) {
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, Mode crawlingMode) {
+		Redirects r = null;
+		if (_queue != null)
+			r = _queue.getRedirects();
+		if (r == null)
+			try {
+				r = _redirsClass.newInstance();
+			} catch (InstantiationException e) {
+				_log.info("InstantiationException. Using dummy.");
+				r = new DummyRedirects();
+			} catch (IllegalAccessException e) {
+				_log.info("IllegalAccessException. Using dummy.");
+				r = new DummyRedirects();
+			}
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
-			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
+			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds);
 		} else {
-			Redirects r = _queue.getRedirects();
 			Set<URI> seen = _queue.getSeen();
-			_queue = new BreadthFirstQueue(_tldm, maxuris, maxplds);
+			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds);
 			_queue.setRedirects(r);
 			_queue.setSeen(seen);
 		}
@@ -274,6 +305,10 @@ public class Crawler {
 			_log.fine("old queue: \n" + _queue.toString());
 
 			_queue.schedule(frontier);
+			
+			if (_dumpFrontierBaseFilename != null)
+				((BreadthFirstQueue)_queue).dumpFrontier(_dumpFrontierBaseFilename, curRound);
+			
 			_eh.handleNextRound();
 
 			_log.fine("new queue: \n" + _queue.toString());
@@ -282,12 +317,24 @@ public class Crawler {
 	
 	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
 		if (_queue == null || !(_queue instanceof LoadBalancingQueue)) {
-			_queue = new LoadBalancingQueue(_tldm);
+			Redirects r = null;
+			if (_queue != null)
+				r = _queue.getRedirects();
+			if (r == null)
+				try {
+					r = _redirsClass.newInstance();
+				} catch (InstantiationException e) {
+					_log.info("InstantiationException. Using dummy.");
+					r = new DummyRedirects();
+				} catch (IllegalAccessException e) {
+					_log.info("IllegalAccessException. Using dummy.");
+					r = new DummyRedirects();
+				}
+			_queue = new LoadBalancingQueue(_tldm, r);
 		} else {
 			Redirects r = _queue.getRedirects();
 			Set<URI> seen = _queue.getSeen();
-			_queue = new LoadBalancingQueue(_tldm);
-			_queue.setRedirects(r);
+			_queue = new LoadBalancingQueue(_tldm, r);
 			_queue.setSeen(seen);
 		}
 
@@ -346,8 +393,20 @@ public class Crawler {
 	}
 	
 	public void evaluateSequential(Frontier frontier) {
-		_queue = new BreadthFirstQueue(_tldm, Integer.MAX_VALUE, Integer.MAX_VALUE);
+		Redirects r = null;
+		try {
+			r = _redirsClass.newInstance();
+		} catch (InstantiationException e) {
+			_log.info("IllegalAccessException. Using dummy.");
+			r = new DummyRedirects();
+		} catch (IllegalAccessException e) {
+			_log.info("IllegalAccessException. Using dummy.");
+			r = new DummyRedirects();
+		}
+
+		_queue = new BreadthFirstQueue(_tldm, r, Integer.MAX_VALUE, Integer.MAX_VALUE, -1);
 		_queue.schedule(frontier);
+
 		
 		_log.info(_queue.toString());
 		
@@ -428,9 +487,23 @@ public class Crawler {
 	public SpiderQueue getQueue(){
 		return _queue;
 	}
+
+	public void setDumpFrontierBaseFilename(String dumpFrontierBaseFilename) {
+		_dumpFrontierBaseFilename = dumpFrontierBaseFilename;
+	}
 	
+	public String getDumpFrontierBaseFilename() {
+		return _dumpFrontierBaseFilename;
+	}
+
 	public TldManager getTldManager(){
 		return _tldm;
+	}
+	public Class<? extends Redirects> get_redirsClass() {
+		return _redirsClass;
+	}
+	public void setRedirsClass(Class<? extends Redirects> _redirsClass) {
+		this._redirsClass = _redirsClass;
 	}
 	public void close() {
 		_cm.shutdown();

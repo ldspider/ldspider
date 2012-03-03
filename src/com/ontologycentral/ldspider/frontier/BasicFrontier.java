@@ -31,7 +31,7 @@ public class BasicFrontier extends Frontier {
 	}
 	
 	public void reset() {
-		_data = Collections.synchronizedSet(new HashSet<URI>());
+		_data.clear();
 	}
 	
 	public String toString() {

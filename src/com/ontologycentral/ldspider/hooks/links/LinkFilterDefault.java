@@ -117,9 +117,16 @@ public class LinkFilterDefault implements LinkFilter {
 				}
 				if (add) {
 					_f.add(u);
-					_log.fine("adding " + nx[i].toString() + " to frontier");
-					if (_eh != null) {
-						_eh.handleLink(nx[nx.length-1], nx[i]);
+					// saves normalisations:
+					boolean presumablyDiscardedWhileAdding = false;
+					try {
+						Frontier.normalise(u);
+					} catch (URISyntaxException e) {
+						presumablyDiscardedWhileAdding = true;
+					}
+					if (!presumablyDiscardedWhileAdding) {
+						_log.fine("adding " + nx[i].toString() + " to frontier");
+						_eh.handleLink(nx[nx.length - 1], nx[i]);
 					}
 				}
 			} catch (URISyntaxException e) {

@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
 
-public abstract class Frontier {
+public abstract class Frontier implements Iterable<URI> {
 	Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	String[] _suffixes = { };
@@ -28,7 +28,7 @@ public abstract class Frontier {
 			return null;
 		}
 	
-		if (!(u.getScheme().equals("http") || u.getScheme().equals("https"))) {
+		if (!(u.getScheme().equalsIgnoreCase("http") || u.getScheme().equalsIgnoreCase("https"))) {
 			_log.fine("skipping " + u + ", " + u.getScheme() + " != http(s)");
 			return null;
 		}
@@ -54,7 +54,7 @@ public abstract class Frontier {
 		}
 
 		if (u.getHost() == null) {
-			throw new URISyntaxException("no host in ", u.toString());
+			throw new URISyntaxException(u.toString(), "no host in");
 		}
 
 		// remove fragment

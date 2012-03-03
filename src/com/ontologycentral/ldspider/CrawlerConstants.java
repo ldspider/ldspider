@@ -26,8 +26,8 @@ public class CrawlerConstants {
 	public static String[] SITES_SLOW = { "l3s.de", "semantictweet.com", "kaufkauf.net", "rpi.edu", "uniprot.org", "geonames.org", "dbtune" };
 	public static final int SLOW_DIV = 20;
 
-	public static final int CONNECTION_TIMEOUT = 16*1000;
-	public static final int SOCKET_TIMEOUT = 16*1000;
+	public static int CONNECTION_TIMEOUT = 16*1000;
+	public static int SOCKET_TIMEOUT = 16*1000;
 
 	public static final int MAX_CONNECTIONS_PER_THREAD = 32;
 	

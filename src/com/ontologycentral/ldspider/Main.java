@@ -1,5 +1,7 @@
 package com.ontologycentral.ldspider;
 
+import ie.deri.urq.lidaq.source.CallbackNQuadTripleHandler;
+
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,6 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -28,14 +31,18 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.deri.any23.writer.TripleHandler;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
 
+import com.ontologycentral.ldspider.any23.ContentHandlerAny23;
+import com.ontologycentral.ldspider.any23.ContentHandlerHybridRdfXmlAny23;
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.hooks.content.ZipContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
@@ -51,6 +58,9 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterSelect;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
+import com.ontologycentral.ldspider.http.Headers;
+import com.ontologycentral.ldspider.queue.DummyRedirects;
+import com.ontologycentral.ldspider.queue.HashTableRedirects;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -111,6 +121,17 @@ public class Main {
 		Option header = new Option("e", false, "omit header triple in data");
 		header.setArgs(0);
 		options.addOption(header);
+		
+		options.addOption(OptionBuilder.hasArg().withArgName("filename")
+				.withDescription("Dump header information to a separate file. It makes no sense to set -e at the same time.")
+				.create("dh"));
+		
+		options.addOption(OptionBuilder
+				.hasArg()
+				.withArgName("base filename")
+				.withDescription(
+						"Dump frontier after each round to file (only breadth-first). File name format: <base filename>-<round number>")
+				.create("df"));
 
 		Option memory = new Option("m", false, "memory-optimised (puts frontier on disk)");
 		memory.setArgs(1);
@@ -145,6 +166,9 @@ public class Main {
 		.withDescription("write redirects.nx file")
 		.create("r");
 		options.addOption(redirs);
+		
+		Option redirsInternal = OptionBuilder.withDescription("Don't use Redirects.class for Redirects handling").create("dr");
+		options.addOption(redirsInternal);
 
 		//Output
 		OptionGroup output = new OptionGroup();
@@ -175,10 +199,52 @@ public class Main {
 		.withDescription("name of file logging rounds")
 		.create("v");
 		options.addOption(vis);
+		
+		Option blist = OptionBuilder.withArgName("extensions")
+		.hasOptionalArgs()
+		.withDescription("overwrite default suffixes of files that are to be ignored in the crawling with the ones supplied. Note: no suffix is also an option. Default: "
+			+ Arrays.toString(CrawlerConstants.BLACKLIST))
+		.create("bl");
+		options.addOption(blist);
+		
+		Option ctIgnore = new Option("ctIgnore","crawl disrespective of content-type");
+		options.addOption(ctIgnore);
+		
+		Option any23ExtNames = OptionBuilder.withArgName("any23 extractor names")
+		.hasOptionalArgs()
+		.withDescription("Override the defaultly selected extractors that are to be loaded with any23. Leave empty to use all any23 has available. Default: "
+			+ Arrays.toString(ContentHandlerAny23.getDefaultExtractorNames()))
+		.create("any23ext");
+		options.addOption(any23ExtNames);
 
 		Option helpO = new Option("h", "help", false, "print help");
 		options.addOption(helpO);
-
+		
+		Option rankO = new Option(
+				"rf",
+				"rankFrontier",
+				false,
+				"If set, the URIs in frontier are ranked according to their number of in-links, and alphabetically as second ordering. Use this option for something like a priority queue.");
+		options.addOption(rankO);
+		
+		Option ctoo = OptionBuilder.withArgName("time in ms").hasArg()
+				.withDescription("Set connection timeout. Default: " + CrawlerConstants.CONNECTION_TIMEOUT + "ms")
+				.withLongOpt("connection-timeout").create("cto");
+		options.addOption(ctoo);
+		
+		Option stoo = OptionBuilder.withArgName("time in ms").hasArg()
+				.withDescription("Set socket timeout. Default: " + CrawlerConstants.SOCKET_TIMEOUT + "ms")
+				.withLongOpt("socket-timeout").create("sto");
+		options.addOption(stoo);
+		
+		Option starvLim = OptionBuilder
+				.withArgName("min. # of active PLDs")
+				.hasArg()
+				.withDescription(
+						"In order to avoid PLD starvation, set the minimum number of active plds for each breadth first queue round.")
+				.create("minpld");
+		options.addOption(starvLim);
+		
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -227,25 +293,50 @@ public class Main {
 
 		_log.info("no of seed uris " + seeds.size());
 
-		boolean header = true;
+		Headers.Treatment headerTreatment = Headers.Treatment.INCLUDE;
+		
 		if (cmd.hasOption("e")) {
-			header = false;
+			headerTreatment = Headers.Treatment.DROP;
 		}
+		
+		if (cmd.hasOption("dh"))
+			headerTreatment = Headers.Treatment.DUMP;
 
 		Sink sink;
 		OutputStream os = System.out;
 		CallbackNxOutputStream cbos = null;
+		CallbackNxOutputStream headerCbos = null;
+		
 		if (cmd.hasOption("oe")) {
-			sink = new SinkSparul(cmd.getOptionValue("oe"), header);
+			sink = new SinkSparul(cmd.getOptionValue("oe"), headerTreatment == Headers.Treatment.INCLUDE ? true: false);
 		} else {
 			if (cmd.hasOption("o")) {
 				os = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("o")));
 				//os = new FileOutputStream(cmd.getOptionValue("o"));			
 			}
 			
-			cbos = new CallbackNxOutputStream(os);
-			
-			sink = new SinkCallback(cbos, header);
+			cbos = new CallbackNxOutputStream(os, false);
+
+			if (headerTreatment == Headers.Treatment.DUMP)
+				headerCbos = new CallbackNxOutputStream(
+						new BufferedOutputStream(new FileOutputStream(
+								cmd.getOptionValue("dh"))), false);
+
+			sink = new SinkCallback(cbos,
+					headerTreatment != Headers.Treatment.DROP ? true : false,
+					headerCbos);
+		}
+
+		if (cmd.hasOption("cto")) {
+			// overriding the default value which has already been set.
+			CrawlerConstants.CONNECTION_TIMEOUT = Integer.parseInt(cmd
+					.getOptionValue("cto"));
+		}
+
+		if (cmd.hasOption("sto")) {
+			// overriding the default value which has already been set.
+			CrawlerConstants.SOCKET_TIMEOUT = Integer.parseInt(cmd
+					.getOptionValue("sto"));
 		}
 
 		PrintStream ps = System.out;
@@ -261,7 +352,7 @@ public class Main {
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
 			OutputStream fos = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("r")));
-			rcb = new CallbackNxOutputStream(fos);
+			rcb = new CallbackNxOutputStream(fos, false);
 			rcb.startDocument();
 		}
 
@@ -279,7 +370,9 @@ public class Main {
 
 		Frontier frontier = new BasicFrontier();
 		
-		if (cmd.hasOption("m")) {
+		if(cmd.hasOption("rf"))
+			frontier = new RankedFrontier();
+		else if (cmd.hasOption("m")) {
 			frontier = new DiskFrontier(new File(cmd.getOptionValue("m")));
 		}
 		
@@ -319,19 +412,54 @@ public class Main {
 
 		long time = System.currentTimeMillis();
 
-		FetchFilterRdfXml ffrdf = new FetchFilterRdfXml();
-		ffrdf.setErrorHandler(eh);
-
-		FetchFilterSuffix blacklist = new FetchFilterSuffix(CrawlerConstants.BLACKLIST);
+		
+		FetchFilterRdfXml ffrdf = null;
+		if (!cmd.hasOption("ctIgnore")) {
+			ffrdf = new FetchFilterRdfXml();
+			ffrdf.setErrorHandler(eh);
+		}
+		
+		// setting up the blacklist of file extensions.
+		FetchFilterSuffix blacklist;
+		if (cmd.hasOption("bl")) {
+			String[] bListFromCli = {};
+			if (cmd.getOptionValues("bl")!= null)
+				bListFromCli = cmd.getOptionValues("bl");
+			for (int i = 0; i < bListFromCli.length; ++i)
+				if (!bListFromCli[i].startsWith("."))
+					bListFromCli[i] = "." + bListFromCli[i];
+			blacklist = new FetchFilterSuffix(bListFromCli);
+		} else
+			blacklist = new FetchFilterSuffix(CrawlerConstants.BLACKLIST);
 
 		_log.info("init crawler");
 
 		Crawler c = new Crawler(threads);
+		TripleHandler headerTripleHandler = null;
+
+		// luckily, the interpretations of the null pointer from commons cli and
+		// any23 fit together.
+		if (headerTreatment == Headers.Treatment.DUMP)
+			headerTripleHandler = new CallbackNQuadTripleHandler(headerCbos);
+		if (cmd.hasOption("any23ext"))
+			c.setContentHandler(new ContentHandlerHybridRdfXmlAny23(
+					headerTripleHandler, headerTreatment, cmd
+							.getOptionValues("any23ext")));
+		else
+			c.setContentHandler(new ContentHandlerHybridRdfXmlAny23(headerTripleHandler, headerTreatment,
+					ContentHandlerAny23.getDefaultExtractorNames()));
 		c.setErrorHandler(eh);
 		c.setOutputCallback(sink);
 		c.setLinkFilter(links);
-		c.setFetchFilter(ffrdf);
+		if (!cmd.hasOption("ctIgnore"))
+			c.setFetchFilter(ffrdf);
 		c.setBlacklistFilter(blacklist);
+		if (cmd.hasOption("df"))
+			c.setDumpFrontierBaseFilename(cmd.getOptionValue("df"));
+		if (cmd.hasOption("dr"))
+			c.setRedirsClass(DummyRedirects.class);
+		else
+			c.setRedirsClass(HashTableRedirects.class);
 
 		if (cmd.hasOption("b")) {
 			String[] vals = cmd.getOptionValues("b");
@@ -347,9 +475,9 @@ public class Main {
 				}
 			}
 
-			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds);
+			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds + " minActivePlds " + cmd.getOptionValue("minpld", "unspecified"));
 
-			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds);
+			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")) );
 		} else if (cmd.hasOption("c")) {
 			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
 
@@ -392,7 +520,13 @@ public class Main {
 		if (rcb != null) {
 			rcb.endDocument();
 		}
+
+		if (cbos != null)
+			cbos.endDocument();
 		
+		if (headerCbos != null) 
+			headerCbos.endDocument();
+
 		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec");
 	}
 

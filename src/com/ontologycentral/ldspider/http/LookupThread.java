@@ -147,8 +147,8 @@ public class LookupThread extends Thread {
 						} else {
 							_log.info("HttpEntity for " + lu + " is null");
 						}
-					} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER) { 
-						// treating all redirects the same but shouldn't: 301 -> rename context URI, 302 -> keep original context URI, 303 -> spec inconclusive
+					} else if (status == HttpStatus.SC_MOVED_PERMANENTLY || status == HttpStatus.SC_MOVED_TEMPORARILY || status == HttpStatus.SC_SEE_OTHER || status == HttpStatus.SC_TEMPORARY_REDIRECT) { 
+						// treating all redirects the same but shouldn't: 301 -> rename context URI, 302,307 -> keep original context URI, 303 -> spec inconclusive
 						Header[] loc = hres.getHeaders("location");
 						String path = loc[0].getValue();
 						_log.info("redirecting (" + status + ") to " + path);

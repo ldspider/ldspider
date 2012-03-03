@@ -2,39 +2,10 @@ package com.ontologycentral.ldspider.queue;
 
 import java.io.Serializable;
 import java.net.URI;
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.logging.Logger;
 
-public class Redirects implements Serializable{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public interface Redirects extends Serializable{
 
-	private final static Logger _log = Logger.getLogger(Redirects.class.getName());
-
-	Map<URI, URI> _map;
+	public void put(URI from, URI to);
 	
-	public Redirects() {
-		_map = Collections.synchronizedMap(new Hashtable<URI, URI>());
-	}
-
-	public void put(URI from, URI to) {
-		if (_map.containsKey(from)) {
-			_log.info("URI " + from + " already redirects to " + _map.get(from));
-		}
-		
-		_map.put(from, to);
-	}
-	
-	public URI getRedirect(URI from) {
-		URI to = _map.get(from);
-		if (to != null) {
-			return to;
-		}
-		
-		return from;
-	}
+	public URI getRedirect(URI from);
 }

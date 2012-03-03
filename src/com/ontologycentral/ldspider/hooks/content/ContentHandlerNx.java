@@ -24,15 +24,18 @@ public class ContentHandlerNx implements ContentHandler {
 	}
 
 	public boolean handle(URI uri, String mime, InputStream source, Callback callback) {
-		try {
-			new NxParser(source, callback);
+//		try {
+			NxParser nxp  = new NxParser(source);
+			while (nxp.hasNext()) {
+			callback.processStatement(nxp.next());
+			}
 			return true;
-		} catch (ParseException e) {
-			_log.log(Level.INFO, "Could not parse document", e);
-			return false;
-		} catch (IOException e) {
-			_log.log(Level.WARNING, "Could not read document", e);
-			return false;
-		}
+//		} catch (ParseException e) {
+//			_log.log(Level.INFO, "Could not parse document", e);
+//			return false;
+//		} catch (IOException e) {
+//			_log.log(Level.WARNING, "Could not read document", e);
+//			return false;
+//		}
 	}
 }
