@@ -20,18 +20,19 @@
 	   srcdir="src"
 	   includeantruntime="false"
 	   includes="com/ontologycentral/ldspider/**,org/osjava/norbert/**,net/sourceforge/**"
-           source="1.5" target="1.5">
+           source="1.5" target="1.5" debug="true" debuglevel="lines,source">
       <classpath refid="classpath"/>
     </javac>
 
-    <copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy> 
+    <!--<copy file="src/com/ontologycentral/ldspider/tld/tld.dat" tofile="bin/com/ontologycentral/ldspider/tld/tld.dat"> </copy> --> 
   	
     <jar jarfile="${dist}/${name}-${version}.jar" basedir="bin">
       <zipfileset src="lib/commons-cli-1.2.jar"/>
       <zipfileset src="lib/commons-logging-1.1.1.jar"/>
       <zipfileset src="lib/httpclient-4.1.1.jar"/>
       <zipfileset src="lib/httpcore-4.1.jar"/>
-      <zipfileset src="lib/nxparser-lib.jar"/>
+      <zipfileset src="lib/nxparser-1.2.1.jar"/>
+	  <zipfileset src="lib/any23-core-0.6.1-jar-with-dependencies.jar"/>
       <manifest>
 	<attribute name="Main-Class" value="com.ontologycentral.ldspider.Main"/>
       </manifest>
