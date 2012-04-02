@@ -33,7 +33,10 @@ public class CrawlerConstants {
 	
 	public static final int RETRIES = 0;
 
-	public static final int MAX_REDIRECTS = 1;
+	public static int MAX_REDIRECTS_DEFAULT_SEQUENTIALSTRATEGY = 1;
+	public static int MAX_REDIRECTS_DEFAULT_OTHERSTRATEGY = 4;
+	public static int MAX_REDIRECTS = MAX_REDIRECTS_DEFAULT_OTHERSTRATEGY;
+	
 
 	// default values
 	public static final int DEFAULT_NB_THREADS = 2;
@@ -52,4 +55,9 @@ public class CrawlerConstants {
 	public static final int SKIP_SUFFIX = 497;
 	public static final int SKIP_ROBOTS = 498;
 	public static final int SKIP_MIMETYPE = 499;
+	
+	public static int URI_LIMIT = -1;
+	public static boolean URI_LIMIT_ENABLED = false;
+	
+	public static int NB_THREADS;
 }

@@ -2,6 +2,7 @@ package com.ontologycentral.ldspider.http;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import org.apache.http.Header;
@@ -38,6 +39,8 @@ public class LookupThread extends Thread {
 	
 	int _no;
 
+	static AtomicInteger _overall200Fetches = new AtomicInteger(0);
+
 	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist, int no) {
 		_hclient = hc;
 		_q = q;
@@ -63,7 +66,7 @@ public class LookupThread extends Thread {
 
 		_log.fine("got " + lu);
 		
-		while (lu != null) {
+		while (lu != null && (!CrawlerConstants.URI_LIMIT_ENABLED || (_overall200Fetches.get() < CrawlerConstants.URI_LIMIT))) {
 			setName("LT-"+_no+":"+lu.toString());
 			
 			i++;
@@ -119,6 +122,8 @@ public class LookupThread extends Thread {
 								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links } );
 								_contentHandler.handle(lu, type, is, cbs);
 								is.close();
+								
+								_overall200Fetches.incrementAndGet();
 								
 								//System.out.println("done with " + lu);
 								
@@ -188,6 +193,11 @@ public class LookupThread extends Thread {
 			lu = _q.poll();
 		}
 		
-		_log.info("finished thread after fetching " + i + " uris");
+		_log.info("finished thread after fetching " + i + " uris; " + getOverall200Fetches() + " in all threads overall until now.");
 	}
+	
+	public static int getOverall200Fetches() {
+		return _overall200Fetches.get();
+	}
+
 }

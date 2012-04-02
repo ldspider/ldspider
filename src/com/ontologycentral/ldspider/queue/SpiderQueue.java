@@ -9,7 +9,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.tld.TldManager;
+import org.semanticweb.yars.util.LRUMapCache;
 
+import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 
@@ -24,6 +26,8 @@ public abstract class SpiderQueue implements Serializable{
 	public abstract int size();
 	
 	protected Set<URI> _seen;
+	
+	LRUMapCache<URI, Integer> _redirsCache = new LRUMapCache<URI, Integer>(2 * CrawlerConstants.NB_THREADS);
 
 	//protected Set<URI> _seenRound = null;
 	//protected Set<URI> _redirsRound = null;
@@ -81,6 +85,19 @@ public abstract class SpiderQueue implements Serializable{
 		
 		_redirs.put(from, to);
 //		_redirsRound.add(to);
+		
+		Integer i = null;
+		if ((i = _redirsCache.get(from)) != null) {
+			_redirsCache.remove(from);
+			_redirsCache.put(to, i = Integer.valueOf(i.intValue() + 1));
+		} else {
+			_redirsCache.put(to, i = Integer.valueOf(0));
+		}
+		
+		if (i.intValue() >= CrawlerConstants.MAX_REDIRECTS) {
+			_log.info("Too many redirects on path to: " + to + " ; previous on path: " + from + " .");
+			return;
+		}
 		
 		if (checkSeen(to) == false) {
 			_log.info("adding " + to + " directly to queue");

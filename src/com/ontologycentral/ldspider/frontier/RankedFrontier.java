@@ -15,14 +15,14 @@ public class RankedFrontier extends Frontier {
 	
 	// Keeps an "eternal" list of URIs for the rank to take into account
 	// all hops. Maybe a different implementation could save RAM.
-	Map<URI, Integer> _data;
+	Map<String, Integer> _data;
 	Set<URI> _unscheduledUris;
 
 	Object lock = new Object();
 	
 	public RankedFrontier() {
 		super();
-		_data = Collections.synchronizedMap(new HashMap<URI, Integer>());
+		_data = Collections.synchronizedMap(new HashMap<String, Integer>());
 		_unscheduledUris = Collections.synchronizedSet(new HashSet<URI>());
 	}
 
@@ -33,13 +33,13 @@ public class RankedFrontier extends Frontier {
 			Integer count;
 			_unscheduledUris.add(u);
 			synchronized(lock) {
-				count = _data.get(u);
+				count = _data.get(u.toString());
 				if (count == null) {
 					count = 1;
 				} else {
 					count++;
 				}
-				_data.put(u, count);
+				_data.put(u.toString(), count);
 			}
 			_log.fine("added " + u);
 		}
@@ -55,7 +55,7 @@ public class RankedFrontier extends Frontier {
 
 		li.addAll(_unscheduledUris);
 
-		Collections.sort(li, new DescendingCountComparatorAlph(_data));
+		Collections.sort(li, new DescendingCountComparatorAlph<URI>(_data));
 		
 		return new Iterator<URI>() {
 			Iterator<URI> it = li.iterator();

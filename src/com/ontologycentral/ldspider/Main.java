@@ -59,6 +59,7 @@ import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
 import com.ontologycentral.ldspider.http.Headers;
+import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.HashTableRedirects;
 
@@ -178,6 +179,14 @@ public class Main {
 		.withDescription("name of NQuad file with output")
 		.create("o");
 		output.addOption(outputFile);
+		
+		Option uriLimit = OptionBuilder
+				.withArgName("number")
+				.hasArgs(1)
+				.withDescription(
+						"Sets a limit for the Uris downloaded overall. Hits the interval [limit;limit+#threads]. Not necessarily intended for load-balanced crawling.")
+				.create("ul");
+		options.addOption(uriLimit);
 
 		Option outputEndpoint = OptionBuilder.withArgName("uri")
 		.hasArgs(1)
@@ -244,6 +253,17 @@ public class Main {
 						"In order to avoid PLD starvation, set the minimum number of active plds for each breadth first queue round.")
 				.create("minpld");
 		options.addOption(starvLim);
+		
+		Option maxRedirs = OptionBuilder.withArgName("max. # of redirects")
+				.hasArg()
+				.withDescription(
+						"Specify the length a redirects (30x) is allowed to have at max. (default: "
+								+ CrawlerConstants.MAX_REDIRECTS_DEFAULT_OTHERSTRATEGY
+								+ "/seq.strategy:"
+								+ CrawlerConstants.MAX_REDIRECTS_DEFAULT_SEQUENTIALSTRATEGY
+								+ ").")
+				.create("mr");
+		options.addOption(maxRedirs);
 		
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -404,11 +424,22 @@ public class Main {
 
 		links.setErrorHandler(eh);
 
-		int threads = CrawlerConstants.DEFAULT_NB_THREADS;
+		CrawlerConstants.NB_THREADS = CrawlerConstants.DEFAULT_NB_THREADS;
 
 		if (cmd.hasOption("t")) {
-			threads = Integer.valueOf(cmd.getOptionValue("t"));
+			CrawlerConstants.NB_THREADS = Integer.parseInt(cmd.getOptionValue("t"));
 		}
+		
+		if (cmd.hasOption("ul")) {
+			CrawlerConstants.URI_LIMIT = Integer.parseInt(cmd.getOptionValue("ul"));
+			CrawlerConstants.URI_LIMIT_ENABLED = true;
+		}
+		
+		// Max redirects. Setting appropriate defaults and values.
+		if (cmd.hasOption("d"))
+			CrawlerConstants.MAX_REDIRECTS = CrawlerConstants.MAX_REDIRECTS_DEFAULT_SEQUENTIALSTRATEGY;
+		if (cmd.hasOption("mr"))
+			CrawlerConstants.MAX_REDIRECTS = Integer.parseInt(cmd.getOptionValue("mr"));
 
 		long time = System.currentTimeMillis();
 
@@ -434,7 +465,7 @@ public class Main {
 
 		_log.info("init crawler");
 
-		Crawler c = new Crawler(threads);
+		Crawler c = new Crawler(CrawlerConstants.NB_THREADS);
 		TripleHandler headerTripleHandler = null;
 
 		// luckily, the interpretations of the null pointer from commons cli and
@@ -475,17 +506,17 @@ public class Main {
 				}
 			}
 
-			_log.info("breadth-first crawl with " + threads + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds + " minActivePlds " + cmd.getOptionValue("minpld", "unspecified"));
+			_log.info("breadth-first crawl with " + CrawlerConstants.NB_THREADS + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds + " minActivePlds " + cmd.getOptionValue("minpld", "unspecified"));
 
 			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")) );
 		} else if (cmd.hasOption("c")) {
 			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
 
-			_log.info("load balanced crawl with " + threads + " threads, maxuris " + maxuris);
+			_log.info("load balanced crawl with " + CrawlerConstants.NB_THREADS + " threads, maxuris " + maxuris);
 
 			c.evaluateLoadBalanced(frontier, maxuris);
 		} else if (cmd.hasOption("d")) {
-			_log.info("sequential download with " + threads + " threads");
+			_log.info("sequential download with " + CrawlerConstants.NB_THREADS + " threads");
 			ZipContentHandler zch = new ZipContentHandler(new File(cmd.getOptionValue("d")));
 			c.setContentHandler(zch);
 

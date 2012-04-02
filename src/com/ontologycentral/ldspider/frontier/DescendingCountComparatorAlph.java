@@ -1,22 +1,21 @@
 package com.ontologycentral.ldspider.frontier;
 
-import java.net.URI;
 import java.util.Comparator;
 import java.util.Map;
 
-class DescendingCountComparatorAlph implements Comparator<URI> {
-	Map<URI, Integer> _map;
+public class DescendingCountComparatorAlph<T> implements Comparator<T> {
+	Map<String, Integer> _map;
 	
-	public DescendingCountComparatorAlph(Map<URI, Integer> map) {
+	public DescendingCountComparatorAlph(Map<String, Integer> map) {
 		_map = map;
 	}
 	
-	public int compare(URI arg0, URI arg1) {
-		int result = _map.get(arg1) - _map.get(arg0);
+	public int compare(T arg0, T arg1) {
+		int result = _map.get(arg1.toString()) - _map.get(arg0.toString());
 		
 		// if the two have the same count, order them alphabetically.
 		if (result == 0)
-			result = arg0.toASCIIString().compareTo(arg1.toASCIIString());
+			result = arg0.toString().compareTo(arg1.toString());
 		return result;
 	}
 }
