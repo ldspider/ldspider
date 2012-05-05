@@ -31,7 +31,7 @@ import org.openrdf.model.Value;
  * parser if the document only contains "accidental" RDFa,
  * like stylesheet links and other non-RDFa uses of HTML's
  *
- * @author Richard Cyganiak (richard@cyganiak.de), Tobias Käfer
+ * @author Richard Cyganiak (richard@cyganiak.de), Tobias Kaefer
  */
 public class IgnoreAccidentalRDFaReally implements TripleHandler {
 

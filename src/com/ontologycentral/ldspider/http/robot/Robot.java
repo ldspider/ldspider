@@ -101,8 +101,8 @@ public class Robot {
     		}
 
     		return _nrc.isUrlAllowed(uri);
-		}catch(IllegalArgumentException iae){
-			
+		} catch(Exception ex){
+			ex.printStackTrace();
 			return true;			
 		}
     }

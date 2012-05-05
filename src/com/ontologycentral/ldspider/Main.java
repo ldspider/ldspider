@@ -59,7 +59,6 @@ import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
 import com.ontologycentral.ldspider.http.Headers;
-import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.HashTableRedirects;
 
