@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/httpclient-4.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.1.jar"/>
 	<classpathentry kind="lib" path="lib/any23-core-0.6.1-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="lib/nxparser-1.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/nxparser-1.2.3.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
