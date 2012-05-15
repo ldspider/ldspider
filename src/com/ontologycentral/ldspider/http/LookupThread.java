@@ -31,6 +31,8 @@ public class LookupThread extends Thread {
 	Callback _links;
 	FetchFilter _ff, _blacklist;
 	
+	StatementCountingCallback _stmtCountingCallback;
+	
 	Robots _robots;
 //	Sitemaps _sitemaps;
 	
@@ -39,6 +41,7 @@ public class LookupThread extends Thread {
 	
 	int _no;
 
+	static AtomicInteger _overall200FetchesWithRDF = new AtomicInteger(0);
 	static AtomicInteger _overall200Fetches = new AtomicInteger(0);
 
 	public LookupThread(ConnectionManager hc, SpiderQueue q, ContentHandler handler, Sink content, Callback links, Robots robots, ErrorHandler eh, FetchFilter ff, FetchFilter blacklist, int no) {
@@ -54,11 +57,18 @@ public class LookupThread extends Thread {
 		
 		_no = no;
 		
+		_stmtCountingCallback = new StatementCountingCallback();
+		
 		setName("LT-"+_no);
 	}
 	
 	public void run() {
 		_log.info("starting thread ...");
+		
+		if (!(!CrawlerConstants.URI_LIMIT_ENABLED || (_overall200FetchesWithRDF.get() < CrawlerConstants.URI_LIMIT_WITH_NON_EMPTY_RDF))) {
+			_log.info("URI limit reached. Stopping...");
+			return;
+		}
 		
 		int i = 0;
 
@@ -66,7 +76,14 @@ public class LookupThread extends Thread {
 
 		_log.fine("got " + lu);
 		
-		while (lu != null && (!CrawlerConstants.URI_LIMIT_ENABLED || (_overall200Fetches.get() < CrawlerConstants.URI_LIMIT))) {
+		while (lu != null) {
+			
+			if (!(!CrawlerConstants.URI_LIMIT_ENABLED || (_overall200FetchesWithRDF.get() < CrawlerConstants.URI_LIMIT_WITH_NON_EMPTY_RDF))) {
+				_log.info("URI limit reached. Stopping...");
+				break;
+			}
+				
+			
 			setName("LT-"+_no+":"+lu.toString());
 			
 			i++;
@@ -119,11 +136,14 @@ public class LookupThread extends Thread {
 							if (_ff.fetchOk(lu, status, hen) && _contentHandler.canHandle(type)) {
 								InputStream is = hen.getContent();
 								Callback contentCb = _content.newDataset(new Provenance(lu, hres.getAllHeaders(), status));
-								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links } );
+								Callbacks cbs = new Callbacks(new Callback[] { contentCb, _links, _stmtCountingCallback.reset() } );
 								_contentHandler.handle(lu, type, is, cbs);
 								is.close();
 								
 								_overall200Fetches.incrementAndGet();
+								
+								if (_stmtCountingCallback.getStmtCount() > 0)
+									_overall200FetchesWithRDF.incrementAndGet();
 								
 								//System.out.println("done with " + lu);
 								
@@ -193,9 +213,12 @@ public class LookupThread extends Thread {
 			lu = _q.poll();
 		}
 		
-		_log.info("finished thread after fetching " + i + " uris; " + getOverall200Fetches() + " in all threads overall until now.");
+		_log.info("finished thread after fetching " + i + " uris; " + getOverall200Fetches() + " in all threads overall until now (" + getOverall200FetchesWithNonEmptyRDF() + " with non-empty RDF).");
 	}
 	
+	public static int getOverall200FetchesWithNonEmptyRDF() {
+		return _overall200FetchesWithRDF.get();
+	}
 	public static int getOverall200Fetches() {
 		return _overall200Fetches.get();
 	}

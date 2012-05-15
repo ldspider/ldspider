@@ -1,8 +1,5 @@
 package com.ontologycentral.ldspider.queue;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -21,6 +18,7 @@ import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.frontier.SortingDiskFrontier;
 
 public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	private static final long serialVersionUID = 1L;
@@ -30,38 +28,54 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	Map<String, Queue<URI>> _queues;
 	Queue<String> _current;
 	
+	/**
+	 * Point in time of the last schedule or the last queue turnaround.
+	 */
 	long _time;
-	
+
+	/**
+	 * Maxuris means maximum uris per pay-level-domain.
+	 */
 	int _maxuris;
-	
+
+	/**
+	 * Maxplds means keep only the max number of plds with the largest amount of
+	 * uris.
+	 */
 	int _maxplds;
-	
+
+	/**
+	 * If there are only _minActPlds left in the queue, the hop should be over.
+	 * This is to avoid pld starvation.
+	 */
 	int _minActPlds;
-	
+
 	/**
 	 * Scheduled frontiers should equal hops + 1, i.e. the 0st hop = the initial
 	 * seedlist = 1st scheduledFrontier.
 	 */
 	int _scheduledFrontiers;
-	
+
+	/**
+	 * If _minActPlds has been reached and thus we should finish up soon.
+	 */
 	boolean _minReached;
-	
-	boolean _neitherMaxUrisNorPlds;
-	
+
+	/**
+	 * If the minActPlds limit should already apply in the downloading of the
+	 * seedlist.
+	 */
+	boolean _minActPldsAlready4Seedlist;
+
 	/**
 	 * 
 	 * @param tldm
 	 * @param maxuris
 	 * @param maxplds
 	 */
-	public BreadthFirstQueue(TldManager tldm, Redirects redirs, int maxuris, int maxplds, int minActPlds) {
+	public BreadthFirstQueue(TldManager tldm, Redirects redirs, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
 		super(tldm, redirs);
 
-		if (maxuris == -1 && maxplds == -1)
-			_neitherMaxUrisNorPlds = true;
-		else
-			_neitherMaxUrisNorPlds = false;
-		
 		_maxuris = maxuris;
 		if (_maxuris == -1) {
 			_maxuris = Integer.MAX_VALUE-1;
@@ -82,13 +96,14 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		_minReached = false;
 
 		_scheduledFrontiers = 0;
+		
+		_minActPldsAlready4Seedlist = minActPldsAlready4Seedlist;
 
 	}
 	
 	/**
 	 * Put URIs from frontier to queue
 	 * 
-	 * @param maxuris - cut off number of uris per pld
 	 */
 	public synchronized void schedule(Frontier f) {	
 		_log.info("start scheduling...");
@@ -97,7 +112,9 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		
 		long time = System.currentTimeMillis();
 		
-		super.schedule(f);
+		// commented out because in super, there is actually nothing happening.
+		// Thus, I made schedule() abstract there.
+		// super.schedule(f);
 
 		_queues.clear();
 
@@ -110,8 +127,7 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 //			it.remove();
 		}
 
-		// maxuris means maximum uris per pay-level-domain
-		if (!_neitherMaxUrisNorPlds)
+		if (_minActPlds < 0)
 			for (String pld : _queues.keySet()) {
 				Queue<URI> q = _queues.get(pld);
 
@@ -139,8 +155,7 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 				}
 			}
 
-		// maxplds means keep only the max number of plds with the largest amount of uris
-		List<String> lipld = getQueuePlds(!_neitherMaxUrisNorPlds);
+		List<String> lipld = getQueuePlds(_minActPlds < 0);
 		_log.info("sorted pld list (sorted only if maximum for plds or uris has been set) " + lipld.toString());
 		
 		if (_maxplds < Integer.MAX_VALUE - 1) {
@@ -166,43 +181,30 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		if (f instanceof RankedFrontier)
 			f.reset();
 		
+		// Marks all URIs that have been scheduled as scheduled in the SortingDiskFrontier.
+		if (f instanceof SortingDiskFrontier)
+			f.reset();
+		
 		++_scheduledFrontiers;
-		
+
 		_time = System.currentTimeMillis();
-		
-		_log.info("scheduling " + _current.size() + " plds done (" + size() + " URIs) in " + (_time - time) + " ms. This was schedule No. " + _scheduledFrontiers);
+
+		_log.info("scheduling " + _current.size() + " plds done (" + size()
+				+ " URIs) in " + (_time - time) + " ms. This was schedule No. "
+				+ _scheduledFrontiers);
 		_log.info(toString());
 	}
-	
-	public void dumpFrontier(String dumpFrontierBaseFileName, int curRound) {
-		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(
-					dumpFrontierBaseFileName + "-" + (curRound + 1)));
-			Iterator<URI> it;
-			for (String s : getSortedQueuePlds()) {
-				it = _queues.get(s).iterator();
-				while (it.hasNext()) {
-					bw.write(it.next().toString());
-					bw.write('\n');
-				}
-			}
-			bw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
-	
 		
 	/**
 	 * Poll a URI, one PLD after another. If queue turnaround is smaller than
-	 * DELAY, wait for DELAY ms to avoid overloading servers. If there are
-	 * redirects to be processed, return them right away.
+	 * DELAY, wait for DELAY ms to avoid overloading servers. Note that if there
+	 * are redirects to be processed, they are already returned by
+	 * {@link RedirectsFavouringSpiderQueue}. If {@link #_minActPlds} is used (>-1),
+	 * plds with many URIs are not favoured, otherwise they are.
 	 * 
 	 * @return URI
 	 */
-	synchronized URI pollInternal() {
+	protected synchronized URI pollInternal() {
 		if (_current == null) {
 			return null;
 		}
@@ -219,7 +221,8 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			time1 = System.currentTimeMillis();
 
 			// randomly start from the beginning of the queue to spread out lookupt to large sites
-			if (_current.isEmpty() || (time1 - _time) > CrawlerConstants.MAX_DELAY) {
+			if (_current.isEmpty() || (_minActPlds < 0 && (time1 - _time) > CrawlerConstants.MAX_DELAY))
+			{                       // ^^ only consider max delay if minActPLDs is disabled 
 				// queue is empty, done for this round
 				if (size() == 0) {
 					return null;
@@ -238,12 +241,11 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 
 				_time = System.currentTimeMillis();
 
-				List<String> lipld = getQueuePlds(!_neitherMaxUrisNorPlds);
+				List<String> lipld = getQueuePlds(_minActPlds < 0);
 				
 				_current.addAll(lipld);
 				
-				// minimum active plds has been set AND there are less plds than the specified minimum. This should not happen
-				if (_minActPlds > -1 && _current.size() < _minActPlds && _scheduledFrontiers > 1) {
+				if (_minActPlds > -1 && _current.size() < _minActPlds && (_minActPldsAlready4Seedlist || _scheduledFrontiers > 1)) {
 					_log.info("The minimum number of active PLDs has been reached. Finishing this round...");
 					_minReached = true;
 				}

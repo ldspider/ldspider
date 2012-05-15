@@ -43,7 +43,7 @@ public abstract class RedirectsFavouringSpiderQueue extends SpiderQueue {
 //			return pollInternal();
 	}
 
-	abstract URI pollInternal();
+	protected abstract URI pollInternal();
 
 	@Override
 	public abstract void add(URI u, boolean uriHasAlreadyBeenProcessed);

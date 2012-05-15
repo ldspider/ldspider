@@ -3,6 +3,8 @@ package com.ontologycentral.ldspider;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
+import com.ontologycentral.ldspider.queue.DiskBreadthFirstQueue.CountLifeTime;
+
 public class CrawlerConstants {
 	public static final String USERAGENT_NAME = "ldspider";
 	public static final String USERAGENT_URI = "http://code.google.com/p/ldspider/wiki/Robots";
@@ -56,8 +58,23 @@ public class CrawlerConstants {
 	public static final int SKIP_ROBOTS = 498;
 	public static final int SKIP_MIMETYPE = 499;
 	
-	public static int URI_LIMIT = -1;
+	public static int URI_LIMIT_WITH_NON_EMPTY_RDF = 0;
 	public static boolean URI_LIMIT_ENABLED = false;
 	
 	public static int NB_THREADS;
+	public static boolean DISKFRONTIER_SORT_BEFORE_ITERATING = false;
+	public static boolean DISKFRONTIER_GZIP_FRONTIER = false;
+	
+	public static CountLifeTime DISKBREADTHFIRSTQUEUE_COUNTLIFETIME = CountLifeTime.ETERNALLY;
+	
+	public static boolean BREADTHFIRSTQUEUE_ONDISK = false;
+	
+	public static boolean DUMP_FRONTIER = false;
+	public static String DUMP_FRONTIER_FILENAME = "";
+
+	/**
+	 * Register your Closeables here for closing them if the JVM gets shut down
+	 * (including CTRL+C'ed).
+	 */
+	public static final CloseablesCloser CLOSER = new CloseablesCloser();
 }

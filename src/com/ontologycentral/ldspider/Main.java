@@ -4,6 +4,7 @@ import ie.deri.urq.lidaq.source.CallbackNQuadTripleHandler;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -17,11 +18,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -43,6 +47,7 @@ import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
+import com.ontologycentral.ldspider.frontier.SortingDiskFrontier;
 import com.ontologycentral.ldspider.hooks.content.ZipContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
@@ -161,7 +166,7 @@ public class Main {
 		options.addOptionGroup(linkFilterOptions);
 
 		//Redirects
-		Option redirs = OptionBuilder.withArgName("redirects")
+		Option redirs = OptionBuilder.withArgName("filename[.gz]")
 		.hasArgs(1)
 		.withDescription("write redirects.nx file")
 		.create("r");
@@ -173,7 +178,7 @@ public class Main {
 		//Output
 		OptionGroup output = new OptionGroup();
 
-		Option outputFile = OptionBuilder.withArgName("file")
+		Option outputFile = OptionBuilder.withArgName("filename[.gz]")
 		.hasArgs(1)
 		.withDescription("name of NQuad file with output")
 		.create("o");
@@ -183,7 +188,7 @@ public class Main {
 				.withArgName("number")
 				.hasArgs(1)
 				.withDescription(
-						"Sets a limit for the Uris downloaded overall. Hits the interval [limit;limit+#threads]. Not necessarily intended for load-balanced crawling.")
+						"Sets a limit for the Uris downloaded overall containing >0 stmts. Hits the interval [limit;limit+#threads]. Not necessarily intended for load-balanced crawling.")
 				.create("ul");
 		options.addOption(uriLimit);
 
@@ -196,13 +201,13 @@ public class Main {
 		options.addOptionGroup(output);
 
 		//Logging
-		Option log = OptionBuilder.withArgName("file")
+		Option log = OptionBuilder.withArgName("filename[.gz]")
 		.hasArgs(1)
 		.withDescription("name of access log file")
 		.create("a");
 		options.addOption(log);
 
-		Option vis = OptionBuilder.withArgName("file")
+		Option vis = OptionBuilder.withArgName("filename[.gz]")
 		.hasArgs(1)
 		.withDescription("name of file logging rounds")
 		.create("v");
@@ -235,6 +240,14 @@ public class Main {
 				"If set, the URIs in frontier are ranked according to their number of in-links, and alphabetically as second ordering. Use this option for something like a priority queue.");
 		options.addOption(rankO);
 		
+		Option sortDF = OptionBuilder
+				.withArgName("sort gzip")
+				.hasOptionalArgs(2)
+				.withDescription(
+						"Use SortingDiskFrontier as frontier. If URIs are to be returned sorted, add \"sort\" as value, if all temp files involved are to be gzipped, add \"gzip\".")
+				.create("sdf");
+		options.addOption(sortDF);
+		
 		Option ctoo = OptionBuilder.withArgName("time in ms").hasArg()
 				.withDescription("Set connection timeout. Default: " + CrawlerConstants.CONNECTION_TIMEOUT + "ms")
 				.withLongOpt("connection-timeout").create("cto");
@@ -249,20 +262,31 @@ public class Main {
 				.withArgName("min. # of active PLDs")
 				.hasArg()
 				.withDescription(
-						"In order to avoid PLD starvation, set the minimum number of active plds for each breadth first queue round.")
+						"In order to avoid PLD starvation, set the minimum number of active plds for each breadth first queue round. The seedlist is always downloaded completely (see -mapseed).")
 				.create("minpld");
 		options.addOption(starvLim);
 		
+		Option bfqOD = OptionBuilder
+				.withDescription(
+						"Uses the on-disk BreadthFirstQueue if crawling breadth-first. Doesn't support uri-limit and pld-limit (see -b). Needs -sdf sort to be set. Ranks URIs on the PLDs according to their in-link count.")
+				.create("dbfq");
+		options.addOption(bfqOD);
+
 		Option maxRedirs = OptionBuilder.withArgName("max. # of redirects")
 				.hasArg()
 				.withDescription(
 						"Specify the length a redirects (30x) is allowed to have at max. (default: "
 								+ CrawlerConstants.MAX_REDIRECTS_DEFAULT_OTHERSTRATEGY
-								+ "/seq.strategy:"
+								+ "; with seq.strategy: "
 								+ CrawlerConstants.MAX_REDIRECTS_DEFAULT_SEQUENTIALSTRATEGY
 								+ ").")
 				.create("mr");
 		options.addOption(maxRedirs);
+		
+		Option minApldSeedlist = OptionBuilder
+				.withDescription("Sets if the minimum active plds should already be taken into account downloading the seedlist.")
+				.create("mapseed");
+		options.addOption(minApldSeedlist);
 		
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -327,22 +351,33 @@ public class Main {
 		CallbackNxOutputStream headerCbos = null;
 		
 		if (cmd.hasOption("oe")) {
-			sink = new SinkSparul(cmd.getOptionValue("oe"), headerTreatment == Headers.Treatment.INCLUDE ? true: false);
+			sink = new SinkSparul(cmd.getOptionValue("oe"), headerTreatment == Headers.Treatment.INCLUDE);
 		} else {
 			if (cmd.hasOption("o")) {
-				os = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("o")));
-				//os = new FileOutputStream(cmd.getOptionValue("o"));			
+				String path = cmd.getOptionValue("o");
+				if (path.endsWith(".gz"))
+					os = new BufferedOutputStream(new GZIPOutputStream(
+							new FileOutputStream(path)));
+				else
+					os = new BufferedOutputStream(new FileOutputStream(
+							cmd.getOptionValue("o")));
+				// os = new FileOutputStream(cmd.getOptionValue("o"));
+				CrawlerConstants.CLOSER.add(os);
 			}
 			
 			cbos = new CallbackNxOutputStream(os, false);
+			
+			OutputStream headerOS = null;
 
 			if (headerTreatment == Headers.Treatment.DUMP)
 				headerCbos = new CallbackNxOutputStream(
-						new BufferedOutputStream(new FileOutputStream(
+						new BufferedOutputStream(headerOS = new FileOutputStream(
 								cmd.getOptionValue("dh"))), false);
+			if (headerOS != null)
+				CrawlerConstants.CLOSER.add(headerOS);
 
 			sink = new SinkCallback(cbos,
-					headerTreatment != Headers.Treatment.DROP ? true : false,
+					headerTreatment != Headers.Treatment.DROP,
 					headerCbos);
 		}
 
@@ -360,17 +395,32 @@ public class Main {
 
 		PrintStream ps = System.out;
 		if (cmd.hasOption("a")) {
-			ps = new PrintStream(new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("a"))));			
+			OutputStream accOs = cmd.getOptionValue("a").endsWith(".gz") ? new GZIPOutputStream(
+					new FileOutputStream(cmd.getOptionValue("a")))
+					: new FileOutputStream(cmd.getOptionValue("a"));
+			ps = new PrintStream(new BufferedOutputStream(accOs));
+			CrawlerConstants.CLOSER.add(ps);
 		}
 
 		PrintStream rounds = null;
 		if (cmd.hasOption("v")) {
-			rounds = new PrintStream(new FileOutputStream(cmd.getOptionValue("v")));			
+			String path = cmd.getOptionValue("v");
+			if (path.endsWith(".gz"))
+				rounds = new PrintStream(new BufferedOutputStream(new GZIPOutputStream(
+						new FileOutputStream(path))));
+			else
+				rounds = new PrintStream(new FileOutputStream(
+						cmd.getOptionValue("v")));
+			CrawlerConstants.CLOSER.add(rounds);
 		}
 
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
-			OutputStream fos = new BufferedOutputStream(new FileOutputStream(cmd.getOptionValue("r")));
+			OutputStream ros = cmd.getOptionValue("r").endsWith(".gz") ? new GZIPOutputStream(
+					new FileOutputStream(cmd.getOptionValue("r")))
+					: new FileOutputStream(cmd.getOptionValue("r"));
+			OutputStream fos = new BufferedOutputStream(ros);
+			CrawlerConstants.CLOSER.add(fos);
 			rcb = new CallbackNxOutputStream(fos, false);
 			rcb.startDocument();
 		}
@@ -389,12 +439,26 @@ public class Main {
 
 		Frontier frontier = new BasicFrontier();
 		
-		if(cmd.hasOption("rf"))
+		if (cmd.hasOption("rf"))
 			frontier = new RankedFrontier();
-		else if (cmd.hasOption("m")) {
+		else if (cmd.hasOption("m")) 
 			frontier = new DiskFrontier(new File(cmd.getOptionValue("m")));
+		else if (cmd.hasOption("sdf")) {
+			List<String> l = Arrays.asList(cmd.getOptionValues("sdf"));
+			if (l.contains("gzip"))
+				CrawlerConstants.DISKFRONTIER_GZIP_FRONTIER = true;
+			if (l.contains("sort"))
+				CrawlerConstants.DISKFRONTIER_SORT_BEFORE_ITERATING = true;
+			frontier = new SortingDiskFrontier();
+			
+			_log.info("Frontier is a SortingDiskFrontier that "
+					+ (CrawlerConstants.DISKFRONTIER_SORT_BEFORE_ITERATING ? "sorts"
+							: "doesn't sort")
+					+ ", "
+					+ (CrawlerConstants.DISKFRONTIER_GZIP_FRONTIER ? "gzips"
+							: "doesn't gzip") + ".");
 		}
-		
+			
 		frontier.setErrorHandler(eh);
 		frontier.addAll(seeds);
 
@@ -430,9 +494,12 @@ public class Main {
 		}
 		
 		if (cmd.hasOption("ul")) {
-			CrawlerConstants.URI_LIMIT = Integer.parseInt(cmd.getOptionValue("ul"));
+			CrawlerConstants.URI_LIMIT_WITH_NON_EMPTY_RDF = Integer.parseInt(cmd.getOptionValue("ul"));
 			CrawlerConstants.URI_LIMIT_ENABLED = true;
 		}
+		
+		if (cmd.hasOption("dbfq"))
+			CrawlerConstants.BREADTHFIRSTQUEUE_ONDISK = true;
 		
 		// Max redirects. Setting appropriate defaults and values.
 		if (cmd.hasOption("d"))
@@ -463,6 +530,8 @@ public class Main {
 			blacklist = new FetchFilterSuffix(CrawlerConstants.BLACKLIST);
 
 		_log.info("init crawler");
+		
+		Runtime.getRuntime().addShutdownHook(CrawlerConstants.CLOSER);
 
 		Crawler c = new Crawler(CrawlerConstants.NB_THREADS);
 		TripleHandler headerTripleHandler = null;
@@ -484,8 +553,10 @@ public class Main {
 		if (!cmd.hasOption("ctIgnore"))
 			c.setFetchFilter(ffrdf);
 		c.setBlacklistFilter(blacklist);
-		if (cmd.hasOption("df"))
-			c.setDumpFrontierBaseFilename(cmd.getOptionValue("df"));
+		if (cmd.hasOption("df")) {
+			CrawlerConstants.DUMP_FRONTIER = true;
+			CrawlerConstants.DUMP_FRONTIER_FILENAME = cmd.getOptionValue("df");
+		}
 		if (cmd.hasOption("dr"))
 			c.setRedirsClass(DummyRedirects.class);
 		else
@@ -507,7 +578,7 @@ public class Main {
 
 			_log.info("breadth-first crawl with " + CrawlerConstants.NB_THREADS + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds + " minActivePlds " + cmd.getOptionValue("minpld", "unspecified"));
 
-			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")) );
+			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")), cmd.hasOption("mapseed") );
 		} else if (cmd.hasOption("c")) {
 			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
 

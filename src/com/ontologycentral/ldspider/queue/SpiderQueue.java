@@ -50,7 +50,7 @@ public abstract class SpiderQueue implements Serializable{
 	/**
 	 * Schedule URIs in Frontier (i.e. put URIs in Frontier into the queue for the next round)
 	 */
-	public void schedule(Frontier f) {
+	public abstract void schedule(Frontier f);// {
 //		if (_seenRound != null) {
 //			if (!(f instanceof DiskFrontier)) {
 //				f.removeAll(_seenRound);
@@ -62,7 +62,7 @@ public abstract class SpiderQueue implements Serializable{
 		
 //		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
 //		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
-	}
+	//}
 	
 	/**
 	 * Set a redirect (303)

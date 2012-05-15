@@ -26,6 +26,7 @@ import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
 import com.ontologycentral.ldspider.queue.BreadthFirstQueue;
+import com.ontologycentral.ldspider.queue.DiskBreadthFirstQueue;
 import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.Redirects;
@@ -40,7 +41,6 @@ public class Crawler {
 	ErrorHandler _eh;
 	FetchFilter _ff, _blacklist;
 	ConnectionManager _cm;
-	String _dumpFrontierBaseFilename = null;
 	
 	Class<? extends Redirects> _redirsClass;
 	
@@ -225,11 +225,11 @@ public class Crawler {
 		_links = links;
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds) {
-		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, minActPlds, Mode.ABOX_AND_TBOX);
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
+		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist, Mode.ABOX_AND_TBOX);
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, Mode crawlingMode) {
+	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist, Mode crawlingMode) {
 		Redirects r = null;
 		if (_queue != null)
 			r = _queue.getRedirects();
@@ -243,11 +243,15 @@ public class Crawler {
 				_log.info("IllegalAccessException. Using dummy.");
 				r = new DummyRedirects();
 			}
-		if (_queue == null || !(_queue instanceof BreadthFirstQueue)) {
-			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds);
+		if (_queue == null || !(_queue instanceof BreadthFirstQueue || _queue instanceof DiskBreadthFirstQueue)) {
+			if (CrawlerConstants.BREADTHFIRSTQUEUE_ONDISK)
+				_queue = new DiskBreadthFirstQueue(_tldm, r, minActPlds);
+			else
+				_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds,
+						minActPlds, minActPldsAlready4Seedlist);
 		} else {
 			Set<URI> seen = _queue.getSeen();
-			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds);
+			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist);
 			_queue.setRedirects(r);
 			_queue.setSeen(seen);
 		}
@@ -262,11 +266,14 @@ public class Crawler {
 		_links.setFollowTBox(crawlingMode.followTBox());
 		
 		_log.info(_queue.toString());
-		
+
 		int rounds = crawlingMode.doExtraRound() ? depth + 1 : depth;
-		for (int curRound = 0; curRound <= rounds; curRound++) {
+		for (int curRound = 0; (curRound <= rounds)
+				&& (CrawlerConstants.URI_LIMIT_ENABLED ? (LookupThread
+				.getOverall200FetchesWithNonEmptyRDF() < CrawlerConstants.URI_LIMIT_WITH_NON_EMPTY_RDF)
+				: true); curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
-			
+
 			//Extra round to get TBox
 			if(curRound == depth) {
 				_links.setFollowABox(false);
@@ -302,9 +309,6 @@ public class Crawler {
 			_log.fine("old queue: \n" + _queue.toString());
 
 			_queue.schedule(frontier);
-			
-			if (_dumpFrontierBaseFilename != null)
-				((BreadthFirstQueue)_queue).dumpFrontier(_dumpFrontierBaseFilename, curRound);
 			
 			_eh.handleNextRound();
 
@@ -401,7 +405,7 @@ public class Crawler {
 			r = new DummyRedirects();
 		}
 
-		_queue = new BreadthFirstQueue(_tldm, r, Integer.MAX_VALUE, Integer.MAX_VALUE, -1);
+		_queue = new BreadthFirstQueue(_tldm, r, Integer.MAX_VALUE, Integer.MAX_VALUE, -1, false);
 		_queue.schedule(frontier);
 
 		
@@ -485,13 +489,6 @@ public class Crawler {
 		return _queue;
 	}
 
-	public void setDumpFrontierBaseFilename(String dumpFrontierBaseFilename) {
-		_dumpFrontierBaseFilename = dumpFrontierBaseFilename;
-	}
-	
-	public String getDumpFrontierBaseFilename() {
-		return _dumpFrontierBaseFilename;
-	}
 
 	public TldManager getTldManager(){
 		return _tldm;

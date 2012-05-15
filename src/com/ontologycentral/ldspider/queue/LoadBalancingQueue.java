@@ -61,7 +61,7 @@ public class LoadBalancingQueue extends RedirectsFavouringSpiderQueue {
 
 		long time = System.currentTimeMillis();
 
-		super.schedule(f);
+//		super.schedule(f);
 
 		_queues = Collections.synchronizedMap(new HashMap<String, Queue<URI>>());
 		
@@ -131,7 +131,7 @@ public class LoadBalancingQueue extends RedirectsFavouringSpiderQueue {
 	 * 
 	 * @return URI
 	 */
-	synchronized URI pollInternal() {
+	protected synchronized URI pollInternal() {
 		if (_current == null) {
 			return null;
 		}
