@@ -50,9 +50,11 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			.getLogger(DiskBreadthFirstQueue.class.getName());
 
 	private static final String BASE_TEMP_FILENAME = "ldspider-diskBreadthFirstQueueTmp";
-	private static final String TEMP_FILENAME_SORTED = BASE_TEMP_FILENAME + "Sorted";
-	private static final String ETERNAL_BASE_TEMP_FILENAME = BASE_TEMP_FILENAME + "EternalCounts";
-	
+	private static final String TEMP_FILENAME_SORTED = BASE_TEMP_FILENAME
+			+ "Sorted";
+	private static final String ETERNAL_BASE_TEMP_FILENAME = BASE_TEMP_FILENAME
+			+ "EternalCounts";
+
 	private static final String TEMPFILE_SUFFIX = ".nx";
 
 	private static final String COUNT1FULLSTOP = "\"1\" .";
@@ -61,7 +63,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	public static enum CountLifeTime {
 		ONE_HOP, ETERNALLY
 	}
-	
+
 	Map<String, File> _files;
 	Map<String, NxParser> _nxps;
 	Set<BufferedReader> _brs;
@@ -112,8 +114,8 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		_lifeTimeOfCounts = CrawlerConstants.DISKBREADTHFIRSTQUEUE_COUNTLIFETIME;
 		if (_lifeTimeOfCounts == CountLifeTime.ETERNALLY) {
 			try {
-				_eternalFileCounts = File.createTempFile(ETERNAL_BASE_TEMP_FILENAME,
-						TEMPFILE_SUFFIX);
+				_eternalFileCounts = File.createTempFile(
+						ETERNAL_BASE_TEMP_FILENAME, TEMPFILE_SUFFIX);
 			} catch (IOException e) {
 				_log.warning("could not create eternal temp file");
 			}
@@ -232,8 +234,10 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			_nxps.clear();
 
 		for (Entry<String, File> e : _files.entrySet()) {
-			sortedFiles.put(e.getKey(),
-					sort(TEMP_FILENAME_SORTED + "-" + e.getKey(), e.getValue()));
+			sortedFiles
+					.put(e.getKey(),
+							sort(TEMP_FILENAME_SORTED + "-" + e.getKey(),
+									e.getValue()));
 		}
 
 		_files.clear();
@@ -287,8 +291,6 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 
 		// the last one if there was one at all:
 		if (currentURI != null) {
-			if (prevURI != null && currentURI.equals(prevURI))
-				++currentCount;
 			++_noOfUris;
 			_writer.writeOut(currentURI, currentCount);
 		}
@@ -314,7 +316,6 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		URI _currentURI;
 		URI _prevURI;
 
-		Node[] _current = null;
 		int _currentCount;
 
 		Map<String, Callback> _callbacks;
@@ -411,6 +412,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		private int determineEternalCountAndWriteToEternal(URI u,
 				int itsCountInThisRound) {
 			Node[] prev = null;
+			Node[] current = null;
 
 			// empty eternal or in the previous rounds we got the last one of
 			// it.
@@ -429,31 +431,34 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 				return itsCountInThisRound;
 			}
 
-			// iterate as long as we are BEFORE u in eternal:
+			// iterate until eternal ends or uri has been put:
 			while (_eternal.hasNext()) {
-				prev = _current;
-				_current = _eternal.next();
+				prev = current;
+				current = _eternal.peek();
 
 				// should only be null if we just started off at the beginning
-				// of eternal:
+				// of eternal or we just went through the next if check:
 				if (prev != null)
 					_newEternalCountsCB.processStatement(prev);
 
 				// if we are AT u in eternal:
-				if (_current != null
-						&& ((Resource) _current[0]).toURI().equals(u)) {
+				if (current != null
+						&& ((Resource) current[0]).toURI().equals(u)) {
 					int count = itsCountInThisRound
-							+ Integer.parseInt(((Literal) _current[1])
-									.getData());
-					_current[1] = new Literal(Integer.toString(count));
-					_newEternalCountsCB.processStatement(_current);
+							+ Integer
+									.parseInt(((Literal) current[1]).getData());
+					current[1] = new Literal(Integer.toString(count));
+					_newEternalCountsCB.processStatement(current);
+					// to step forward, the object has already been peeked
+					// anyway:
+					_eternal.next();
 					return count;
 				}
 
 				// if there is no entry for u in eternal (we just skipped over
 				// its empty place):
-				if (_current != null
-						&& ((Resource) _current[0]).toURI().compareTo(u) > 0) {
+				if (current != null
+						&& ((Resource) current[0]).toURI().compareTo(u) > 0) {
 					_newEternalCountsCB
 							.processStatement(new Node[] {
 									new Resource(u),
@@ -461,9 +466,15 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 											.toString(itsCountInThisRound)) });
 					return itsCountInThisRound;
 				}
+
+				// to step forward, the object has already been peeked anyway:
+				_eternal.next();
 			}
 
-			// we shouldn't need this:
+			// if the uri is to be put at the end of the non-empty eternal:
+			_newEternalCountsCB.processStatement(current);
+			_newEternalCountsCB.processStatement(new Node[] { new Resource(u),
+					new Literal(Integer.toString(itsCountInThisRound)) });
 			return itsCountInThisRound;
 		}
 
