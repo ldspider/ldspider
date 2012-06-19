@@ -22,6 +22,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
+import com.ontologycentral.ldspider.hooks.sink.SpyingSinkCallback;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
@@ -214,11 +215,11 @@ public class Crawler {
 	}
 	
 	public void setOutputCallback(Callback cb) {
-		_output = new SinkCallback(cb);
+		setOutputCallback(new SinkCallback(cb));
 	}
 	
 	public void setOutputCallback(Sink sink) {
-		_output = sink;
+		_output = new SpyingSinkCallback(sink);
 	}
 	
 	public void setLinkFilter(LinkFilter links) {
@@ -308,8 +309,12 @@ public class Crawler {
 			_log.info("ROUND " + curRound + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());
 
+			if (_output instanceof SpyingSinkCallback)
+				_log.info("Last non-empty context of this hop: "
+						+ ((SpyingSinkCallback) _output).whoWasLast());
+
 			_queue.schedule(frontier);
-			
+
 			_eh.handleNextRound();
 
 			_log.fine("new queue: \n" + _queue.toString());
