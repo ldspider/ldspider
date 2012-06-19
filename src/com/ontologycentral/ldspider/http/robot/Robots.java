@@ -2,11 +2,14 @@ package com.ontologycentral.ldspider.http.robot;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+
+import org.apache.http.protocol.HTTP;
 
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerDummy;
@@ -41,16 +44,40 @@ public class Robots {
     }
     
     public boolean accessOk(URI uri) {
-    	String host = uri.getAuthority();
+    	URI hostUri;
+		try {
+			if (uri.getPort() < 0)
+				// The URI has no port specified. The most likely case.
+				hostUri = new URI(uri.getScheme(), uri.getAuthority(), null,
+						null, null);
+			else if ((uri.getPort() == 80 && uri.getScheme().equalsIgnoreCase(
+					"http"))
+					|| (uri.getPort() == 443 && uri.getScheme()
+							.equalsIgnoreCase("https"))
+					|| (uri.getPort() == 21 && uri.getScheme()
+							.equalsIgnoreCase("ftp")))
+				// The URI has a port specified which is the default for its scheme.
+				hostUri = new URI(uri.getScheme(), uri.getUserInfo(),
+						uri.getHost(), -1, null, null, null);
+			else
+				// The URI has a port specified which is to remain part of
+				// authority in the caching of different instances of Robot.
+				hostUri = new URI(uri.getScheme(), uri.getAuthority(), null,
+						null, null);
+			
+		} catch (URISyntaxException e1) {
+			_log.fine(e1.getMessage() + " " + uri);
+			return false;
+		}
 
 		Robot r = null;
 
-		if (_robots.containsKey(host)) {
-			r = _robots.get(host);
+		if (_robots.containsKey(hostUri.toString())) {
+			r = _robots.get(hostUri.toString());
     	} else {
-    		r = new Robot(_cm, _eh, host);
+    		r = new Robot(_cm, _eh, hostUri);
     			
-    		_robots.put(host, r);
+    		_robots.put(hostUri.toString(), r);
     	}
     	
 		URL url = null;

@@ -28,16 +28,16 @@ public class Robot {
 
 	NoRobotClient _nrc = null;
 	
-	public Robot(ConnectionManager cm, ErrorHandler eh, String host) {
-		URI u;
+	public Robot(ConnectionManager cm, ErrorHandler eh, URI host) {
+		URI robotsOnHost;
 		try {
-			u = new URI( "http://" + host + "/robots.txt" );
+			robotsOnHost = new URI(host.getScheme(), host.getAuthority(), "/robots.txt", null, null);
 		} catch (URISyntaxException e) {
 			_log.fine(e.getMessage() + " " + host);
 			return;
 		}
 
-		HttpGet hget = new HttpGet(u);
+		HttpGet hget = new HttpGet(robotsOnHost);
 
 		long time1 = System.currentTimeMillis();
 		long bytes = -1;
@@ -65,7 +65,19 @@ public class Robot {
 					String content = EntityUtils.toString(hen);
 					_log.finer(content);
 					try {
-						_nrc.parse(content, new URL("http://" + host + "/"));
+						if (!((host.getPath() == null || host.getPath().equals(
+								""))
+								&& host.getQuery() == null && host
+									.getFragment() == null))
+							// If the URI host comes for whatever reason with
+							// path, query, or fragment, strip it.
+							_nrc.parse(
+									content,
+									(new URI(host.getScheme(), host
+											.getAuthority(), null, null, null))
+											.toURL());
+						else
+							_nrc.parse(content, host.toURL());
 					} catch (NoRobotException e) {
 						_log.info("no robots.txt for " + host);
 					}
@@ -84,12 +96,12 @@ public class Robot {
 				hget.abort();
 			}
 		} catch (Exception e) {
-			eh.handleError(u, e);
+			eh.handleError(robotsOnHost, e);
 			hget.abort();			
 		}
 
 		if (status != 0) {
-			eh.handleStatus(u, status, headers, (System.currentTimeMillis()-time1), bytes);
+			eh.handleStatus(robotsOnHost, status, headers, (System.currentTimeMillis()-time1), bytes);
 		}
 	}
 
