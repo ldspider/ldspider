@@ -310,8 +310,8 @@ public class Crawler {
 			_log.fine("old queue: \n" + _queue.toString());
 
 			if (_output instanceof SpyingSinkCallback)
-				_log.info("Last non-empty context of this hop: "
-						+ ((SpyingSinkCallback) _output).whoWasLast());
+				_log.info("Last non-empty context of this hop (# " + curRound
+						+ " ): " + ((SpyingSinkCallback) _output).whoWasLast());
 
 			_queue.schedule(frontier);
 
