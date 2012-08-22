@@ -62,7 +62,7 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 	}
 
 	private org.semanticweb.yars.nx.Node convert(Value arg0) {
-		if(arg0 instanceof Resource)
+		if(arg0 instanceof URI)
 			return new org.semanticweb.yars.nx.Resource(arg0.stringValue());
 		else if(arg0 instanceof BNode)
 			return new org.semanticweb.yars.nx.BNode(arg0.stringValue());
