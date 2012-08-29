@@ -70,7 +70,7 @@ public class LinkFilterDefault implements LinkFilter {
 					if(_followTBox) addTBox(nx, i);
 				}
 				//Object (TBox)
-				else if(i == 2 && nx[1].toString().equals(RDF.TYPE)) {
+				else if(i == 2 && nx[1].equals(RDF.TYPE)) {
 					if(_followTBox) addTBox(nx, i);
 				}
 				//Object (ABox)
