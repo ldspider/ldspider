@@ -48,6 +48,10 @@ import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.frontier.SortingDiskFrontier;
+import com.ontologycentral.ldspider.hooks.content.AllrounderPretendingContentHandler;
+import com.ontologycentral.ldspider.hooks.content.ContentHandler;
+import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
+import com.ontologycentral.ldspider.hooks.content.ContentHandlers;
 import com.ontologycentral.ldspider.hooks.content.ZipContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
@@ -220,7 +224,7 @@ public class Main {
 		.create("bl");
 		options.addOption(blist);
 		
-		Option ctIgnore = new Option("ctIgnore","crawl disrespective of content-type");
+		Option ctIgnore = new Option("ctIgnore","Parse and fetch disrespective of content-type");
 		options.addOption(ctIgnore);
 		
 		Option any23ExtNames = OptionBuilder.withArgName("any23 extractor names")
@@ -229,6 +233,9 @@ public class Main {
 			+ Arrays.toString(ContentHandlerAny23.getDefaultExtractorNames()))
 		.create("any23ext");
 		options.addOption(any23ExtNames);
+		
+		Option any23 = new Option("any23", false, "Use any23 for extending the formats available to parse.");
+		options.addOption(any23);
 
 		Option helpO = new Option("h", "help", false, "print help");
 		options.addOption(helpO);
@@ -534,19 +541,33 @@ public class Main {
 		Runtime.getRuntime().addShutdownHook(CrawlerConstants.CLOSER);
 
 		Crawler c = new Crawler(CrawlerConstants.NB_THREADS);
-		TripleHandler headerTripleHandler = null;
 
-		// luckily, the interpretations of the null pointer from commons cli and
-		// any23 fit together.
+		TripleHandler headerTripleHandler = null;
 		if (headerTreatment == Headers.Treatment.DUMP)
 			headerTripleHandler = new CallbackNQuadTripleHandler(headerCbos);
-		if (cmd.hasOption("any23ext"))
-			c.setContentHandler(new ContentHandlerHybridRdfXmlAny23(
-					headerTripleHandler, headerTreatment, cmd
-							.getOptionValues("any23ext")));
-		else
-			c.setContentHandler(new ContentHandlerHybridRdfXmlAny23(headerTripleHandler, headerTreatment,
-					ContentHandlerAny23.getDefaultExtractorNames()));
+
+		ContentHandler ch;
+		// luckily, the interpretations of the null pointer from commons cli and
+		// any23 fit together.
+		if (cmd.hasOption("any23")) {
+			ContentHandler chAny23;
+			if (cmd.hasOption("any23ext"))
+				chAny23 = new ContentHandlerAny23(headerTripleHandler,
+						headerTreatment, cmd.getOptionValues("any23ext"));
+			else
+				chAny23 = new ContentHandlerAny23(headerTripleHandler,
+						headerTreatment,
+						ContentHandlerAny23.getDefaultExtractorNames());
+			if (cmd.hasOption("ctIgnore"))
+				chAny23 = new AllrounderPretendingContentHandler(chAny23);
+			ch = new ContentHandlers(new ContentHandlerRdfXml(), chAny23);
+		} else {
+			ch = new ContentHandlerRdfXml();
+			if (cmd.hasOption("ctIgnore"))
+				ch = new AllrounderPretendingContentHandler(ch);
+		}
+		c.setContentHandler(ch);
+
 		c.setErrorHandler(eh);
 		c.setOutputCallback(sink);
 		c.setLinkFilter(links);

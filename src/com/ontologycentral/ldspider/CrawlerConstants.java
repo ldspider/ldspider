@@ -3,6 +3,7 @@ package com.ontologycentral.ldspider;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 
+import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;
 import com.ontologycentral.ldspider.queue.DiskBreadthFirstQueue.CountLifeTime;
 
 public class CrawlerConstants {
@@ -12,8 +13,8 @@ public class CrawlerConstants {
 	public static final String USERAGENT_LINE = USERAGENT_NAME + " (" + USERAGENT_URI + ")";
 	
 	// http://www.w3.org/TR/owl-ref/#MIMEType
-	public static final String[] MIMETYPES = { "application/rdf+xml", "application/xml" };
-	public static final String[] FILESUFFIXES = { ".rdf", ".owl" };
+	public static String[] MIMETYPES = ContentHandlerRdfXml.getMimeTypes();
+	public static String[] FILESUFFIXES = { ".rdf", ".owl" };
 	
 	public static final Header[] HEADERS = {
 		new BasicHeader("Accept", MIMETYPES[0] + ", " + MIMETYPES[1]),
