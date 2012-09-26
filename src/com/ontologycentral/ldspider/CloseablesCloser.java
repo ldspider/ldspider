@@ -28,6 +28,7 @@ class CloseablesCloser extends Thread implements Set<Closeable> {
 				e.printStackTrace();
 			}
 		}
+		_log.info("Closeables closed.");
 	}
 
 	public boolean add(Closeable e) {
