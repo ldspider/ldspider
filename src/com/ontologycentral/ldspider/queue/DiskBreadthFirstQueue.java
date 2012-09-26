@@ -283,14 +283,16 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 				if (currentURI.equals(prevURI))
 					++currentCount;
 				else {
-					++_noOfUris;
-					_writer.writeOut(prevURI, currentCount);
+					if (!checkSeen(prevURI)) {
+						++_noOfUris;
+						_writer.writeOut(prevURI, currentCount);
+					}
 					currentCount = 1;
 				}
 		}
 
 		// the last one if there was one at all:
-		if (currentURI != null) {
+		if (currentURI != null && !checkSeen(currentURI)) {
 			++_noOfUris;
 			_writer.writeOut(currentURI, currentCount);
 		}
