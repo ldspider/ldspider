@@ -30,4 +30,14 @@ public interface ContentHandler {
 	 * @return True, if the document has been handled. False, if the handler could not handle the document.
 	 */
 	boolean handle(URI uri, String mime, InputStream source, Callback callback);
+	
+	/**
+	 * Get MIME types supported by this ContentHandler in format
+	 * <code>type/subtype[;q=x.y]</code>. Quality value is optional.
+	 * 
+	 * @return An array of the different mime types, or the empty array if this
+	 *         content handler would eat anything but doesn't want to impose
+	 *         restrictions.
+	 */
+	String[] getMimeTypes();
 }

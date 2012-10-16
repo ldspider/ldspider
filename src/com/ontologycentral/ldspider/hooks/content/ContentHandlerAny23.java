@@ -6,9 +6,15 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.deri.any23.extractor.ExtractorFactory;
+import org.deri.any23.extractor.ExtractorRegistry;
+import org.deri.any23.mime.MIMEType;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackCount;
 
@@ -159,5 +165,26 @@ public class ContentHandlerAny23 implements ContentHandler {
 				connection.disconnect();
 			}
 		}
+	}
+
+	/**
+	 * Reports the MIME types generally supported by any23. Doesn't take any23
+	 * instances into account that have been restricted in terms of extractors.
+	 */
+	public String[] getMimeTypes() {
+		// get extractors
+		Iterator<ExtractorFactory<?>> it = ExtractorRegistry.getInstance()
+				.getExtractorGroup().iterator();
+		List<MIMEType> mTypes = new ArrayList<MIMEType>();
+		while (it.hasNext()) {
+			ExtractorFactory<?> ef = it.next();
+			mTypes.addAll(ef.getSupportedMIMETypes());
+		}
+		
+		// convert to string array
+		String[] mTypeStrings = new String[mTypes.size()];
+		for (int i = 0; i < mTypes.size(); ++i)
+			mTypeStrings[i] = mTypes.get(i).toString();
+		return mTypeStrings;
 	}
 }

@@ -91,7 +91,7 @@ public class ContentHandlerAny23 implements ContentHandler {
 	}
 
 	/**
-	 * Get the mime types for all any23 extractor names supplied.
+	 * Get the mime types for the any23 extractor names supplied.
 	 * @param extractorNames
 	 * @return mime types
 	 */

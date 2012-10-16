@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -35,6 +36,10 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
+import org.deri.any23.http.AcceptHeaderBuilder;
+import org.deri.any23.mime.MIMEType;
 import org.deri.any23.writer.TripleHandler;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
@@ -57,6 +62,7 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerRounds;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
+import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
@@ -236,6 +242,9 @@ public class Main {
 		
 		Option any23 = new Option("any23", false, "Use any23 for extending the formats available to parse.");
 		options.addOption(any23);
+		
+		Option accept = OptionBuilder.withArgName("MIME Types").withDescription("Change the HTTP Accept header to the one supplied").withValueSeparator(',').hasOptionalArgs().create("accept");
+		options.addOption(accept);
 
 		Option helpO = new Option("h", "help", false, "print help");
 		options.addOption(helpO);
@@ -517,12 +526,6 @@ public class Main {
 		long time = System.currentTimeMillis();
 
 		
-		FetchFilterRdfXml ffrdf = null;
-		if (!cmd.hasOption("ctIgnore")) {
-			ffrdf = new FetchFilterRdfXml();
-			ffrdf.setErrorHandler(eh);
-		}
-		
 		// setting up the blacklist of file extensions.
 		FetchFilterSuffix blacklist;
 		if (cmd.hasOption("bl")) {
@@ -568,11 +571,58 @@ public class Main {
 		}
 		c.setContentHandler(ch);
 
+		// changing the accept header
+		/** null means keep default. */
+		Collection<MIMEType> mimetypes = null;
+		if(cmd.hasOption("accept")) {
+			String[] mTypes = cmd.getOptionValues("accept");
+			if (mTypes == null)
+				mimetypes = Collections.emptyList();
+			else {
+				mimetypes = new LinkedList<MIMEType>();
+				for (String s : mTypes)
+					if (!s.equals("") && !s.equals(" "))
+						try {
+							mimetypes.add(MIMEType.parse(s));
+						} catch (IllegalArgumentException e) {
+							_log.warning(e.getMessage());
+							continue;
+						}
+			}
+		} else {
+			mimetypes = new LinkedList<MIMEType>();
+			for (String s : ch.getMimeTypes())
+				try {
+					mimetypes.add(MIMEType.parse(s));
+				} catch (IllegalArgumentException e) {
+					_log.warning(e.getMessage());
+					continue;
+				}
+			if (mimetypes.isEmpty())
+				mimetypes = null;
+		}
+
+		for (int i = 0; i < CrawlerConstants.HEADERS.length; ++i)
+			if (CrawlerConstants.HEADERS[i].getName().equals("Accept")) 
+				if (mimetypes != null)
+					CrawlerConstants.HEADERS[i] = new BasicHeader("Accept",
+							new AcceptHeaderBuilder(mimetypes)
+									.getAcceptHeader());
+			
+		
+//		FetchFilter ffrdf = null;
+//		if (!cmd.hasOption("ctIgnore")) {
+//			if (ch instanceof ContentHandlerRdfXml)
+//				ffrdf = new FetchFilterRdfXml();
+//			ffrdf.setErrorHandler(eh);
+//		}
+		
+		
 		c.setErrorHandler(eh);
 		c.setOutputCallback(sink);
 		c.setLinkFilter(links);
-		if (!cmd.hasOption("ctIgnore"))
-			c.setFetchFilter(ffrdf);
+//		if (!cmd.hasOption("ctIgnore"))
+//			c.setFetchFilter(ffrdf);
 		c.setBlacklistFilter(blacklist);
 		if (cmd.hasOption("df")) {
 			CrawlerConstants.DUMP_FRONTIER = true;

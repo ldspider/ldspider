@@ -13,7 +13,7 @@ public class CrawlerConstants {
 	public static final String USERAGENT_LINE = USERAGENT_NAME + " (" + USERAGENT_URI + ")";
 	
 	// http://www.w3.org/TR/owl-ref/#MIMEType
-	public static String[] MIMETYPES = ContentHandlerRdfXml.getMimeTypes();
+	public static String[] MIMETYPES = { "application/rdf+xml", "application/xml" };
 	public static String[] FILESUFFIXES = { ".rdf", ".owl" };
 	
 	public static final Header[] HEADERS = {

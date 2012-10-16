@@ -72,4 +72,8 @@ public class ZipContentHandler implements ContentHandler {
 		}
 		return true;
 	}
+
+	public String[] getMimeTypes() {
+		return new String[0];
+	}
 }

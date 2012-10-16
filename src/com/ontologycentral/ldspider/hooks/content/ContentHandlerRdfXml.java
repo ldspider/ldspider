@@ -54,7 +54,7 @@ public class ContentHandlerRdfXml implements ContentHandler {
 		}
 	}
 	
-	public static String[] getMimeTypes() {
+	public String[] getMimeTypes() {
 		return MIMETYPES;
 	}
 

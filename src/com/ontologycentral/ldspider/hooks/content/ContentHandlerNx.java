@@ -19,6 +19,8 @@ public class ContentHandlerNx implements ContentHandler {
 	
 	private final Logger _log = Logger.getLogger(this.getClass().getName());
 
+	String[] mimeTypes = {"text/plain", "text/x-nquads" };
+	
 	public boolean canHandle(String mime) {
 		return mime.contains("text/plain") || mime.contains("text/x-nquads");
 	}
@@ -38,4 +40,10 @@ public class ContentHandlerNx implements ContentHandler {
 //			return false;
 //		}
 	}
+
+	public String[] getMimeTypes() {
+		return mimeTypes;
+	}
+	
+	
 }

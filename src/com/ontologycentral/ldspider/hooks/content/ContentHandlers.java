@@ -2,6 +2,11 @@ package com.ontologycentral.ldspider.hooks.content;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 
 import org.semanticweb.yars.nx.parser.Callback;
 
@@ -38,4 +43,12 @@ public class ContentHandlers implements ContentHandler {
 		}
 		return false;
 	}
+
+	public String[] getMimeTypes() {
+		Collection<String> mimeTypes = new ArrayList<String>();
+		for (ContentHandler ch : _handlers)
+			mimeTypes.addAll(Arrays.asList(ch.getMimeTypes()));
+		return mimeTypes.toArray(new String[mimeTypes.size()]);
+	}
+
 }
