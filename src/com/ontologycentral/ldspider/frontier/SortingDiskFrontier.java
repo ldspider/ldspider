@@ -150,11 +150,11 @@ public class SortingDiskFrontier extends Frontier {
 		} catch (IOException e) {
 			_log.warning("IOException. " + e.getLocalizedMessage()
 					+ ". returning empty iterator!");
-			return Collections.emptyIterator();
+			return Collections.<URI>emptyList().iterator();
 		} catch (ParseException e) {
 			_log.warning("ParseException. " + e.getLocalizedMessage()
 					+ ". returning empty iterator!");
-			return Collections.emptyIterator();
+			return Collections.<URI>emptyList().iterator();
 		}
 
 		return new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
