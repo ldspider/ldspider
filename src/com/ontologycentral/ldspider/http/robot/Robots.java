@@ -45,28 +45,40 @@ public class Robots {
     
     public boolean accessOk(URI uri) {
     	URI hostUri;
+    	URL url = null;
 		try {
-			if (uri.getPort() < 0)
+			if (uri.getPort() < 0) {
 				// The URI has no port specified. The most likely case.
 				hostUri = new URI(uri.getScheme(), uri.getAuthority(), null,
 						null, null);
+				url = uri.toURL();
+				}
 			else if ((uri.getPort() == 80 && uri.getScheme().equalsIgnoreCase(
 					"http"))
 					|| (uri.getPort() == 443 && uri.getScheme()
 							.equalsIgnoreCase("https"))
 					|| (uri.getPort() == 21 && uri.getScheme()
-							.equalsIgnoreCase("ftp")))
+							.equalsIgnoreCase("ftp"))) {
 				// The URI has a port specified which is the default for its scheme.
 				hostUri = new URI(uri.getScheme(), uri.getUserInfo(),
 						uri.getHost(), -1, null, null, null);
-			else
+				url = new URI(uri.getScheme(), uri.getUserInfo(),
+						uri.getHost(), -1, uri.getPath(), uri.getQuery(),
+						uri.getFragment()).toURL();
+			}
+			else {
 				// The URI has a port specified which is to remain part of
 				// authority in the caching of different instances of Robot.
 				hostUri = new URI(uri.getScheme(), uri.getAuthority(), null,
 						null, null);
+				url = uri.toURL();
+			}
 			
 		} catch (URISyntaxException e1) {
 			_log.fine(e1.getMessage() + " " + uri);
+			return false;
+		} catch (MalformedURLException e) {
+			_log.info(e.getMessage() + uri);
 			return false;
 		}
 
@@ -79,14 +91,6 @@ public class Robots {
     			
     		_robots.put(hostUri.toString(), r);
     	}
-    	
-		URL url = null;
-		try {
-			url = uri.toURL();
-		} catch (MalformedURLException e) {
-			_log.info(e.getMessage() + uri);
-			return false;
-		}
 		
     	return r.isUrlAllowed(url);
     }
