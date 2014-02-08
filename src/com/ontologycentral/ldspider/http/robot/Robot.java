@@ -61,20 +61,21 @@ public class Robot {
 
 			if (status == 200) {
 				if (hen != null) {
-					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT_LINE);
+					_nrc = new NoRobotClient(CrawlerConstants.USERAGENT_NAME);
 					String content = EntityUtils.toString(hen);
 					_log.finer(content);
 					try {
-						if (!((host.getPath() == null || host.getPath().equals(
-								""))
-								&& host.getQuery() == null && host
-									.getFragment() == null))
+						if (host.getPath() == null
+								|| !host.getPath().equals("/")
+								|| !(host.getQuery() == null)
+								|| !(host.getFragment() == null))
 							// If the URI host comes for whatever reason with
 							// path, query, or fragment, strip it.
+							// the path must be "/" for compatibility with norbert.
 							_nrc.parse(
 									content,
 									(new URI(host.getScheme(), host
-											.getAuthority(), null, null, null))
+											.getAuthority(), "/", null, null))
 											.toURL());
 						else
 							_nrc.parse(content, host.toURL());
