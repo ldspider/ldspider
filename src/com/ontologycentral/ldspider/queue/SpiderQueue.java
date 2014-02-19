@@ -3,20 +3,14 @@ package com.ontologycentral.ldspider.queue;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.tld.TldManager;
 import org.semanticweb.yars.util.LRUMapCache;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
-import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
-
-
-
+import com.ontologycentral.ldspider.seen.Seen;
 
 public abstract class SpiderQueue implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -25,44 +19,23 @@ public abstract class SpiderQueue implements Serializable{
 	public abstract URI poll();
 	public abstract int size();
 	
-	protected Set<URI> _seen;
+	protected Seen _seen;
 	
 	LRUMapCache<URI, Integer> _redirsCache = new LRUMapCache<URI, Integer>(2 * CrawlerConstants.NB_THREADS);
-
-	//protected Set<URI> _seenRound = null;
-	//protected Set<URI> _redirsRound = null;
-
-	//protected Set<URI> _urisRound = null;
 
 	protected TldManager _tldm;
 	protected Redirects _redirs;
 	
-	public SpiderQueue(TldManager tldm, Redirects redirs) {
+	public SpiderQueue(TldManager tldm, Redirects redirs, Seen seen) {
 		_tldm = tldm;
-		
 		_redirs = redirs;
-		
-		_seen = Collections.synchronizedSet(new HashSet<URI>());
-		
-//		_urisRound = new HashSet<URI>();
+		_seen = seen;
 	}
 	
 	/**
 	 * Schedule URIs in Frontier (i.e. put URIs in Frontier into the queue for the next round)
 	 */
-	public abstract void schedule(Frontier f);// {
-//		if (_seenRound != null) {
-//			if (!(f instanceof DiskFrontier)) {
-//				f.removeAll(_seenRound);
-//			}
-//		}
-//		if (_urisRound != null) {
-//			uris
-//		}
-		
-//		_seenRound = Collections.synchronizedSet(new HashSet<URI>());
-//		_redirsRound = Collections.synchronizedSet(new HashSet<URI>());
-	//}
+	public abstract void schedule(Frontier f);
 	
 	/**
 	 * Set a redirect (303)
@@ -84,7 +57,6 @@ public abstract class SpiderQueue implements Serializable{
 		}
 		
 		_redirs.put(from, to);
-//		_redirsRound.add(to);
 		
 		Integer i = null;
 		if ((i = _redirsCache.get(from)) != null) {
@@ -105,12 +77,28 @@ public abstract class SpiderQueue implements Serializable{
 		}
 	}
 
+	/** Add URI to queue.
+	 * 
+	 * @param u the URI to add
+	 */
 	void add(URI u) {
 		add(u, false);
 	}
 
+	/**
+	 * Add URI to queue.
+	 * 
+	 * @param u the URI
+	 * @param uriHasAlreadyBeenProcessed
+	 *            if the URI has already been frontier.normalise()d or
+	 *            frontier.process()ed.
+	 */
 	abstract void add(URI u, boolean uriHasAlreadyBeenProcessed);
 
+	/**
+	 * On redirection, this method is called with the end of the redirect.
+	 * @param u the end of the redirect
+	 */
 	abstract void addRedirect(URI u);
 
 	/**
@@ -138,32 +126,49 @@ public abstract class SpiderQueue implements Serializable{
 		_redirs = redirs;		
 	}
 
+	/**
+	 * Set the URI supplied as seen, i.e. already visited.
+	 * @param u the URI
+	 */
 	public void addSeen(URI u) {
 		if (u != null)
 			_seen.add(u);
 	}
 	
-	public Set<URI> getSeen() {
-		return _seen;
-	}
-	
-	public void setSeen(Set<URI> seen) {
-		_seen = seen;
-	}
-	
+	/**
+	 * Checks if a given URI has been seen.
+	 * @param u the URI
+	 * @return true if it already has been visited, false otherwise
+	 */
 	public boolean checkSeen(URI u) {
 		if (u == null) {
 			throw new NullPointerException("u cannot be null");
 		}
 		
-		return _seen.contains(u);
+		return _seen.hasBeenSeen(u);
 	}
 	
+	/**
+	 * See {@link #addSeen(URI)}.
+	 * @param u
+	 */
 	void setSeen(URI u) {
 		addSeen(u);
-//		if (u != null) {
-//			_seen.add(u);
-//			_seenRound.add(u);
-//		}
+	}
+
+	/**
+	 * Setter for the Seen instance to use. 
+	 * @param seen
+	 */
+	public void setSeen(Seen seen) {
+		_seen = seen;
+	}
+
+	/**
+	 * Getter for the Seen instance of this queue.
+	 * @return
+	 */
+	public Seen getSeen() {
+		return _seen;
 	}
 }

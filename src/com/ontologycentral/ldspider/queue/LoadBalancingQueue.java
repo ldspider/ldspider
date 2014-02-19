@@ -17,6 +17,7 @@ import org.semanticweb.yars.tld.TldManager;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.seen.Seen;
 
 public class LoadBalancingQueue extends RedirectsFavouringSpiderQueue {
 	private static final long serialVersionUID = 1L;
@@ -34,8 +35,8 @@ public class LoadBalancingQueue extends RedirectsFavouringSpiderQueue {
 	
 	static Queue<String> POISON = new ConcurrentLinkedQueue<String>();
 	
-	public LoadBalancingQueue(TldManager tldm, Redirects r) {
-		super(tldm, r);
+	public LoadBalancingQueue(TldManager tldm, Redirects r, Seen seen) {
+		super(tldm, r, seen);
 
 		_current = new ConcurrentLinkedQueue<String>();
 		

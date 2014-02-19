@@ -35,6 +35,7 @@ import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.frontier.Frontier;
+import com.ontologycentral.ldspider.seen.Seen;
 
 /**
  * A BreadthFirstQueue on Disk.
@@ -93,8 +94,8 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	private int _noOfUris;
 
 	public DiskBreadthFirstQueue(TldManager tldm, Redirects redirs,
-			int minimumActivePLDs) {
-		super(tldm, redirs);
+			Seen seen, int minimumActivePLDs) {
+		super(tldm, redirs, seen);
 		_isScheduled = false;
 		_scheduledFrontiers = 0;
 		_noOfUris = 0;

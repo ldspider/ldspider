@@ -19,6 +19,7 @@ import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.frontier.RankedFrontier;
 import com.ontologycentral.ldspider.frontier.SortingDiskFrontier;
+import com.ontologycentral.ldspider.seen.Seen;
 
 public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	private static final long serialVersionUID = 1L;
@@ -73,8 +74,8 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	 * @param maxuris
 	 * @param maxplds
 	 */
-	public BreadthFirstQueue(TldManager tldm, Redirects redirs, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
-		super(tldm, redirs);
+	public BreadthFirstQueue(TldManager tldm, Redirects redirs, Seen seen, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
+		super(tldm, redirs, seen);
 
 		_maxuris = maxuris;
 		if (_maxuris == -1) {
@@ -295,14 +296,6 @@ public class BreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 		return li;
 	}
 	
-	/**
-	 * Add URI queue.
-	 * 
-	 * @param u
-	 * @param uriHasAlreadyBeenProcessed
-	 *            if the URI has already been frontier.normalise()d or
-	 *            frontier.process()ed.
-	 */
 	public synchronized void add(URI u, boolean uriHasAlreadyBeenProcessed) {
 		if (!uriHasAlreadyBeenProcessed)
 			try {

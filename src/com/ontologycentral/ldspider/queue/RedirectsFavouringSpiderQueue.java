@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 
 import org.semanticweb.yars.tld.TldManager;
 
+import com.ontologycentral.ldspider.seen.Seen;
+
 public abstract class RedirectsFavouringSpiderQueue extends SpiderQueue {
 
 	private static final long serialVersionUID = 4717435149503382210L;
@@ -15,8 +17,8 @@ public abstract class RedirectsFavouringSpiderQueue extends SpiderQueue {
 	
 	Queue<URI> _redirectsQueue;
 
-	public RedirectsFavouringSpiderQueue(TldManager tldm, Redirects redirs) {
-		super(tldm, redirs);
+	public RedirectsFavouringSpiderQueue(TldManager tldm, Redirects redirs, Seen seen) {
+		super(tldm, redirs, seen);
 		_redirectsQueue = new ConcurrentLinkedQueue<URI>();
 	}
 

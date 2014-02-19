@@ -22,7 +22,7 @@ public class RobotsTest extends TestCase {
 //		System.out.println(r.isUrlAllowed(u));
 //	}
 //	
-	public void testRobots2() throws Exception {
+	public void testNoRobotClient() throws Exception {
 		NoRobotClient nrc = new NoRobotClient(CrawlerConstants.USERAGENT_NAME);
 		String content = "User-Agent: ldspider\nDisallow: /\n";
 		System.out.println(content);
@@ -33,7 +33,7 @@ public class RobotsTest extends TestCase {
 		
 		URL u = new URL("http://example.org/interests");
 		
-		System.out.println(nrc.isUrlAllowed(u));
+		assertFalse(nrc.isUrlAllowed(u));
 	}
 	
 //	public void testRobots3(){

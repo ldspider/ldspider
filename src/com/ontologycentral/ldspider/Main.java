@@ -6,10 +6,13 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
@@ -26,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.cli.BasicParser;
@@ -36,7 +40,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
 import org.deri.any23.http.AcceptHeaderBuilder;
 import org.deri.any23.mime.MIMEType;
@@ -44,10 +47,11 @@ import org.deri.any23.writer.TripleHandler;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.nx.parser.NxParser;
+import org.semanticweb.yars.util.CallbackNxAppender;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
 
 import com.ontologycentral.ldspider.any23.ContentHandlerAny23;
-import com.ontologycentral.ldspider.any23.ContentHandlerHybridRdfXmlAny23;
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
 import com.ontologycentral.ldspider.frontier.Frontier;
@@ -62,8 +66,6 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerLogger;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandlerRounds;
 import com.ontologycentral.ldspider.hooks.error.ObjectThrowable;
-import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
-import com.ontologycentral.ldspider.hooks.fetch.FetchFilterRdfXml;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterSuffix;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
@@ -76,6 +78,10 @@ import com.ontologycentral.ldspider.hooks.sink.SinkSparul;
 import com.ontologycentral.ldspider.http.Headers;
 import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.HashTableRedirects;
+import com.ontologycentral.ldspider.queue.Redirects;
+import com.ontologycentral.ldspider.seen.HashSetSeen;
+import com.ontologycentral.ldspider.seen.Seen;
+import com.ontologycentral.ldspider.seen.WrappingCallbackSeen;
 
 public class Main {
 	private final static Logger _log = Logger.getLogger(Main.class.getSimpleName());
@@ -304,6 +310,22 @@ public class Main {
 				.create("mapseed");
 		options.addOption(minApldSeedlist);
 		
+		Option resumebfc = OptionBuilder
+				.withDescription(
+						"Resume an interrupted breadth-first crawl. Requires a seen file and a redirects file. The old frontier should be the seedlist.")
+				.hasArgs(2).withArgName("seenfile redirectsfile").create("resumebfc");
+		options.addOption(resumebfc);
+		
+		Option diskSeen = OptionBuilder
+				.withDescription(
+						"Choose the on-disk Seen implementation. Argument: basefilename")
+				.hasArg().withArgName("filename").create("ds");
+		options.addOption(diskSeen);
+		
+		Option hopWiseSplit = OptionBuilder.withDescription(
+				"split output hopwise").create("hopsplit");
+		options.addOption(hopWiseSplit);
+
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
 		CommandLine cmd = null;
@@ -352,6 +374,9 @@ public class Main {
 
 		_log.info("no of seed uris " + seeds.size());
 
+		if (cmd.hasOption("hopsplit"))
+			CrawlerConstants.SPLIT_HOPWISE = true;
+		
 		Headers.Treatment headerTreatment = Headers.Treatment.INCLUDE;
 		
 		if (cmd.hasOption("e")) {
@@ -363,38 +388,52 @@ public class Main {
 
 		Sink sink;
 		OutputStream os = System.out;
-		CallbackNxOutputStream cbos = null;
-		CallbackNxOutputStream headerCbos = null;
+		Callback cbData = null;
+		Callback cbHeader = null;
 		
 		if (cmd.hasOption("oe")) {
-			sink = new SinkSparul(cmd.getOptionValue("oe"), headerTreatment == Headers.Treatment.INCLUDE);
+			sink = new SinkSparul(cmd.getOptionValue("oe"),
+					headerTreatment == Headers.Treatment.INCLUDE);
 		} else {
 			if (cmd.hasOption("o")) {
 				String path = cmd.getOptionValue("o");
-				if (path.endsWith(".gz"))
-					os = new BufferedOutputStream(new GZIPOutputStream(
-							new FileOutputStream(path)));
-				else
-					os = new BufferedOutputStream(new FileOutputStream(
-							cmd.getOptionValue("o")));
-				// os = new FileOutputStream(cmd.getOptionValue("o"));
-				CrawlerConstants.CLOSER.add(os);
+
+				if (CrawlerConstants.SPLIT_HOPWISE)
+					cbData = new CallbackNxAppender(
+							new HopwiseSplittingFileOutputter(path));
+				else {
+					if (path.endsWith(".gz"))
+						os = new BufferedOutputStream(new GZIPOutputStream(
+								new FileOutputStream(path)));
+					else
+						os = new BufferedOutputStream(
+								new FileOutputStream(path));
+					CrawlerConstants.CLOSER.add(os);
+				}
 			}
-			
-			cbos = new CallbackNxOutputStream(os, false);
-			
+
+			if (cbData == null)
+				cbData = new CallbackNxOutputStream(os, false);
+
 			OutputStream headerOS = null;
 
-			if (headerTreatment == Headers.Treatment.DUMP)
-				headerCbos = new CallbackNxOutputStream(
-						new BufferedOutputStream(headerOS = new FileOutputStream(
-								cmd.getOptionValue("dh"))), false);
+			if (headerTreatment == Headers.Treatment.DUMP) {
+				String path = cmd.getOptionValue("dh");
+				if (CrawlerConstants.SPLIT_HOPWISE)
+					cbHeader = new CallbackNxAppender(
+							new HopwiseSplittingFileOutputter(path));
+				else {
+					headerOS = new FileOutputStream(path);
+					cbHeader = new CallbackNxOutputStream(
+							new BufferedOutputStream(headerOS), false);
+				}
+			}
 			if (headerOS != null)
 				CrawlerConstants.CLOSER.add(headerOS);
 
-			sink = new SinkCallback(cbos,
-					headerTreatment != Headers.Treatment.DROP,
-					headerCbos);
+
+			sink = new SinkCallback(cbData,
+						headerTreatment != Headers.Treatment.DROP, cbHeader);
 		}
 
 		if (cmd.hasOption("cto")) {
@@ -409,35 +448,52 @@ public class Main {
 					.getOptionValue("sto"));
 		}
 
-		PrintStream ps = System.out;
+		// access.log
+		Appendable ps = System.out;
 		if (cmd.hasOption("a")) {
-			OutputStream accOs = cmd.getOptionValue("a").endsWith(".gz") ? new GZIPOutputStream(
-					new FileOutputStream(cmd.getOptionValue("a")))
-					: new FileOutputStream(cmd.getOptionValue("a"));
-			ps = new PrintStream(new BufferedOutputStream(accOs));
-			CrawlerConstants.CLOSER.add(ps);
+			if (CrawlerConstants.SPLIT_HOPWISE) {
+				ps = new HopwiseSplittingFileOutputter(cmd.getOptionValue("a"));
+			} else {
+				OutputStream accOs = cmd.getOptionValue("a").endsWith(".gz") ? new GZIPOutputStream(
+						new FileOutputStream(cmd.getOptionValue("a")))
+						: new FileOutputStream(cmd.getOptionValue("a"));
+				ps = new PrintStream(new BufferedOutputStream(accOs));
+				if (ps instanceof Closeable)
+					CrawlerConstants.CLOSER.add((Closeable) ps);
+			}
 		}
 
-		PrintStream rounds = null;
+		// roundslogging
+		Appendable rounds = null;
 		if (cmd.hasOption("v")) {
 			String path = cmd.getOptionValue("v");
-			if (path.endsWith(".gz"))
-				rounds = new PrintStream(new BufferedOutputStream(new GZIPOutputStream(
-						new FileOutputStream(path))));
-			else
-				rounds = new PrintStream(new FileOutputStream(
-						cmd.getOptionValue("v")));
-			CrawlerConstants.CLOSER.add(rounds);
+			if (CrawlerConstants.SPLIT_HOPWISE) {
+				rounds = new HopwiseSplittingFileOutputter(path);
+			} else {
+				if (path.endsWith(".gz"))
+					rounds = new PrintStream(new BufferedOutputStream(
+							new GZIPOutputStream(new FileOutputStream(path))));
+				else
+					rounds = new PrintStream(new FileOutputStream(path));
+				if (rounds instanceof Closeable)
+					CrawlerConstants.CLOSER.add((Closeable) rounds);
+			}
 		}
 
+		// redirects
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
-			OutputStream ros = cmd.getOptionValue("r").endsWith(".gz") ? new GZIPOutputStream(
-					new FileOutputStream(cmd.getOptionValue("r")))
-					: new FileOutputStream(cmd.getOptionValue("r"));
-			OutputStream fos = new BufferedOutputStream(ros);
-			CrawlerConstants.CLOSER.add(fos);
-			rcb = new CallbackNxOutputStream(fos, false);
+			if (CrawlerConstants.SPLIT_HOPWISE) {
+				rcb = new CallbackNxAppender(new HopwiseSplittingFileOutputter(
+						cmd.getOptionValue("r"), true));
+			} else {
+				OutputStream ros = cmd.getOptionValue("r").endsWith(".gz") ? new GZIPOutputStream(
+						new FileOutputStream(cmd.getOptionValue("r")))
+						: new FileOutputStream(cmd.getOptionValue("r"));
+				OutputStream fos = new BufferedOutputStream(ros);
+				CrawlerConstants.CLOSER.add(fos);
+				rcb = new CallbackNxOutputStream(fos, false);
+			}
 			rcb.startDocument();
 		}
 
@@ -547,7 +603,7 @@ public class Main {
 
 		TripleHandler headerTripleHandler = null;
 		if (headerTreatment == Headers.Treatment.DUMP)
-			headerTripleHandler = new CallbackNQuadTripleHandler(headerCbos);
+			headerTripleHandler = new CallbackNQuadTripleHandler(cbHeader);
 
 		ContentHandler ch;
 		// luckily, the interpretations of the null pointer from commons cli and
@@ -618,6 +674,33 @@ public class Main {
 //		}
 		
 		
+		Seen seen = null;
+		if (cmd.hasOption("ds")) {
+			seen = new WrappingCallbackSeen(new HashSetSeen(),
+					new CallbackNxAppender(new HopwiseSplittingFileOutputter(
+							cmd.getOptionValue("ds"), true)));
+
+//			String[] fNameExt = Util.determineFnameAndExtension(cmd.getOptionValue("ds"));
+//			
+//			CrawlerConstants.DUMP_SEEN_BASEFILENAME = fNameExt[0];
+//			CrawlerConstants.DUMP_SEEN_FILE_EXTENSION = fNameExt[1];
+//			
+//			seen = new DiskWritingWrappingSeen(
+//					new HashSetSeen(),
+//					new File(
+//							CrawlerConstants.DUMP_SEEN_BASEFILENAME
+//									+ "-0"
+//									+ (CrawlerConstants.DUMP_SEEN_FILE_EXTENSION
+//											.equals("") ? ""
+//											: "."
+//													+ CrawlerConstants.DUMP_SEEN_FILE_EXTENSION)));
+//			_log.info("Seen is a "
+//					+ DiskWritingWrappingSeen.class.getSimpleName()
+//					+ " with file "
+//					+ ((DiskWritingWrappingSeen) seen).getFile());
+		} else
+			seen = new HashSetSeen();
+
 		c.setErrorHandler(eh);
 		c.setOutputCallback(sink);
 		c.setLinkFilter(links);
@@ -628,12 +711,31 @@ public class Main {
 			CrawlerConstants.DUMP_FRONTIER = true;
 			CrawlerConstants.DUMP_FRONTIER_FILENAME = cmd.getOptionValue("df");
 		}
+		
+		Redirects redirects;
+		
 		if (cmd.hasOption("dr"))
-			c.setRedirsClass(DummyRedirects.class);
+			redirects = new DummyRedirects();
 		else
-			c.setRedirsClass(HashTableRedirects.class);
+			redirects = new HashTableRedirects();
 
 		if (cmd.hasOption("b")) {
+			
+			if (cmd.hasOption("resumebfc")) {
+				String[] filenames = cmd.getOptionValues("resumebfc");
+				String seenfilename = filenames[0];
+				String redirectsfilename = filenames[1];
+				_log.info("resuming breath first crawl with seen: "
+						+ seenfilename + " and redirects: " + redirectsfilename
+						+ " .");
+
+				// loading seen to be resumed from
+				readFromThisFileIntoThisSeen(seenfilename, seen);
+
+				// loading redirects file
+				readFromThisFileIntoThisRedirects(redirectsfilename, redirects);
+			}
+			
 			String[] vals = cmd.getOptionValues("b");
 
 			int depth = Integer.parseInt(vals[0]);
@@ -649,19 +751,19 @@ public class Main {
 
 			_log.info("breadth-first crawl with " + CrawlerConstants.NB_THREADS + " threads, depth " + depth + " maxuris " + maxuris + " maxplds " + maxplds + " minActivePlds " + cmd.getOptionValue("minpld", "unspecified"));
 
-			c.evaluateBreadthFirst(frontier, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")), cmd.hasOption("mapseed") );
+			c.evaluateBreadthFirst(frontier, seen, redirects, depth, maxuris, maxplds, Integer.parseInt(cmd.getOptionValue("minpld", "-1")), cmd.hasOption("mapseed") );
 		} else if (cmd.hasOption("c")) {
 			int maxuris = Integer.parseInt(cmd.getOptionValues("c")[0]);
 
 			_log.info("load balanced crawl with " + CrawlerConstants.NB_THREADS + " threads, maxuris " + maxuris);
 
-			c.evaluateLoadBalanced(frontier, maxuris);
+			c.evaluateLoadBalanced(frontier, seen, maxuris);
 		} else if (cmd.hasOption("d")) {
 			_log.info("sequential download with " + CrawlerConstants.NB_THREADS + " threads");
 			ZipContentHandler zch = new ZipContentHandler(new File(cmd.getOptionValue("d")));
 			c.setContentHandler(zch);
 
-			c.evaluateSequential(frontier);
+			c.evaluateSequential(frontier, seen);
 
 			try {
 				zch.close();
@@ -693,22 +795,86 @@ public class Main {
 			rcb.endDocument();
 		}
 
-		if (cbos != null)
-			cbos.endDocument();
+		if (cbData != null)
+			cbData.endDocument();
 		
-		if (headerCbos != null) 
-			headerCbos.endDocument();
+		if (cbHeader != null) 
+			cbHeader.endDocument();
 
 		System.err.println("time elapsed " + (time1-time) + " ms " + (float)eh.lookups()/((time1-time)/1000.0) + " lookups/sec");
+	}
+
+	static void readFromThisFileIntoThisSeen(String seenfilename, Seen seen)
+			throws FileNotFoundException, IOException {
+		File inSeenFile = new File(seenfilename);
+
+		InputStream is = inSeenFile.getAbsolutePath().endsWith(".gz") ? new GZIPInputStream(
+				new FileInputStream(inSeenFile)) : new FileInputStream(
+				inSeenFile);
+
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
+		String line = null;
+
+		int i = 0;
+
+		while ((line = br.readLine()) != null) {
+			try {
+				seen.add(new URI(line));
+				++i;
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
+				_log.info("Dropping from seen: " + line);
+			}
+		}
+
+		_log.info("Read " + i + " URIs from " + seenfilename + " into Seen.");
+
+		br.close();
+
+	}
+
+	static void readFromThisFileIntoThisRedirects(String redirectsfilename,
+			Redirects redirects) throws FileNotFoundException, IOException {
+		File inRedirectsFile = new File(redirectsfilename);
+
+		InputStream is = inRedirectsFile.getAbsolutePath().endsWith(".gz") ? new GZIPInputStream(
+				new FileInputStream(inRedirectsFile)) : new FileInputStream(
+				inRedirectsFile);
+
+		int i = 0;
+
+		NxParser nxp = new NxParser(is);
+		for (Node[] nx : nxp) {
+
+			if (nx[0] instanceof Resource && nx[1] instanceof Resource) {
+				Resource from = (Resource) nx[0];
+				Resource to = (Resource) nx[1];
+
+				if (from != null && to != null) {
+					redirects.put(from.toURI(), to.toURI());
+					++i;
+				} else
+					_log.info("Dropping from redirects because of URI problems: "
+							+ from + " to " + to);
+			} else
+				_log.info("Not all resources: redirect " + nx[0] + " to "
+						+ nx[1]);
+
+		}
+		is.close();
+
+		_log.info("Read " + i + " pairs from " + redirectsfilename
+				+ " into Redirects.");
+
 	}
 
 	/**
 	 * 
 	 * @param q - queue
 	 * @param seedList
-	 * @throws FileNotFoundException - should never happen since the check was done in method before
+	 * @throws IOException 
 	 */
-	static Set<URI> readSeeds(File seedList) throws FileNotFoundException {
+	static Set<URI> readSeeds(File seedList) throws IOException {
 		Set<URI> seeds = new HashSet<URI>();
 
 		BufferedReader br = new BufferedReader(new FileReader(seedList));
@@ -736,6 +902,8 @@ public class Main {
 			e.printStackTrace();
 			_log.fine(e.getMessage());
 		}
+		
+		br.close();
 
 		_log.info("read " + i + " lines from seed file");
 

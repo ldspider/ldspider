@@ -1,10 +1,8 @@
 package com.ontologycentral.ldspider;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.semanticweb.yars.nx.parser.Callback;
@@ -19,10 +17,12 @@ import com.ontologycentral.ldspider.hooks.fetch.FetchFilter;
 import com.ontologycentral.ldspider.hooks.fetch.FetchFilterAllow;
 import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
+import com.ontologycentral.ldspider.hooks.sink.LastReporter;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
 import com.ontologycentral.ldspider.hooks.sink.SinkDummy;
 import com.ontologycentral.ldspider.hooks.sink.SpyingSinkCallback;
+import com.ontologycentral.ldspider.hooks.sink.TakingHopsIntoAccount;
 import com.ontologycentral.ldspider.http.ConnectionManager;
 import com.ontologycentral.ldspider.http.LookupThread;
 import com.ontologycentral.ldspider.http.robot.Robots;
@@ -32,6 +32,7 @@ import com.ontologycentral.ldspider.queue.DummyRedirects;
 import com.ontologycentral.ldspider.queue.LoadBalancingQueue;
 import com.ontologycentral.ldspider.queue.Redirects;
 import com.ontologycentral.ldspider.queue.SpiderQueue;
+import com.ontologycentral.ldspider.seen.Seen;
 
 public class Crawler {
 	Logger _log = Logger.getLogger(this.getClass().getName());
@@ -180,7 +181,7 @@ public class Crawler {
 	    
 //	    _sitemaps = new Sitemaps(_cm);
 //	    _sitemaps.setErrorHandler(_eh);
-		
+	    
 	    _contentHandler = new ContentHandlerRdfXml();
 	    _output = new SinkDummy();
 		_ff = new FetchFilterAllow();
@@ -219,42 +220,31 @@ public class Crawler {
 	}
 	
 	public void setOutputCallback(Sink sink) {
-		_output = new SpyingSinkCallback(sink);
+		if (sink instanceof LastReporter)
+			_output = sink;
+		else
+			_output = new SpyingSinkCallback(sink);
 	}
 	
 	public void setLinkFilter(LinkFilter links) {
 		_links = links;
 	}
 	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
-		evaluateBreadthFirst(frontier, depth, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist, Mode.ABOX_AND_TBOX);
-	}
-	
-	public void evaluateBreadthFirst(Frontier frontier, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist, Mode crawlingMode) {
-		Redirects r = null;
+	public void evaluateBreadthFirst(Frontier frontier, Seen seen, Redirects redirects, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist, Mode crawlingMode) {
+		Redirects r = redirects;
 		if (_queue != null)
 			r = _queue.getRedirects();
-		if (r == null)
-			try {
-				r = _redirsClass.newInstance();
-			} catch (InstantiationException e) {
-				_log.info("InstantiationException. Using dummy.");
-				r = new DummyRedirects();
-			} catch (IllegalAccessException e) {
-				_log.info("IllegalAccessException. Using dummy.");
-				r = new DummyRedirects();
-			}
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue || _queue instanceof DiskBreadthFirstQueue)) {
 			if (CrawlerConstants.BREADTHFIRSTQUEUE_ONDISK)
-				_queue = new DiskBreadthFirstQueue(_tldm, r, minActPlds);
+				_queue = new DiskBreadthFirstQueue(_tldm, r, seen, minActPlds);
 			else
-				_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds,
+				_queue = new BreadthFirstQueue(_tldm, r, seen, maxuris, maxplds,
 						minActPlds, minActPldsAlready4Seedlist);
 		} else {
-			Set<URI> seen = _queue.getSeen();
-			_queue = new BreadthFirstQueue(_tldm, r, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist);
+			Seen tempseen = _queue.getSeen();
+			_queue = new BreadthFirstQueue(_tldm, r, seen, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist);
 			_queue.setRedirects(r);
-			_queue.setSeen(seen);
+			_queue.setSeen(tempseen);
 		}
 		
 		if (_links == null) {
@@ -267,34 +257,34 @@ public class Crawler {
 		_links.setFollowTBox(crawlingMode.followTBox());
 		
 		_log.info(_queue.toString());
-
+	
 		int rounds = crawlingMode.doExtraRound() ? depth + 1 : depth;
 		for (int curRound = 0; (curRound <= rounds)
 				&& (CrawlerConstants.URI_LIMIT_ENABLED ? (LookupThread
 				.getOverall200FetchesWithNonEmptyRDF() < CrawlerConstants.URI_LIMIT_WITH_NON_EMPTY_RDF)
 				: true); curRound++) {
 			List<Thread> ts = new ArrayList<Thread>();
-
+	
 			//Extra round to get TBox
 			if(curRound == depth) {
 				_links.setFollowABox(false);
 				_links.setFollowTBox(true);
 			}
-
+	
 			for (int j = 0; j < _threads; j++) {
 				LookupThread lt = new LookupThread(_cm, _queue, _contentHandler, _output, _links, _robots, _eh, _ff, _blacklist, j);
 				ts.add(lt); //new Thread(lt,"LookupThread-"+j));		
 			}
-
+	
 			_log.info("Starting threads round " + curRound + " with " + _queue.size() + " uris");
 			
 			Monitor m = new Monitor(ts, System.err, 1000*10);
 			m.start();
-
+	
 			for (Thread t : ts) {
 				t.start();
 			}
-
+	
 			for (Thread t : ts) {
 				try {
 					t.join();
@@ -308,20 +298,35 @@ public class Crawler {
 			
 			_log.info("ROUND " + curRound + " DONE with " + _queue.size() + " uris remaining in queue");
 			_log.fine("old queue: \n" + _queue.toString());
-
-			if (_output instanceof SpyingSinkCallback)
+	
+			if (_output instanceof LastReporter)
 				_log.info("Last non-empty context of this hop (# " + curRound
-						+ " ): " + ((SpyingSinkCallback) _output).whoWasLast());
+						+ " ): " + ((LastReporter) _output).whoWasLast());
+			
+			if (CrawlerConstants.SPLIT_HOPWISE) {
+
+				for (TakingHopsIntoAccount thia : CrawlerConstants.THOSE_WHO_TAKE_HOPS_INTO_ACCOUNT) {
+					try {
+						thia.nextHop(curRound + 1);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
 
 			_queue.schedule(frontier);
-
+	
 			_eh.handleNextRound();
-
+	
 			_log.fine("new queue: \n" + _queue.toString());
 		}
 	}
-	
-	public void evaluateLoadBalanced(Frontier frontier, int maxuris) {
+	public void evaluateBreadthFirst(Frontier frontier, Seen seen, Redirects redirects, int depth, int maxuris, int maxplds, int minActPlds, boolean minActPldsAlready4Seedlist) {
+		evaluateBreadthFirst(frontier, seen, redirects, depth, maxuris, maxplds, minActPlds, minActPldsAlready4Seedlist, Mode.ABOX_AND_TBOX);
+	}
+
+	public void evaluateLoadBalanced(Frontier frontier, Seen seen, int maxuris) {
 		if (_queue == null || !(_queue instanceof LoadBalancingQueue)) {
 			Redirects r = null;
 			if (_queue != null)
@@ -336,11 +341,11 @@ public class Crawler {
 					_log.info("IllegalAccessException. Using dummy.");
 					r = new DummyRedirects();
 				}
-			_queue = new LoadBalancingQueue(_tldm, r);
+			_queue = new LoadBalancingQueue(_tldm, r, seen);
 		} else {
 			Redirects r = _queue.getRedirects();
-			Set<URI> seen = _queue.getSeen();
-			_queue = new LoadBalancingQueue(_tldm, r);
+			seen = _queue.getSeen();
+			_queue = new LoadBalancingQueue(_tldm, r, seen);
 			_queue.setSeen(seen);
 		}
 
@@ -398,7 +403,7 @@ public class Crawler {
 		}
 	}
 	
-	public void evaluateSequential(Frontier frontier) {
+	public void evaluateSequential(Frontier frontier, Seen seen) {
 		Redirects r = null;
 		try {
 			r = _redirsClass.newInstance();
@@ -410,7 +415,7 @@ public class Crawler {
 			r = new DummyRedirects();
 		}
 
-		_queue = new BreadthFirstQueue(_tldm, r, Integer.MAX_VALUE, Integer.MAX_VALUE, -1, false);
+		_queue = new BreadthFirstQueue(_tldm, r, seen, Integer.MAX_VALUE, Integer.MAX_VALUE, -1, false);
 		_queue.schedule(frontier);
 
 		

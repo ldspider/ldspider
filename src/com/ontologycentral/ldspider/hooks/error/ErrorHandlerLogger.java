@@ -1,5 +1,7 @@
 package com.ontologycentral.ldspider.hooks.error;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
@@ -37,7 +39,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	protected final Map<Integer, Integer> _time;
 	protected final Map<Integer, Integer> _rotime;
 	
-	PrintStream _logger = null;
+	Appendable _logger = null;
 	
 	Callback _redirects = null;
 	
@@ -45,14 +47,14 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	long _lookups;
 
-	public ErrorHandlerLogger(PrintStream out, Callback redirects) {
+	public ErrorHandlerLogger(Appendable out, Callback redirects) {
 		this(out, redirects, false);
 	}
 	
 	/**
 	 * logging redirects to file
 	 */
-	public ErrorHandlerLogger(PrintStream out, Callback redirects, boolean summary) {
+	public ErrorHandlerLogger(Appendable out, Callback redirects, boolean summary) {
 		_logger = out;
 		
 		_summary = summary;
@@ -153,8 +155,13 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			sb.append(type);
 
 			synchronized(this) {
-				_logger.println(sb.toString());
-				//_logger.flush();
+				try {
+					_logger.append(sb);
+					_logger.append(System.lineSeparator());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		} 
 	}
@@ -174,6 +181,13 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	}
 
 	public String toString() {
+		if (_summary)
+			return summaryToString();
+		else
+			return "";
+	}
+	
+	public String summaryToString() {
 		StringBuffer sb = new StringBuffer();
 
 		sb.append("robots.txt lookups\n");
@@ -226,8 +240,12 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	}
 	
 	public void close() {
-		if(_logger != null) {
-			_logger.close();
+		if(_logger != null && _logger instanceof Closeable) {
+			try {
+				((Closeable)_logger).close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

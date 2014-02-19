@@ -86,6 +86,8 @@ public class LookupThread extends Thread {
 			
 			setName("LT-"+_no+":"+lu.toString());
 			
+			_q.addSeen(lu);
+			
 			i++;
 			long time = System.currentTimeMillis();
 			

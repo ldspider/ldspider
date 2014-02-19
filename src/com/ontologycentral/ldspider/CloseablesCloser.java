@@ -14,7 +14,7 @@ import java.util.logging.Logger;
  * @author Tobias Käfer
  * 
  */
-class CloseablesCloser extends Thread implements Set<Closeable> {
+public class CloseablesCloser extends Thread implements Set<Closeable> {
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
 	private Set<Closeable> _streams = new HashSet<Closeable>();
