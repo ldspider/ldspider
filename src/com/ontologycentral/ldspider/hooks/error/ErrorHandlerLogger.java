@@ -46,6 +46,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	boolean _summary;
 	
 	long _lookups;
+	
+	final String lineSeparator = System.getProperty("line.separator");
 
 	public ErrorHandlerLogger(Appendable out, Callback redirects) {
 		this(out, redirects, false);
@@ -157,7 +159,7 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			synchronized(this) {
 				try {
 					_logger.append(sb);
-					_logger.append(System.lineSeparator());
+					_logger.append(lineSeparator);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

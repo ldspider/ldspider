@@ -45,7 +45,7 @@ public class MainTest extends TestCase {
 
 			for (Entry<URI, URI> e : testDataRedirects.entrySet()) {
 				bw.write("<" + e.getKey() + "> <" + e.getValue() + "> .");
-				bw.write(System.lineSeparator());
+				bw.write(System.getProperty("line.separator"));
 			}
 
 			bw.close();
@@ -80,7 +80,7 @@ public class MainTest extends TestCase {
 
 			for (URI u : testDataSeen) {
 				bw.write(u.toString());
-				bw.write(System.lineSeparator());
+				bw.write(System.getProperty("line.separator"));
 			}
 
 			bw.close();
