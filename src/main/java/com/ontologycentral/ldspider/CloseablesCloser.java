@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Thread that closes some Closeables upon run.
  * 
- * @author Tobias Käfer
+ * @author Tobias KÃ¤fer
  * 
  */
 public class CloseablesCloser extends Thread implements Set<Closeable> {

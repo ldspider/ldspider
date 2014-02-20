@@ -7,7 +7,7 @@ import org.semanticweb.yars.nx.parser.Callback;
  * A {@link org.semanticweb.yars.nx.parser.Callback Callback} counting the
  * statements it has been supplied.
  * 
- * @author Tobias Käfer
+ * @author Tobias KÃ¤fer
  * 
  */
 

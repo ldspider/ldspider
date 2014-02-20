@@ -158,9 +158,9 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 //	 TripleHandler th = new CallbackNQuadTripleHandler(cb);
 //	
 //	 th.receiveTriple(new BNodeImpl("subjBnode"), new URIImpl(
-//	 "http://blubb.de/pr‰dikat"), new LiteralImpl("aa‰‰ﬂﬂ·",
-//	 new URIImpl("http://blˆbb.de/dt")), null,
-//	 new ExtractionContext("bla", new URIImpl("http://bl¸bb.de/c")));
+//	 "http://blubb.de/pr√§dikat"), new LiteralImpl("aa√§√§√ü√ü√°",
+//	 new URIImpl("http://bl√∂bb.de/dt")), null,
+//	 new ExtractionContext("bla", new URIImpl("http://bl√ºbb.de/c")));
 //	
 //	 }
 }
