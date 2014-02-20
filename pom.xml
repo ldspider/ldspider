@@ -8,6 +8,12 @@
 	<version>1.2</version>
 	<packaging>jar</packaging>
 	<name>LDspider</name>
+	<url>https://code.google.com/p/ldspider/</url>
+
+	<issueManagement>
+		<system>Google Code</system>
+		<url>https://code.google.com/p/ldspider/issues/list</url>
+	</issueManagement>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -30,7 +36,7 @@
 		</repository>
 		<repository>
 			<id>ldspider-snapshots</id>
-			<url>https://nxparser.googlecode.com/svn/snapshots</url>
+			<url>https://ldspider.googlecode.com/svn/snapshots</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
@@ -153,12 +159,23 @@
 					</archive>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.ontologycentral.ldspider.Main</mainClass>
+						</manifest>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
-	<url>https://code.google.com/p/ldspider/</url>
-	<issueManagement>
-		<system>Google Code</system>
-		<url>https://code.google.com/p/ldspider/issues/list</url>
-	</issueManagement>
+
 </project>
