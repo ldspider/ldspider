@@ -236,7 +236,7 @@ public class Crawler {
 			r = _queue.getRedirects();
 		if (_queue == null || !(_queue instanceof BreadthFirstQueue || _queue instanceof DiskBreadthFirstQueue)) {
 			if (CrawlerConstants.BREADTHFIRSTQUEUE_ONDISK)
-				_queue = new DiskBreadthFirstQueue(_tldm, r, seen, minActPlds);
+				_queue = new DiskBreadthFirstQueue(_tldm, r, seen, minActPlds, minActPldsAlready4Seedlist);
 			else
 				_queue = new BreadthFirstQueue(_tldm, r, seen, maxuris, maxplds,
 						minActPlds, minActPldsAlready4Seedlist);

@@ -2,6 +2,7 @@ package com.ontologycentral.ldspider.frontier;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,12 +22,14 @@ import java.util.zip.GZIPOutputStream;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.NodeComparator;
 import org.semanticweb.yars.nx.NodeComparator.NodeComparatorArgs;
+import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars.nx.sort.SortIterator;
 import org.semanticweb.yars.nx.sort.SortIterator.SortArgs;
-import org.semanticweb.yars.util.CallbackNxBufferedWriter;
+import org.semanticweb.yars.nx.util.NxUtil;
+import org.semanticweb.yars.util.CallbackNxAppender;
 import org.semanticweb.yars.util.Node2uriConvertingIterator;
 import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
@@ -37,11 +40,12 @@ import com.ontologycentral.ldspider.CrawlerConstants;
  * @author Tobias Kaefer
  * 
  */
-public class SortingDiskFrontier extends Frontier {
+public class SortingDiskFrontier extends Frontier implements Closeable {
 
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	BufferedWriter _bw;
+	CallbackNxAppender _cb;
+	Closeable _clo;
 
 	static final String FILENAME_BASE = "ldspider-diskFrontierTmp";
 	static final String FILENAME_CURRENT = FILENAME_BASE + "-Current";
@@ -53,7 +57,7 @@ public class SortingDiskFrontier extends Frontier {
 
 	final boolean _sortBeforeIterating;
 	final boolean _gzipFrontier;
-	
+
 	final String SUFFIX;
 
 	public SortingDiskFrontier() throws IOException {
@@ -71,7 +75,10 @@ public class SortingDiskFrontier extends Frontier {
 		OutputStream os = _gzipFrontier ? new GZIPOutputStream(
 				new FileOutputStream(_currentTempFile)) : new FileOutputStream(
 				_currentTempFile);
-		_bw = new BufferedWriter(new OutputStreamWriter(os));
+		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+		_clo = bw;
+		_cb = new CallbackNxAppender(bw);
+		CrawlerConstants.CLOSER.add(this);
 	}
 
 	@Override
@@ -79,15 +86,10 @@ public class SortingDiskFrontier extends Frontier {
 		u = process(u);
 		if (u == null)
 			return;
-		try {
-			_bw.write("<");
-			_bw.write(u.toString());
-			_bw.write("> .\n");
-			_isSorted = false;
-		} catch (IOException e) {
-			// _log.warning(e.getLocalizedMessage());
-			e.printStackTrace();
-		}
+
+		_cb.processStatement(new Node[] { new Resource(NxUtil.escapeForNx(u
+				.toString())) });
+		_isSorted = false;
 
 	}
 
@@ -100,7 +102,7 @@ public class SortingDiskFrontier extends Frontier {
 	@Override
 	public void reset() {
 		try {
-			_bw.close();
+			_clo.close();
 		} catch (IOException e1) {
 			_log.warning(e1.getMessage());
 		}
@@ -117,7 +119,9 @@ public class SortingDiskFrontier extends Frontier {
 			OutputStream os = _gzipFrontier ? new GZIPOutputStream(
 					new FileOutputStream(_currentTempFile))
 					: new FileOutputStream(_currentTempFile);
-			_bw = new BufferedWriter(new OutputStreamWriter(os));
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+			_clo = bw;
+			_cb = new CallbackNxAppender(bw);
 		} catch (IOException e) {
 			_log.warning(e.getMessage());
 		}
@@ -131,18 +135,18 @@ public class SortingDiskFrontier extends Frontier {
 		final BufferedReader br;
 
 		try {
-			_bw.close();
+			_clo.close();
 
 			if (!_isSorted && _sortBeforeIterating) {
 				_sortedTempFile = sort(_currentTempFile);
 				_sortedTempFile.deleteOnExit();
 			}
 
-			File file = _sortBeforeIterating ? _sortedTempFile : _currentTempFile;
-			
+			File file = _sortBeforeIterating ? _sortedTempFile
+					: _currentTempFile;
+
 			InputStream is = _gzipFrontier ? new GZIPInputStream(
-					new FileInputStream(file)) : new FileInputStream(
-					file);
+					new FileInputStream(file)) : new FileInputStream(file);
 
 			br = new BufferedReader(new InputStreamReader(is));
 
@@ -150,11 +154,11 @@ public class SortingDiskFrontier extends Frontier {
 		} catch (IOException e) {
 			_log.warning("IOException. " + e.getLocalizedMessage()
 					+ ". returning empty iterator!");
-			return Collections.<URI>emptyList().iterator();
+			return Collections.<URI> emptyList().iterator();
 		} catch (ParseException e) {
 			_log.warning("ParseException. " + e.getLocalizedMessage()
 					+ ". returning empty iterator!");
-			return Collections.<URI>emptyList().iterator();
+			return Collections.<URI> emptyList().iterator();
 		}
 
 		return new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
@@ -162,28 +166,35 @@ public class SortingDiskFrontier extends Frontier {
 
 	}
 
-	private File sort(File in) throws IOException, ParseException {
+	File sort(File in) throws IOException, ParseException {
 		_log.info("Sorting the frontier...");
-		
+
 		System.gc();
+
+		InputStream is;
+		OutputStream os;
 		
-		InputStream is = _gzipFrontier ? new GZIPInputStream(
-				new FileInputStream(in)) : new FileInputStream(in);
-
-		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-
 		File out = File.createTempFile(FILENAME_SORTED, SUFFIX);
-
-		OutputStream os = _gzipFrontier ? new GZIPOutputStream(
-				new FileOutputStream(out)) : new FileOutputStream(out);
-
+		out.deleteOnExit();
+		
+		if (_gzipFrontier) {
+			is = new GZIPInputStream(
+					new FileInputStream(in));
+			os = new GZIPOutputStream(
+					new FileOutputStream(out));
+		} else {
+			is = new FileInputStream(in);
+			os = new FileOutputStream(out);
+		}
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
 
 		// Code from NxParser's Sort class
 
 		Iterator<Node[]> it = new NxParser(br);
 
-		Callback cb = new CallbackNxBufferedWriter(bw, true);
+		Callback cb = new CallbackNxAppender(bw);
 
 		NodeComparatorArgs nca = new NodeComparatorArgs();
 
@@ -203,18 +214,29 @@ public class SortingDiskFrontier extends Frontier {
 		Iterator<Node[]> iter = si;
 
 		cb.startDocument();
-
+		
 		while (iter.hasNext()) {
 			cb.processStatement(iter.next());
 		}
-
+		
 		cb.endDocument();
+
+		br.close();
+		bw.close();
 
 		in.delete();
 
-		_log.info("Finished sorting the frontier. Sorted " + si.count() + " with "
-				+ si.duplicates() + " duplicates.");
+		_log.info("Finished sorting the frontier. Sorted " + si.count()
+				+ " with " + si.duplicates() + " duplicates.");
 
 		return out;
 	}
+
+	@Override
+	public void close() throws IOException {
+		_clo.close();
+		
+	}
+	
+	
 }

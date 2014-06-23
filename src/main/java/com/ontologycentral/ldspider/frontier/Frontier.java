@@ -47,10 +47,10 @@ public abstract class Frontier implements Iterable<URI> {
 		String path = u.getPath();
 		if (path == null || path.length() == 0) {
 			path = "/";
-		} else if (path.endsWith("/index.html")) {
-			path = path.substring(0, path.length()-10);
-		} else if (path.endsWith("/index.htm") || path.endsWith("/index.php") || path.endsWith("/index.asp")) {
-			path = path.substring(0, path.length()-9);
+//		} else if (path.endsWith("/index.html")) {
+//			path = path.substring(0, path.length()-10);
+//		} else if (path.endsWith("/index.htm") || path.endsWith("/index.php") || path.endsWith("/index.asp")) {
+//			path = path.substring(0, path.length()-9);
 		}
 
 		if (u.getHost() == null) {

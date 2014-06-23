@@ -1,10 +1,10 @@
 package com.ontologycentral.ldspider.any23;
 
-import org.deri.any23.extractor.ExtractionContext;
-import org.deri.any23.filter.ExtractionContextBlocker;
-import org.deri.any23.vocab.SINDICE;
-import org.deri.any23.writer.TripleHandler;
-import org.deri.any23.writer.TripleHandlerException;
+import org.apache.any23.extractor.ExtractionContext;
+import org.apache.any23.filter.ExtractionContextBlocker;
+import org.apache.any23.vocab.SINDICE;
+import org.apache.any23.writer.TripleHandler;
+import org.apache.any23.writer.TripleHandlerException;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;

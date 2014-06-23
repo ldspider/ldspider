@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.deri.any23.extractor.ExtractorFactory;
-import org.deri.any23.extractor.ExtractorRegistry;
-import org.deri.any23.mime.MIMEType;
+import org.apache.any23.extractor.ExtractorFactory;
+import org.apache.any23.extractor.ExtractorRegistryImpl;
+import org.apache.any23.mime.MIMEType;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.util.CallbackCount;
 
@@ -173,7 +173,7 @@ public class ContentHandlerAny23 implements ContentHandler {
 	 */
 	public String[] getMimeTypes() {
 		// get extractors
-		Iterator<ExtractorFactory<?>> it = ExtractorRegistry.getInstance()
+		Iterator<ExtractorFactory<?>> it = ExtractorRegistryImpl.getInstance()
 				.getExtractorGroup().iterator();
 		List<MIMEType> mTypes = new ArrayList<MIMEType>();
 		while (it.hasNext()) {

@@ -6,6 +6,7 @@ import java.util.Collection;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
+import org.semanticweb.yars.nx.util.NxUtil;
 
 /**
  * A {@link Seen} implementation that passes the seen {@link URI}s to a wrapped
@@ -37,7 +38,9 @@ public class WrappingCallbackSeen implements Seen {
 
 	public boolean add(URI uri) {
 		boolean ret = _seen.add(uri);
-		_cb.processStatement(new Node[] { new Resource(uri) });
+		if (ret)
+			_cb.processStatement(new Node[] { new Resource(NxUtil
+					.escapeForNx(uri.toString())) });
 		return ret;
 	}
 

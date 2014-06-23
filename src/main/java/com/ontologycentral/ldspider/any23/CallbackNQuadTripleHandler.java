@@ -1,63 +1,33 @@
-package ie.deri.urq.lidaq.source;
+package com.ontologycentral.ldspider.any23;
 
-import java.util.Arrays;
+import java.net.URISyntaxException;
 import java.util.logging.Logger;
 
-import org.deri.any23.extractor.ExtractionContext;
-import org.deri.any23.writer.TripleHandler;
-import org.deri.any23.writer.TripleHandlerException;
+import org.apache.any23.extractor.ExtractionContext;
+import org.apache.any23.writer.TripleHandler;
+import org.apache.any23.writer.TripleHandlerException;
 import org.openrdf.model.BNode;
 import org.openrdf.model.Literal;
 import org.openrdf.model.Resource;
 import org.openrdf.model.URI;
 import org.openrdf.model.Value;
-import org.openrdf.model.impl.BNodeImpl;
-import org.openrdf.model.impl.LiteralImpl;
-import org.openrdf.model.impl.URIImpl;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.util.NxUtil;
 
 /**
- * @author Juergen Umbrich (firstname.lastname@deri.org)
  * @author Tobias Kaefer
  */
 public class CallbackNQuadTripleHandler implements TripleHandler {
 
-	Logger _log = Logger.getLogger(this.getClass().getName());
+	Logger _log = Logger.getLogger(CallbackNQuadTripleHandler.class.getName());
 
-	private Callback cb;
+	private Callback _cb;
 
-	/**
-	 * @param callback
-	 */
 	public CallbackNQuadTripleHandler(Callback callback) {
-		cb = callback;
+		_cb = callback;
 	}
 
-	public void close() throws TripleHandlerException {
-		;
-	}
-
-	public void closeContext(ExtractionContext arg0)
-			throws TripleHandlerException {
-		;
-	}
-
-	public void endDocument(URI arg0) throws TripleHandlerException {
-		;
-	}
-
-	public void openContext(ExtractionContext arg0)
-			throws TripleHandlerException {
-		;
-	}
-
-	public void receiveNamespace(String arg0, String arg1,
-			ExtractionContext arg2) throws TripleHandlerException {
-		;
-	}
-	
 	/**
 	 * Receive triple in openrdf's classes, convert it to NxParser's classes
 	 * and process it in the callback.
@@ -93,12 +63,24 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 								+ " . Context was: " + arg4.getDocumentURI()
 								+ " . Dropping statement.");
 			}
-		cb.processStatement(nx);
+		_cb.processStatement(nx);
 	}
 
-	private org.semanticweb.yars.nx.Resource convert(URI arg0) throws TripleHandlerException{
-		return new org.semanticweb.yars.nx.Resource(NxUtil.escapeForNx(arg0
-				.stringValue()));
+	private org.semanticweb.yars.nx.Resource convert(org.openrdf.model.URI arg0)
+			throws TripleHandlerException {
+		java.net.URI uri;
+		org.semanticweb.yars.nx.Resource res;
+		try {
+			uri = new java.net.URI(arg0.stringValue());
+			res = new org.semanticweb.yars.nx.Resource(
+					NxUtil.escapeForNx(new java.net.URI(uri.getScheme(), uri
+							.getAuthority(), uri.getPath(), uri.getQuery(), uri
+							.getFragment()).toString()));
+		} catch (URISyntaxException e) {
+			res = new org.semanticweb.yars.nx.Resource(NxUtil.escapeForNx(arg0
+					.stringValue()));
+		}
+		return res;
 	}
 
 	/**
@@ -134,33 +116,43 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 		}
 	}
 
+	@Override
+	public void close() throws TripleHandlerException {
+		;
+	}
+
+	@Override
+	public void closeContext(ExtractionContext arg0)
+			throws TripleHandlerException {
+		;
+	}
+
+	@Override
+	public void endDocument(URI arg0) throws TripleHandlerException {
+		;
+	}
+
+	@Override
+	public void openContext(ExtractionContext arg0)
+			throws TripleHandlerException {
+		;
+	}
+
+	@Override
+	public void receiveNamespace(String arg0, String arg1,
+			ExtractionContext arg2) throws TripleHandlerException {
+		;
+	}
+
+	@Override
 	public void setContentLength(long arg0) {
 		;
 	}
 
+	@Override
 	public void startDocument(URI arg0) throws TripleHandlerException {
 		;
 	}
-	
-//	 public static void main(String [] args) throws TripleHandlerException {
-//	 Callback cb = new Callback() {
-//	 public void startDocument() {;}
-//	
-//	 public void endDocument() {;}
-//	
-//	 public void processStatement(Node[] nx) {
-//	 System.out.println(Arrays.toString(nx));
-//	 for (Node n : nx)
-//	 System.out.println(n.toN3());
-//	 }
-//	 };
-//	
-//	 TripleHandler th = new CallbackNQuadTripleHandler(cb);
-//	
-//	 th.receiveTriple(new BNodeImpl("subjBnode"), new URIImpl(
-//	 "http://blubb.de/prädikat"), new LiteralImpl("aaääßßá",
-//	 new URIImpl("http://blöbb.de/dt")), null,
-//	 new ExtractionContext("bla", new URIImpl("http://blübb.de/c")));
-//	
-//	 }
+
+
 }

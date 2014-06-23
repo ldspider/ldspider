@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -256,7 +257,12 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			Node[] nx = new Node[2];
 
 			nx[0] = new Resource(NxParser.escapeForNx(from.toString()));
-			nx[1] = new Resource(NxParser.escapeForNx(to.toString()));
+			try {
+				nx[1] = new Resource(NxParser.escapeForNx(new URI(to.getScheme(), to.getAuthority(), to.getPath(), to.getQuery(), to.getFragment()).toString()));
+			} catch (URISyntaxException e) {
+				_log.info("problems with " + to);
+				nx[1] = new Resource(NxParser.escapeForNx(to.toString()));
+			}
 
 			_redirects.processStatement(nx);		
 		}

@@ -58,7 +58,7 @@ public class ErrorHandlerRounds extends ErrorHandlerLogger {
 		try {
 			URI touri = new URI(to.toString());
 			touri = Frontier.normalise(touri);
-			to = new Resource(touri.toString());
+			to = new Resource(NxUtil.escapeForNx(touri.toString()));
 			
 			synchronized(this) {
 				_out.append(from.toN3());

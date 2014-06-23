@@ -1,6 +1,6 @@
 package com.ontologycentral.ldspider.any23;
 
-import org.deri.any23.writer.TripleHandler;
+import org.apache.any23.writer.TripleHandler;
 
 import com.ontologycentral.ldspider.hooks.content.AllrounderPretendingContentHandler;
 import com.ontologycentral.ldspider.hooks.content.ContentHandlerRdfXml;

@@ -1,6 +1,5 @@
 package com.ontologycentral.ldspider.any23;
 
-import ie.deri.urq.lidaq.source.CallbackNQuadTripleHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,21 +17,21 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.deri.any23.Any23;
-import org.deri.any23.extractor.ExtractorFactory;
-import org.deri.any23.extractor.ExtractorGroup;
-import org.deri.any23.extractor.ExtractorRegistry;
-import org.deri.any23.extractor.html.TurtleHTMLExtractor;
-import org.deri.any23.extractor.rdf.NQuadsExtractor;
-import org.deri.any23.extractor.rdf.NTriplesExtractor;
-import org.deri.any23.extractor.rdf.RDFXMLExtractor;
-import org.deri.any23.extractor.rdf.TurtleExtractor;
-import org.deri.any23.extractor.rdfa.RDFaExtractor;
-import org.deri.any23.filter.IgnoreTitlesOfEmptyDocuments;
-import org.deri.any23.http.AcceptHeaderBuilder;
-import org.deri.any23.mime.MIMEType;
-import org.deri.any23.source.ByteArrayDocumentSource;
-import org.deri.any23.writer.TripleHandler;
+import org.apache.any23.Any23;
+import org.apache.any23.extractor.ExtractorFactory;
+import org.apache.any23.extractor.ExtractorGroup;
+import org.apache.any23.extractor.ExtractorRegistryImpl;
+import org.apache.any23.extractor.html.TurtleHTMLExtractorFactory;
+import org.apache.any23.extractor.rdf.NQuadsExtractorFactory;
+import org.apache.any23.extractor.rdf.NTriplesExtractorFactory;
+import org.apache.any23.extractor.rdf.RDFXMLExtractorFactory;
+import org.apache.any23.extractor.rdf.TurtleExtractorFactory;
+import org.apache.any23.extractor.rdfa.RDFa11ExtractorFactory;
+import org.apache.any23.filter.IgnoreTitlesOfEmptyDocuments;
+import org.apache.any23.http.AcceptHeaderBuilder;
+import org.apache.any23.mime.MIMEType;
+import org.apache.any23.source.ByteArrayDocumentSource;
+import org.apache.any23.writer.TripleHandler;
 import org.semanticweb.yars.nx.parser.Callback;
 
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
@@ -58,12 +57,19 @@ public class ContentHandlerAny23 implements ContentHandler {
 	private final Collection<MIMEType> mimeTypes;
 
 	public static String[] getDefaultExtractorNames() {
-		String[] extractorNames = { RDFaExtractor.NAME,
-				RDFXMLExtractor.factory.getExtractorName(),
-				TurtleExtractor.factory.getExtractorName(),
-				NTriplesExtractor.factory.getExtractorName(),
-				NQuadsExtractor.factory.getExtractorName(),
-				TurtleHTMLExtractor.NAME };
+		String[] extractorNames = {
+				RDFa11ExtractorFactory.getDescriptionInstance()
+						.getExtractorName(),
+				RDFXMLExtractorFactory.getDescriptionInstance()
+						.getExtractorName(),
+				TurtleExtractorFactory.getDescriptionInstance()
+						.getExtractorName(),
+				NTriplesExtractorFactory.getDescriptionInstance()
+						.getExtractorName(),
+				NQuadsExtractorFactory.getDescriptionInstance()
+						.getExtractorName(),
+				TurtleHTMLExtractorFactory.getDescriptionInstance()
+						.getExtractorName() };
 		return extractorNames;
 	}
 
@@ -82,7 +88,7 @@ public class ContentHandlerAny23 implements ContentHandler {
 		runner = new Any23(extractorNames);
 		this.headerTreatment = headerTreatment;
 
-		extractorGroup = ExtractorRegistry.getInstance().getExtractorGroup(
+		extractorGroup = ExtractorRegistryImpl.getInstance().getExtractorGroup(
 				Arrays.asList(extractorNames));
 		mimeTypes = new LinkedList<MIMEType>();
 		for (ExtractorFactory<?> ef : extractorGroup)

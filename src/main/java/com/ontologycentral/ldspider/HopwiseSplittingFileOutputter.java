@@ -65,7 +65,8 @@ public class HopwiseSplittingFileOutputter implements Appendable,
 
 		PrintStream ps = new PrintStream(
 				Util.createBufferedOutputStreamForHopwiseOperation(
-						fnameAndExtension[0], fnameAndExtension[1], initialHop));
+						fnameAndExtension[0], fnameAndExtension[1], initialHop),
+				false, "UTF-8");
 
 		_basefilename = fnameAndExtension[0];
 		_basefileextension = fnameAndExtension[1];
@@ -98,7 +99,7 @@ public class HopwiseSplittingFileOutputter implements Appendable,
 
 		PrintStream ps = new PrintStream(
 				Util.createBufferedOutputStreamForHopwiseOperation(
-						_basefilename, _basefileextension, hop));
+						_basefilename, _basefileextension, hop), false, "UTF-8");
 
 		_clo = ps;
 		_app = ps;

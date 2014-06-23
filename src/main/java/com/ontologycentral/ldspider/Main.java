@@ -1,6 +1,5 @@
 package com.ontologycentral.ldspider;
 
-import ie.deri.urq.lidaq.source.CallbackNQuadTripleHandler;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -32,6 +31,9 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.any23.http.AcceptHeaderBuilder;
+import org.apache.any23.mime.MIMEType;
+import org.apache.any23.writer.TripleHandler;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -41,16 +43,16 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.http.message.BasicHeader;
-import org.deri.any23.http.AcceptHeaderBuilder;
-import org.deri.any23.mime.MIMEType;
-import org.deri.any23.writer.TripleHandler;
 import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.util.CallbackNxAppender;
 import org.semanticweb.yars.util.CallbackNxOutputStream;
+import org.semanticweb.yars.util.Node2uriConvertingIterator;
+import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
+import com.ontologycentral.ldspider.any23.CallbackNQuadTripleHandler;
 import com.ontologycentral.ldspider.any23.ContentHandlerAny23;
 import com.ontologycentral.ldspider.frontier.BasicFrontier;
 import com.ontologycentral.ldspider.frontier.DiskFrontier;
@@ -71,6 +73,7 @@ import com.ontologycentral.ldspider.hooks.links.LinkFilter;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDefault;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDomain;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterDummy;
+import com.ontologycentral.ldspider.hooks.links.LinkFilterMakeNoDifferenceBetweenAandTbox;
 import com.ontologycentral.ldspider.hooks.links.LinkFilterSelect;
 import com.ontologycentral.ldspider.hooks.sink.Sink;
 import com.ontologycentral.ldspider.hooks.sink.SinkCallback;
@@ -293,6 +296,18 @@ public class Main {
 						"Uses the on-disk BreadthFirstQueue if crawling breadth-first. Doesn't support uri-limit and pld-limit (see -b). Needs -sdf sort to be set. Ranks URIs on the PLDs according to their in-link count.")
 				.create("dbfq");
 		options.addOption(bfqOD);
+		
+		Option dbfqInput = OptionBuilder
+				.withDescription(
+						"For the on-disk breadth-first queue (-dbfq), use this file as input for the eternal in-link count.")
+				.hasArg().withArgName("filename").create("dbfqInput");
+		options.addOption(dbfqInput);
+		
+		Option dbfqSave = OptionBuilder
+				.withDescription(
+						"For the on-disk breadth-first queue (-dbfq), save the eternal in-link count per URI after each hop to this file.")
+				.hasArg().withArgName("basefilename").create("dbfqSave");
+		options.addOption(dbfqSave);
 
 		Option maxRedirs = OptionBuilder.withArgName("max. # of redirects")
 				.hasArg()
@@ -325,6 +340,16 @@ public class Main {
 		Option hopWiseSplit = OptionBuilder.withDescription(
 				"split output hopwise").create("hopsplit");
 		options.addOption(hopWiseSplit);
+		
+		Option lfMakeNoDifference = OptionBuilder.withDescription(
+				"Make No difference between A and T box in crawling").create(
+				"lfADignore");
+		options.addOption(lfMakeNoDifference);
+		
+		Option politenessDelay = OptionBuilder
+				.withDescription("Time to wait between two requests to a PLD.")
+				.hasArg(true).withArgName("time in ms").create("polite");
+		options.addOption(politenessDelay);
 
 		CommandLineParser parser = new BasicParser();
 		HelpFormatter formatter = new HelpFormatter();
@@ -354,13 +379,14 @@ public class Main {
 
 	private static void run(CommandLine cmd) throws FileNotFoundException, IOException {
 		// check seed file
-		Set<URI> seeds = null;
+		Iterable<URI> seeds = null;
 //		if (cmd.hasOption("s")) {
 			File seedList = new File(cmd.getOptionValue("s"));
+			_log.info("reading seeds from " + seedList.getAbsolutePath());
 			if (!seedList.exists()) {
 				throw new FileNotFoundException("No file found at "+seedList.getAbsolutePath());
 			}
-			seeds = readSeeds(seedList);
+			seeds = prepareSeedsIterable(seedList);
 //		} else if (cmd.hasOption("u")) {
 //			seeds = new HashSet<URI>();
 //			try {
@@ -372,7 +398,7 @@ public class Main {
 //			}
 //		}
 
-		_log.info("no of seed uris " + seeds.size());
+//		_log.info("no of seed uris " + seeds.size());
 
 		if (cmd.hasOption("hopsplit"))
 			CrawlerConstants.SPLIT_HOPWISE = true;
@@ -532,7 +558,11 @@ public class Main {
 		}
 			
 		frontier.setErrorHandler(eh);
-		frontier.addAll(seeds);
+		
+		_log.info("loading seedlist into frontier");
+		
+		for (URI u: seeds)
+			frontier.add(u);
 
 		_log.info("frontier done");
 
@@ -553,13 +583,17 @@ public class Main {
 				predicates.add(new Resource(uri));
 			}
 			links = new LinkFilterSelect(frontier, predicates, true);
+		} else if (cmd.hasOption("lfADignore")) {
+			links = new LinkFilterMakeNoDifferenceBetweenAandTbox(frontier);
 		} else {
-			links = new LinkFilterDefault(frontier);	
+			links = new LinkFilterDefault(frontier);
 		}
 
 		links.setErrorHandler(eh);
 
 		CrawlerConstants.NB_THREADS = CrawlerConstants.DEFAULT_NB_THREADS;
+		if (cmd.hasOption("polite"))
+			CrawlerConstants.MIN_DELAY = Long.parseLong(cmd.getOptionValue("polite"));
 
 		if (cmd.hasOption("t")) {
 			CrawlerConstants.NB_THREADS = Integer.parseInt(cmd.getOptionValue("t"));
@@ -570,8 +604,17 @@ public class Main {
 			CrawlerConstants.URI_LIMIT_ENABLED = true;
 		}
 		
-		if (cmd.hasOption("dbfq"))
+		if (cmd.hasOption("dbfq")) {
 			CrawlerConstants.BREADTHFIRSTQUEUE_ONDISK = true;
+			
+			if (cmd.hasOption("dbfqSave"))
+				CrawlerConstants.DISKBREADTHFIRSTQUEUE_ETERNALCOUNTSAVEBASEFILENAME = cmd
+						.getOptionValue("dbfqSave");
+			if (cmd.hasOption("dbfqInput"))
+				CrawlerConstants.DISKBREADTHFIRSTQUEUE_ETERNALCOUNTINPUTFILENAME = cmd
+						.getOptionValue("dbfqInput");
+
+		}
 		
 		// Max redirects. Setting appropriate defaults and values.
 		if (cmd.hasOption("d"))
@@ -729,11 +772,18 @@ public class Main {
 						+ seenfilename + " and redirects: " + redirectsfilename
 						+ " .");
 
+				System.gc();
 				// loading seen to be resumed from
+				_log.info("loading seen");
 				readFromThisFileIntoThisSeen(seenfilename, seen);
+				_log.info("done loading seen");
 
+				System.gc();
 				// loading redirects file
+				_log.info("loading redirects");
 				readFromThisFileIntoThisRedirects(redirectsfilename, redirects);
+				System.gc();
+				_log.info("done loading redirects");
 			}
 			
 			String[] vals = cmd.getOptionValues("b");
@@ -813,17 +863,20 @@ public class Main {
 				inSeenFile);
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
-		String line = null;
+		
+		NxParser nxp = new NxParser(br);
 
 		int i = 0;
 
-		while ((line = br.readLine()) != null) {
+		for (Node[] nx : nxp) {
+			if (nx.length > 1)
+				throw new RuntimeException("Seen input had more than 1 field");
 			try {
-				seen.add(new URI(line));
+				seen.add(new URI(nx[0].toString()));
 				++i;
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
-				_log.info("Dropping from seen: " + line);
+				_log.info("Dropping from seen: " + nx[0].toN3());
 			}
 		}
 
@@ -844,11 +897,15 @@ public class Main {
 		int i = 0;
 
 		NxParser nxp = new NxParser(is);
+		Resource from, to;
 		for (Node[] nx : nxp) {
+			if (nx.length > 2)
+				throw new RuntimeException(
+						"Redirects input had more than 2 fields");
 
 			if (nx[0] instanceof Resource && nx[1] instanceof Resource) {
-				Resource from = (Resource) nx[0];
-				Resource to = (Resource) nx[1];
+				from = (Resource) nx[0];
+				to = (Resource) nx[1];
 
 				if (from != null && to != null) {
 					redirects.put(from.toURI(), to.toURI());
@@ -874,39 +931,49 @@ public class Main {
 	 * @param seedList
 	 * @throws IOException 
 	 */
-	static Set<URI> readSeeds(File seedList) throws IOException {
-		Set<URI> seeds = new HashSet<URI>();
+	static Iterable<URI> prepareSeedsIterable(File seedList) throws IOException {
+		List<URI> seeds = new LinkedList<URI>();
+		
+		final Iterator<URI> it;
 
-		BufferedReader br = new BufferedReader(new FileReader(seedList));
-
-		String line = null;
-		URL uri = null;
-		int i = 0;
-
-		try {
-			while ((line = br.readLine()) != null) {
-				i++;
-				if (line != null) {
-					line = line.trim();
-					try {
-						uri = new URL(line);
-						seeds.add(uri.toURI());	
-					} catch (URISyntaxException e) {
-						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
-					} catch (MalformedURLException e) {
-						_log.fine("Discard invalid uri " + e.getMessage() + " for " + line);
-					}
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			_log.fine(e.getMessage());
+		if (seedList.getPath().endsWith(".nx.gz")) {
+			InputStream is = new GZIPInputStream(new FileInputStream(seedList));
+			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
+					new Node2uriConvertingIterator(new NxParser(is), 0), is);
+		} else if (seedList.getPath().endsWith(".gz")) {
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					new GZIPInputStream(new FileInputStream(seedList))));
+			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
+					new Util.StringToURIiterable(
+							new Util.LineByLineIterable(br)).iterator(), br);
+		} else if (seedList.getPath().endsWith(".nx")) {
+			FileReader fr = new FileReader(seedList);
+			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
+					new Node2uriConvertingIterator(new NxParser(fr), 0), fr);
+		} else {
+			FileReader fr = new FileReader(seedList);
+			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
+					new Util.StringToURIiterable(new Util.LineByLineIterable(
+							new BufferedReader(fr))).iterator(), fr);
 		}
 		
-		br.close();
+		return new Iterable<URI>() {
+			public Iterator<URI> iterator() {
+				return it;
+			}
+		};
 
-		_log.info("read " + i + " lines from seed file");
-
-		return seeds;
+//		int i = 0;
+//
+//		while (it.hasNext()) {
+//			seeds.add(it.next());
+//			++i;
+//		}
+//
+//		_log.info("read " + i + " proper URIs from seed file");
+//
+//		return seeds;
 	}
+	
+	
 }

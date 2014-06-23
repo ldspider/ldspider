@@ -30,7 +30,6 @@ public abstract class RedirectsFavouringSpiderQueue extends SpiderQueue {
 			if (u != null) {
 				if (!checkSeen(u)) {
 					_log.fine("polled " + u + " from redirects queue.");
-					addSeen(u);
 					return u;
 				}
 			}
