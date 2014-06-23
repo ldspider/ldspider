@@ -185,6 +185,8 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 							</transformers>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>with-dependencies</shadedClassifierName>
 							<filters>
 								<filter>
 									<artifact>*:*</artifact>
