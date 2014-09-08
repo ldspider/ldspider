@@ -171,7 +171,13 @@ public class Main {
 		//Link Filters
 		OptionGroup linkFilterOptions = new OptionGroup();
 
-		Option stay = new Option("y", "stay", false, "stay on hostnames of seed uris");
+		// Option stay = new Option("y", "stay", true,
+		// "stay on hostnames of seed uris");
+		// linkFilterOptions.addOption(stay);
+
+		Option stay = OptionBuilder
+				.withDescription("stay on host with given name").hasArg()
+				.withArgName("host").withLongOpt("stay").create("y");
 		linkFilterOptions.addOption(stay);
 
 		Option noLinks = new Option("n", false, "do not extract links - just follow redirects");
@@ -569,10 +575,13 @@ public class Main {
 		LinkFilter links = null;
 
 		if (cmd.hasOption("y")) {
-			LinkFilterDomain lfd = new LinkFilterDomain(frontier);	
-			for (URI u : seeds) {
-				lfd.addHost(u.getHost());
-			}
+			LinkFilterDomain lfd = new LinkFilterDomain(frontier);
+			lfd.addHost(cmd.getOptionValue("y"));
+			// does not work any more because of streaming seed list
+			// for (URI u : seeds) {
+			// lfd.addHost(u.getHost());
+			// }
+
 			links = lfd;
 		} else if (cmd.hasOption("n")) {
 			LinkFilterDummy d = new LinkFilterDummy();
