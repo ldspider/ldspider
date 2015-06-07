@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.Locale;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 import org.apache.http.Header;
 import org.semanticweb.yars.nx.Node;
@@ -50,6 +53,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 	
 	final String lineSeparator = System.getProperty("line.separator");
 
+	SimpleDateFormat _df;
+
 	public ErrorHandlerLogger(Appendable out, Callback redirects) {
 		this(out, redirects, false);
 	}
@@ -79,6 +84,8 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		_rotime = Collections.synchronizedMap(new TreeMap<Integer, Integer>());
 		
 		_lookups = 0;
+
+		_df = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.US);
 	}
 
 	public void handleError(Throwable e) {
@@ -145,17 +152,19 @@ public class ErrorHandlerLogger implements ErrorHandler {
 			// common.log: 127.0.0.1 - frank [10/Oct/2000:13:55:36 -0700] "GET /apache_pb.gif HTTP/1.0" 200 2326
 			// native.log: time elapsed remotehost code/status bytes method URL rfc931 peerstatus/peerhost type
 			// 1262626658.480     13 127.0.0.1 TCP_HIT/200 594 GET http://umbrich.net/robots.txt - NONE/- text/plain
-			sb.append(System.currentTimeMillis()/1000);
-			sb.append(" ");
-			sb.append(duration);
-			sb.append(" 127.0.0.1 TCP_" + cache + "/");
+			//Common Logfile Format
+			sb.append("127.0.0.1 "); // host
+			sb.append("- "); // RFC 1413 identity
+			sb.append("- "); // userid of the person (HTTP authentication)
+			sb.append("["); // date
+			sb.append(_df.format(new Date()));
+			sb.append("] ");
+			sb.append("\"GET ");
+			sb.append(u);
+			sb.append("\" ");
 			sb.append(status);
 			sb.append(" ");
 			sb.append(contentLength);
-			sb.append(" GET ");
-			sb.append(u);
-			sb.append(" - NONE/- ");
-			sb.append(type);
 
 			synchronized(this) {
 				try {
