@@ -3,6 +3,7 @@ package com.ontologycentral.ldspider;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -47,9 +49,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
-import org.semanticweb.yars.util.CallbackNxAppender;
-import org.semanticweb.yars.util.CallbackNxOutputStream;
-import org.semanticweb.yars.util.Node2uriConvertingIterator;
+import org.semanticweb.yars.util.CallbackNxBufferedWriter;
 import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
 import com.ontologycentral.ldspider.any23.CallbackNQuadTripleHandler;
@@ -430,9 +430,10 @@ public class Main {
 			if (cmd.hasOption("o")) {
 				String path = cmd.getOptionValue("o");
 
-				if (CrawlerConstants.SPLIT_HOPWISE)
-					cbData = new CallbackNxAppender(
-							new HopwiseSplittingFileOutputter(path));
+				if (CrawlerConstants.SPLIT_HOPWISE) {
+					cbData = new CallbackNxBufferedWriter(new BufferedWriter(new AppendableWriterAdapter(
+							new HopwiseSplittingFileOutputter(path))));
+				}
 				else {
 					if (path.endsWith(".gz"))
 						os = new BufferedOutputStream(new GZIPOutputStream(
@@ -445,19 +446,20 @@ public class Main {
 			}
 
 			if (cbData == null)
-				cbData = new CallbackNxOutputStream(os, false);
+				cbData = new CallbackNxBufferedWriter(new BufferedWriter(new OutputStreamWriter(os)));
 
 			OutputStream headerOS = null;
 
 			if (headerTreatment == Headers.Treatment.DUMP) {
 				String path = cmd.getOptionValue("dh");
-				if (CrawlerConstants.SPLIT_HOPWISE)
-					cbHeader = new CallbackNxAppender(
-							new HopwiseSplittingFileOutputter(path));
+				if (CrawlerConstants.SPLIT_HOPWISE) {
+					cbHeader = new CallbackNxBufferedWriter(new BufferedWriter(new AppendableWriterAdapter(
+							new HopwiseSplittingFileOutputter(path))));
+				}
 				else {
 					headerOS = new FileOutputStream(path);
-					cbHeader = new CallbackNxOutputStream(
-							new BufferedOutputStream(headerOS), false);
+					cbHeader = new CallbackNxBufferedWriter(
+							new BufferedWriter(new OutputStreamWriter(headerOS)));
 				}
 			}
 			if (headerOS != null)
@@ -516,15 +518,16 @@ public class Main {
 		Callback rcb = null;
 		if (cmd.hasOption("r")) {
 			if (CrawlerConstants.SPLIT_HOPWISE) {
-				rcb = new CallbackNxAppender(new HopwiseSplittingFileOutputter(
-						cmd.getOptionValue("r"), true));
+				rcb = new CallbackNxBufferedWriter(new BufferedWriter(new AppendableWriterAdapter(new HopwiseSplittingFileOutputter(
+						cmd.getOptionValue("r"), true))));
 			} else {
 				OutputStream ros = cmd.getOptionValue("r").endsWith(".gz") ? new GZIPOutputStream(
 						new FileOutputStream(cmd.getOptionValue("r")))
 						: new FileOutputStream(cmd.getOptionValue("r"));
 				OutputStream fos = new BufferedOutputStream(ros);
 				CrawlerConstants.CLOSER.add(fos);
-				rcb = new CallbackNxOutputStream(fos, false);
+				rcb = new CallbackNxBufferedWriter(
+						new BufferedWriter(new OutputStreamWriter(fos)));
 			}
 			rcb.startDocument();
 		}
@@ -728,9 +731,10 @@ public class Main {
 		
 		Seen seen = null;
 		if (cmd.hasOption("ds")) {
+			
 			seen = new WrappingCallbackSeen(new HashSetSeen(),
-					new CallbackNxAppender(new HopwiseSplittingFileOutputter(
-							cmd.getOptionValue("ds"), true)));
+					new CallbackNxBufferedWriter(new BufferedWriter(new AppendableWriterAdapter(new HopwiseSplittingFileOutputter(
+							cmd.getOptionValue("ds"), true)))));
 
 //			String[] fNameExt = Util.determineFnameAndExtension(cmd.getOptionValue("ds"));
 //			
@@ -873,7 +877,8 @@ public class Main {
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(is));
 		
-		NxParser nxp = new NxParser(br);
+		NxParser nxp = new NxParser();
+		nxp.parse(br);
 
 		int i = 0;
 
@@ -885,7 +890,7 @@ public class Main {
 				++i;
 			} catch (URISyntaxException e) {
 				e.printStackTrace();
-				_log.info("Dropping from seen: " + nx[0].toN3());
+				_log.info("Dropping from seen: " + nx[0].toString());
 			}
 		}
 
@@ -905,7 +910,8 @@ public class Main {
 
 		int i = 0;
 
-		NxParser nxp = new NxParser(is);
+		NxParser nxp = new NxParser();
+		nxp.parse(is);
 		Resource from, to;
 		for (Node[] nx : nxp) {
 			if (nx.length > 2)
@@ -917,7 +923,12 @@ public class Main {
 				to = (Resource) nx[1];
 
 				if (from != null && to != null) {
-					redirects.put(from.toURI(), to.toURI());
+					try {
+						redirects.put(from.toURI(), to.toURI());
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					++i;
 				} else
 					_log.info("Dropping from redirects because of URI problems: "
@@ -944,11 +955,12 @@ public class Main {
 		List<URI> seeds = new LinkedList<URI>();
 		
 		final Iterator<URI> it;
+		NxParser nxp = new NxParser();
 
 		if (seedList.getPath().endsWith(".nx.gz")) {
 			InputStream is = new GZIPInputStream(new FileInputStream(seedList));
 			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
-					new Node2uriConvertingIterator(new NxParser(is), 0), is);
+					new Node2uriConvertingIterator(nxp.parse(is), 0), is);
 		} else if (seedList.getPath().endsWith(".gz")) {
 			BufferedReader br = new BufferedReader(new InputStreamReader(
 					new GZIPInputStream(new FileInputStream(seedList))));
@@ -958,7 +970,7 @@ public class Main {
 		} else if (seedList.getPath().endsWith(".nx")) {
 			FileReader fr = new FileReader(seedList);
 			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
-					new Node2uriConvertingIterator(new NxParser(fr), 0), fr);
+					new Node2uriConvertingIterator(nxp.parse(fr), 0), fr);
 		} else {
 			FileReader fr = new FileReader(seedList);
 			it = new PleaseCloseTheDoorWhenYouLeaveIterator<URI>(
