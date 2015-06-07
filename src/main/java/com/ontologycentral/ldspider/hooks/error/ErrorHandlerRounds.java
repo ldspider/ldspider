@@ -42,10 +42,10 @@ public class ErrorHandlerRounds extends ErrorHandlerLogger {
 		super.handleStatus(u, status, headers, duration, contentLength);
 		
 		if (status == 200) {
-			Resource r = new Resource(NxUtil.escapeForNx(u.toString()));
+			Resource r = new Resource(NxUtil.escapeIRI(u.toString()));
 			synchronized (this) {
 				try {
-					_out.append(r.toN3());
+					_out.append(r.toString());
 					_out.append(" .\n");
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -58,12 +58,12 @@ public class ErrorHandlerRounds extends ErrorHandlerLogger {
 		try {
 			URI touri = new URI(to.toString());
 			touri = Frontier.normalise(touri);
-			to = new Resource(NxUtil.escapeForNx(touri.toString()));
+			to = new Resource(NxUtil.escapeIRI(touri.toString()));
 			
 			synchronized(this) {
-				_out.append(from.toN3());
+				_out.append(from.toString());
 				_out.append(" ");
-				_out.append(to.toN3());
+				_out.append(to.toString());
 				_out.append(" .\n");
 			}
 		} catch (URISyntaxException e) {

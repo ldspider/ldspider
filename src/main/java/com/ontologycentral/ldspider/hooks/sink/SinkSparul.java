@@ -65,7 +65,7 @@ public class SinkSparul implements Sink {
 	/**
 	 * Callback which is used to write a graph to the store.
 	 */
-	private class CallbackSparul implements Callback {
+	private class CallbackSparul extends Callback {
 
 		private final Provenance _prov;
 
@@ -78,37 +78,6 @@ public class SinkSparul implements Sink {
 		public CallbackSparul(Provenance prov) {
 			if(prov == null) throw new NullPointerException("prov must not be null");
 			_prov = prov;
-		}
-
-		public void startDocument() {
-			try {
-				beginSparul(true);
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-
-		public void processStatement(Node[] nodes) {
-			try {
-				if(_statements + 1 >= STATEMENTS_PER_REQUEST ) {
-					endSparql();
-					beginSparul(false);
-				}
-				writeStatement(nodes);
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-
-		public void endDocument() {
-			try {
-				endSparql();
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
 		}
 
 		/**
@@ -159,7 +128,7 @@ public class SinkSparul implements Sink {
 			if(nodes == null) throw new NullPointerException("nodes must not be null");
 			if(nodes.length < 3) throw new IllegalArgumentException("A statement must consist of at least 3 nodes");
 
-			_writer.write(URLEncoder.encode(nodes[0].toN3() + " " + nodes[1].toN3() + " " + nodes[2].toN3() + " .\n", "UTF-8"));
+			_writer.write(URLEncoder.encode(nodes[0].toString() + " " + nodes[1].toString() + " " + nodes[2].toString() + " .\n", "UTF-8"));
 			_statements++;
 		}
 
@@ -200,6 +169,40 @@ public class SinkSparul implements Sink {
 
 			_connection = null;
 			_writer = null;
+		}
+
+		@Override
+		protected void startDocumentInternal() {
+			try {
+				beginSparul(true);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}			
+		}
+
+		@Override
+		protected void endDocumentInternal() {
+			try {
+				endSparql();
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+
+		@Override
+		protected void processStatementInternal(Node[] nodes) {
+			try {
+				if(_statements + 1 >= STATEMENTS_PER_REQUEST ) {
+					endSparql();
+					beginSparul(false);
+				}
+				writeStatement(nodes);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
 		}
 	}
 }

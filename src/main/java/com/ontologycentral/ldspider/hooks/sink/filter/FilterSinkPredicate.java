@@ -31,23 +31,26 @@ public class FilterSinkPredicate implements Sink {
 		return new FilterCallback(_sink.newDataset(provenance));
 	}
 
-	private class FilterCallback implements Callback {
+	private class FilterCallback extends Callback {
 
 		private final Callback _callback;
 
 		public FilterCallback(Callback callback) {
 			_callback = callback;
 		}
-
-		public void startDocument() {
-			_callback.startDocument();
+		
+		@Override
+		protected void startDocumentInternal() {
+			_callback.startDocument();			
 		}
 
-		public void endDocument() {
-			_callback.endDocument();
+		@Override
+		protected void endDocumentInternal() {
+			_callback.endDocument();			
 		}
 
-		public void processStatement(Node[] nodes) {
+		@Override
+		protected void processStatementInternal(Node[] nodes) {
 			if (nodes.length >= 1 && _predicates.contains(nodes[1])) {
 				_log.fine("Allowing statement with predicate " + nodes[1]);
 				_callback.processStatement(nodes);

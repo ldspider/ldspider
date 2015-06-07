@@ -11,8 +11,8 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
  * for link selection
  *
  */
-public interface LinkFilter extends Callback {
-	public void setErrorHandler(ErrorHandler e);
-	public void setFollowABox(boolean follow);
-	public void setFollowTBox(boolean follow);
+public abstract class LinkFilter extends Callback {
+	abstract public void setErrorHandler(ErrorHandler e);
+	abstract public void setFollowABox(boolean follow);
+	abstract public void setFollowTBox(boolean follow);
 }

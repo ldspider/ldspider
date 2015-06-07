@@ -21,7 +21,7 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
  * @author RobertIsele
  *
  */
-public class LinkFilterDefault implements LinkFilter {
+public class LinkFilterDefault extends LinkFilter {
 	private final Logger _log = Logger.getLogger(this.getClass().getSimpleName());
 
 	protected final Frontier _f;
@@ -46,39 +46,6 @@ public class LinkFilterDefault implements LinkFilter {
 
 	public void setFollowTBox(boolean follow) {
 		_followTBox = follow;
-	}
-
-	public void startDocument() {
-		;
-	}
-	
-	public void endDocument() {
-		_log.info("document done");
-	}
-
-	public synchronized void processStatement(Node[] nx) {
-		_log.fine("seeing " + Nodes.toN3(nx));
-		for (int i = 0; i < Math.min(nx.length, 3); i++) {
-			if (nx[i] instanceof Resource) {
-				addUri(nx, i);
-				//Subject
-				if(i == 0 && _followABox) {
-					if(_followABox) addABox(nx, i);
-				}
-				//Predicate
-				else if(i == 1) {
-					if(_followTBox) addTBox(nx, i);
-				}
-				//Object (TBox)
-				else if(i == 2 && nx[1].equals(RDF.TYPE)) {
-					if(_followTBox) addTBox(nx, i);
-				}
-				//Object (ABox)
-				else if(i == 2) {
-					if(_followABox) addABox(nx, i);
-				}
-			}
-		}
 	}
 	
 	/**
@@ -143,5 +110,42 @@ public class LinkFilterDefault implements LinkFilter {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	protected void startDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void endDocumentInternal() {
+		_log.info("document done");		
+	}
+
+	@Override
+	protected void processStatementInternal(Node[] nx) {
+		_log.fine("seeing " + Nodes.toString(nx));
+		for (int i = 0; i < Math.min(nx.length, 3); i++) {
+			if (nx[i] instanceof Resource) {
+				addUri(nx, i);
+				//Subject
+				if(i == 0 && _followABox) {
+					if(_followABox) addABox(nx, i);
+				}
+				//Predicate
+				else if(i == 1) {
+					if(_followTBox) addTBox(nx, i);
+				}
+				//Object (TBox)
+				else if(i == 2 && nx[1].equals(RDF.TYPE)) {
+					if(_followTBox) addTBox(nx, i);
+				}
+				//Object (ABox)
+				else if(i == 2) {
+					if(_followABox) addABox(nx, i);
+				}
+			}
+		}		
 	}
 }

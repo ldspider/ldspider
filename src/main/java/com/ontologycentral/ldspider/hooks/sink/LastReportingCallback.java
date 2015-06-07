@@ -11,24 +11,31 @@ import org.semanticweb.yars.nx.parser.Callback;
  * @author Tobias
  * 
  */
-public class LastReportingCallback implements Callback, LastReporter {
+public class LastReportingCallback extends Callback implements LastReporter {
 
 	Node _last = null;
-
-	public void startDocument() {
-	}
-
-	public void endDocument() {
-	}
-
-	public void processStatement(Node[] nx) {
-		_last = nx[nx.length - 1];
-	}
 
 	public Resource whoWasLast() {
 		if (_last instanceof Resource)
 			return (Resource) _last;
 		else
 			return null;
+	}
+
+	@Override
+	protected void startDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void endDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void processStatementInternal(Node[] nx) {
+		_last = nx[nx.length - 1];		
 	}
 }

@@ -14,7 +14,7 @@ import com.ontologycentral.ldspider.hooks.error.ErrorHandler;
  * @author aharth
  *
  */
-public class LinkFilterDummy implements LinkFilter {
+public class LinkFilterDummy extends LinkFilter {
 
 	public Set<URI> getLinks() {
 		return new HashSet<URI>();
@@ -28,19 +28,25 @@ public class LinkFilterDummy implements LinkFilter {
 		;
 	}
 
-	public void startDocument() {
-		;
-	}
-	
-	public void endDocument() {
-		;
-	}
-
-	public void processStatement(Node[] arg0) {
-		;
-	}
-
 	public void setErrorHandler(ErrorHandler eh) {
 		;
+	}
+
+	@Override
+	protected void startDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void endDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void processStatementInternal(Node[] nx) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -11,24 +11,12 @@ import org.semanticweb.yars.nx.parser.Callback;
  * 
  */
 
-public class StatementCountingCallback implements Callback {
+public class StatementCountingCallback extends Callback {
 
 	int _stmtCount;
 
 	public StatementCountingCallback() {
 		_stmtCount = 0;
-	}
-
-	public void endDocument() {
-
-	}
-
-	public void processStatement(Node[] arg0) {
-		++_stmtCount;
-	}
-
-	public void startDocument() {
-
 	}
 
 	public StatementCountingCallback reset() {
@@ -38,5 +26,22 @@ public class StatementCountingCallback implements Callback {
 
 	public int getStmtCount() {
 		return _stmtCount;
+	}
+
+	@Override
+	protected void startDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void endDocumentInternal() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void processStatementInternal(Node[] nx) {
+		++_stmtCount;		
 	}
 }

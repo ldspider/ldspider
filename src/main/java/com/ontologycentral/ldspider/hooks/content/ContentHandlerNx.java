@@ -3,9 +3,11 @@ package com.ontologycentral.ldspider.hooks.content;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
@@ -27,8 +29,9 @@ public class ContentHandlerNx implements ContentHandler {
 
 	public boolean handle(URI uri, String mime, InputStream source, Callback callback) {
 //		try {
-			NxParser nxp  = new NxParser(source);
-			while (nxp.hasNext()) {
+			NxParser nxp  = new NxParser();
+			Iterator<Node[]> nx = nxp.parse(source);
+			while (nx.hasNext()) {
 			callback.processStatement(nxp.next());
 			}
 			return true;

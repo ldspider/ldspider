@@ -20,8 +20,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.NodeComparator;
-import org.semanticweb.yars.nx.NodeComparator.NodeComparatorArgs;
+import org.semanticweb.yars.nx.NodeArrayComparator;
+import org.semanticweb.yars.nx.NodeArrayComparator.NodeArrayComparatorArgs;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
@@ -29,11 +29,11 @@ import org.semanticweb.yars.nx.parser.ParseException;
 import org.semanticweb.yars.nx.sort.SortIterator;
 import org.semanticweb.yars.nx.sort.SortIterator.SortArgs;
 import org.semanticweb.yars.nx.util.NxUtil;
-import org.semanticweb.yars.util.CallbackNxAppender;
-import org.semanticweb.yars.util.Node2uriConvertingIterator;
+import org.semanticweb.yars.util.CallbackNxBufferedWriter;
 import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.Node2uriConvertingIterator;
 
 /**
  * 
@@ -44,7 +44,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 
 	Logger _log = Logger.getLogger(this.getClass().getName());
 
-	CallbackNxAppender _cb;
+	CallbackNxBufferedWriter _cb;
 	Closeable _clo;
 
 	static final String FILENAME_BASE = "ldspider-diskFrontierTmp";
@@ -77,7 +77,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 				_currentTempFile);
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
 		_clo = bw;
-		_cb = new CallbackNxAppender(bw);
+		_cb = new CallbackNxBufferedWriter(bw);
 		CrawlerConstants.CLOSER.add(this);
 	}
 
@@ -87,7 +87,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 		if (u == null)
 			return;
 
-		_cb.processStatement(new Node[] { new Resource(NxUtil.escapeForNx(u
+		_cb.processStatement(new Node[] { new Resource(NxUtil.escapeForNTriples1(u
 				.toString())) });
 		_isSorted = false;
 
@@ -121,7 +121,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 					: new FileOutputStream(_currentTempFile);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
 			_clo = bw;
-			_cb = new CallbackNxAppender(bw);
+			_cb = new CallbackNxBufferedWriter(bw);
 		} catch (IOException e) {
 			_log.warning(e.getMessage());
 		}
@@ -131,7 +131,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 	@Override
 	public Iterator<URI> iterator() {
 
-		final NxParser nx;
+		final Iterator<Node[]> nx;
 		final BufferedReader br;
 
 		try {
@@ -149,8 +149,9 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 					new FileInputStream(file)) : new FileInputStream(file);
 
 			br = new BufferedReader(new InputStreamReader(is));
-
-			nx = new NxParser(br);
+			
+			NxParser nxp = new NxParser();
+			nx = nxp.parse(br);
 		} catch (IOException e) {
 			_log.warning("IOException. " + e.getLocalizedMessage()
 					+ ". returning empty iterator!");
@@ -192,11 +193,12 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 
 		// Code from NxParser's Sort class
 
-		Iterator<Node[]> it = new NxParser(br);
+		NxParser nxp = new NxParser();
+		Iterator<Node[]> it = nxp.parse(br);
 
-		Callback cb = new CallbackNxAppender(bw);
+		Callback cb = new CallbackNxBufferedWriter(bw);
 
-		NodeComparatorArgs nca = new NodeComparatorArgs();
+		NodeArrayComparatorArgs nca = new NodeArrayComparatorArgs();
 
 		// nca.setOrder(NodeComparatorArgs.getIntegerMask(cmd.getOptionValue("so")));
 
@@ -204,7 +206,7 @@ public class SortingDiskFrontier extends Frontier implements Closeable {
 		nca.setNoEquals(true);
 		nca.setNoZero(true);
 
-		NodeComparator nc = new NodeComparator(nca);
+		NodeArrayComparator nc = new NodeArrayComparator(nca);
 
 		SortArgs sa = new SortArgs(it, (short) 1);
 		sa.setComparator(nc);

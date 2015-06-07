@@ -2,7 +2,9 @@ package com.ontologycentral.ldspider.hooks.sink;
 
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
-import org.semanticweb.yars.util.Callbacks;
+
+import com.ontologycentral.ldspider.Callbacks;
+
 
 /**
  * A wrapping Sink that can report by whom the last statement was.

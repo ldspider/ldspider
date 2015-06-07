@@ -73,11 +73,11 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 		try {
 			uri = new java.net.URI(arg0.stringValue());
 			res = new org.semanticweb.yars.nx.Resource(
-					NxUtil.escapeForNx(new java.net.URI(uri.getScheme(), uri
+					NxUtil.escapeIRI(new java.net.URI(uri.getScheme(), uri
 							.getAuthority(), uri.getPath(), uri.getQuery(), uri
 							.getFragment()).toString()));
 		} catch (URISyntaxException e) {
-			res = new org.semanticweb.yars.nx.Resource(NxUtil.escapeForNx(arg0
+			res = new org.semanticweb.yars.nx.Resource(NxUtil.escapeIRI(arg0
 					.stringValue()));
 		}
 		return res;
@@ -94,12 +94,12 @@ public class CallbackNQuadTripleHandler implements TripleHandler {
 	 */
 	private org.semanticweb.yars.nx.BNode convert(BNode arg0,
 			org.semanticweb.yars.nx.Resource context) throws TripleHandlerException {
-		return org.semanticweb.yars.nx.BNode.createBNode(context.toN3()
-				.substring(1, context.toN3().length() - 1), arg0.stringValue());
+		return org.semanticweb.yars.nx.BNode.createBNode(context.toString()
+				.substring(1, context.toString().length() - 1), arg0.stringValue());
 	}
 
 	private org.semanticweb.yars.nx.Literal convert(Literal arg0) throws TripleHandlerException{
-		String value = NxUtil.escapeForNx(arg0.getLabel());
+		String value = NxUtil.escapeForNTriples1(arg0.getLabel());
 		String language = null;
 		org.semanticweb.yars.nx.Resource datatype = null;
 

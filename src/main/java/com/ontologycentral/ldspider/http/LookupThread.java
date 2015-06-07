@@ -11,8 +11,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
 import org.semanticweb.yars.nx.parser.Callback;
-import org.semanticweb.yars.util.Callbacks;
 
+import com.ontologycentral.ldspider.Callbacks;
 import com.ontologycentral.ldspider.CrawlerConstants;
 import com.ontologycentral.ldspider.hooks.content.ContentHandler;
 import com.ontologycentral.ldspider.hooks.error.ErrorHandler;

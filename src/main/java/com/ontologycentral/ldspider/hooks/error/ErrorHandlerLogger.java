@@ -21,6 +21,7 @@ import org.semanticweb.yars.nx.Node;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
+import org.semanticweb.yars.nx.util.NxUtil;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
 
@@ -265,12 +266,12 @@ public class ErrorHandlerLogger implements ErrorHandler {
 		if (_redirects != null) {
 			Node[] nx = new Node[2];
 
-			nx[0] = new Resource(NxParser.escapeForNx(from.toString()));
+			nx[0] = new Resource(NxUtil.escapeIRI(from.toString()));
 			try {
-				nx[1] = new Resource(NxParser.escapeForNx(new URI(to.getScheme(), to.getAuthority(), to.getPath(), to.getQuery(), to.getFragment()).toString()));
+				nx[1] = new Resource(NxUtil.escapeIRI(new URI(to.getScheme(), to.getAuthority(), to.getPath(), to.getQuery(), to.getFragment()).toString()));
 			} catch (URISyntaxException e) {
 				_log.info("problems with " + to);
-				nx[1] = new Resource(NxParser.escapeForNx(to.toString()));
+				nx[1] = new Resource(NxUtil.escapeIRI(to.toString()));
 			}
 
 			_redirects.processStatement(nx);		

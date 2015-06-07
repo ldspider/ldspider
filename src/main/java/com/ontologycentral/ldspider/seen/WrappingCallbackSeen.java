@@ -40,7 +40,7 @@ public class WrappingCallbackSeen implements Seen {
 		boolean ret = _seen.add(uri);
 		if (ret)
 			_cb.processStatement(new Node[] { new Resource(NxUtil
-					.escapeForNx(uri.toString())) });
+					.escapeIRI(uri.toString())) });
 		return ret;
 	}
 

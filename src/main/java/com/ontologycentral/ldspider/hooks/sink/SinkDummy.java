@@ -30,17 +30,23 @@ public class SinkDummy implements Sink {
 	 * 
 	 * @author aharth
 	 */
-	private static class CallbackDummy implements Callback {
-		public void startDocument() {
-			;
-		}
-		
-		public void endDocument() {
-			;
+	private static class CallbackDummy extends Callback {
+		@Override
+		protected void startDocumentInternal() {
+			// TODO Auto-generated method stub
+			
 		}
 
-		public void processStatement(Node[] nx) {
-			;
+		@Override
+		protected void endDocumentInternal() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		protected void processStatementInternal(Node[] nx) {
+			// TODO Auto-generated method stub
+			
 		}
 	}
 }

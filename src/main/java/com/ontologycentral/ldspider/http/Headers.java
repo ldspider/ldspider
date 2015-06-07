@@ -10,7 +10,6 @@ import org.apache.http.Header;
 import org.semanticweb.yars.nx.BNode;
 import org.semanticweb.yars.nx.Literal;
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.NumericLiteral;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.util.NxUtil;
@@ -108,12 +107,12 @@ public class Headers {
 			_log.info("bad URI:" + uri); 
 		}
 		
-		ruri = new Resource(NxUtil.escapeForNx(uri.toString()));
+		ruri = new Resource(NxUtil.escapeIRI(uri.toString()));
 
 		cb.processStatement(new Node[] { ruri, HEADERINFO, bNode, ruri });
 		cb.processStatement(new Node[] { bNode,
 				new Resource(httpNS + "responseCode"),
-				new NumericLiteral(Integer.valueOf(status)), ruri });
+				new Literal(Integer.valueOf(status).toString()), ruri });
 
 		for (int i = 0; i < headerFields.length; i++) {
 			if (HEADER_MAP.containsKey(headerFields[i].getName())) {
@@ -121,10 +120,10 @@ public class Headers {
 				Node value;
 				Resource predicate = HEADER_MAP.get(headerFields[i].getName());
 				if (predicate.equals(HEADER_MAP.get("Content-Location"))) {
-					value = new Resource(NxUtil.escapeForNx(uri.resolve(
+					value = new Resource(NxUtil.escapeIRI(uri.resolve(
 							headerFields[i].getValue()).toString()));
 				} else
-					value = new Literal(NxUtil.escapeForNx(headerFields[i]
+					value = new Literal(NxUtil.escapeForNTriples1(headerFields[i]
 							.getValue()));
 				cb.processStatement(new Node[] { bNode, predicate, value, ruri });
 			}

@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,10 +34,11 @@ import java.util.zip.GZIPOutputStream;
 
 import org.semanticweb.yars.nx.Literal;
 import org.semanticweb.yars.nx.Node;
-import org.semanticweb.yars.nx.NodeComparator;
-import org.semanticweb.yars.nx.NodeComparator.NodeComparatorArgs;
+import org.semanticweb.yars.nx.NodeArrayComparator;
+import org.semanticweb.yars.nx.NodeArrayComparator.NodeArrayComparatorArgs;
 import org.semanticweb.yars.nx.Nodes;
 import org.semanticweb.yars.nx.Resource;
+import org.semanticweb.yars.nx.cli.Main;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.NxParser;
 import org.semanticweb.yars.nx.parser.ParseException;
@@ -44,13 +46,12 @@ import org.semanticweb.yars.nx.sort.SortIterator;
 import org.semanticweb.yars.nx.sort.SortIterator.SortArgs;
 import org.semanticweb.yars.nx.util.NxUtil;
 import org.semanticweb.yars.tld.TldManager;
-import org.semanticweb.yars.util.CallbackNxAppender;
 import org.semanticweb.yars.util.CallbackNxBufferedWriter;
-import org.semanticweb.yars.util.Node2uriConvertingIterator;
-import org.semanticweb.yars.util.PeekingIterator;
 import org.semanticweb.yars.util.PleaseCloseTheDoorWhenYouLeaveIterator;
 
 import com.ontologycentral.ldspider.CrawlerConstants;
+import com.ontologycentral.ldspider.Node2uriConvertingIterator;
+import com.ontologycentral.ldspider.PeekingIterator;
 import com.ontologycentral.ldspider.Util;
 import com.ontologycentral.ldspider.frontier.Frontier;
 import com.ontologycentral.ldspider.seen.Seen;
@@ -108,13 +109,13 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 
 	Callback _frontierDumper;
 
-	static final NodeComparator _nc;
+	static final NodeArrayComparator _nc;
 	static {
-		NodeComparatorArgs nca = new NodeComparatorArgs();
-		nca.setOrder(NodeComparatorArgs.getIntegerMask("10"));
-		nca.setReverse(NodeComparatorArgs.getBooleanMask("1"));
-		nca.setNumeric(NodeComparatorArgs.getBooleanMask("1"));
-		_nc = new NodeComparator(nca);
+		NodeArrayComparatorArgs nca = new NodeArrayComparatorArgs();
+		nca.setOrder(Main.getIntegerMask("10"));
+		nca.setReverse(Main.getBooleanMask("1"));
+		nca.setNumeric(Main.getBooleanMask("1"));
+		_nc = new NodeArrayComparator(nca);
 	}
 
 	private int _noOfUris;
@@ -271,7 +272,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 						new GZIPOutputStream(new FileOutputStream(new File(
 								CrawlerConstants.DUMP_FRONTIER_FILENAME + "-"
 										+ (_scheduledFrontiers - 1) + ".nx.gz")))));
-				_frontierDumper = new CallbackNxAppender(frontierbw);
+				_frontierDumper = new CallbackNxBufferedWriter(frontierbw);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -314,7 +315,9 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			try {
 				e.getValue().deleteOnExit();
 				br = new BufferedReader(new FileReader(e.getValue()));
-				_nxps.put(e.getKey(), new NxParser(br));
+				NxParser nxp = new NxParser();
+				nxp.parse(br);
+				_nxps.put(e.getKey(), nxp);
 				_brs.add(br);
 			} catch (FileNotFoundException e1) {
 				_log.warning(e1.getLocalizedMessage());
@@ -404,9 +407,11 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 					br = new BufferedReader(new InputStreamReader(
 							new GZIPInputStream(new FileInputStream(
 									_eternalFileCounts))));
+					NxParser nxp = new NxParser();
+					nxp.parse(br);
 					_eternal = new PeekingIterator<Node[]>(
 							new PleaseCloseTheDoorWhenYouLeaveIterator<Node[]>(
-									new NxParser(br), br));
+									nxp, br));
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (EOFException e) {
@@ -445,7 +450,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 				return;
 
 			if (CrawlerConstants.DUMP_FRONTIER) {
-				Node[] nx = new Node[] { new Resource(NxUtil.escapeForNx(u
+				Node[] nx = new Node[] { new Resource(NxUtil.escapeIRI(u
 						.toString())) };
 				for (int j = 0; j < i; ++j)
 					_frontierDumper.processStatement(nx);
@@ -480,7 +485,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 				i = determineEternalCountAndWriteToEternal(u, i);
 			default:
 				cb.processStatement(new Node[] {
-						new Resource(NxUtil.escapeForNx(u.toString())),
+						new Resource(NxUtil.escapeIRI(u.toString())),
 						new Literal(Integer.toString(i)) });
 				break;
 			}
@@ -496,17 +501,22 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			// it.
 			if (_eternal.peek() == null) {
 				_newEternalCountsCB.processStatement(new Node[] {
-						new Resource(NxUtil.escapeForNx(u.toString())),
+						new Resource(NxUtil.escapeIRI(u.toString())),
 						new Literal(Integer.toString(itsCountInThisRound)) });
 				return itsCountInThisRound;
 			}
 
 			// insertion of uris before first one in eternal
-			if (((Resource) _eternal.peek()[0]).toURI().compareTo(u) > 0) {
-				_newEternalCountsCB.processStatement(new Node[] {
-						new Resource(NxUtil.escapeForNx(u.toString())),
-						new Literal(Integer.toString(itsCountInThisRound)) });
-				return itsCountInThisRound;
+			try {
+				if (((Resource) _eternal.peek()[0]).toURI().compareTo(u) > 0) {
+					_newEternalCountsCB.processStatement(new Node[] {
+							new Resource(NxUtil.escapeIRI(u.toString())),
+							new Literal(Integer.toString(itsCountInThisRound)) });
+					return itsCountInThisRound;
+				}
+			} catch (URISyntaxException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 
 			// iterate until eternal ends or uri has been put:
@@ -520,29 +530,42 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 					_newEternalCountsCB.processStatement(prev);
 
 				// if we are AT u in eternal:
-				if (current != null
-						&& ((Resource) current[0]).toURI().equals(u)) {
-					int count = itsCountInThisRound
-							+ Integer
-									.parseInt(((Literal) current[1]).getData());
-					current[1] = new Literal(Integer.toString(count));
-					_newEternalCountsCB.processStatement(current);
-					// to step forward, the object has already been peeked
-					// anyway:
-					_eternal.next();
-					return count;
+				try {
+					if (current != null
+							&& ((Resource) current[0]).toURI().equals(u)) {
+						int count = itsCountInThisRound
+								+ Integer
+										.parseInt(((Literal) current[1]).getLabel());
+						current[1] = new Literal(Integer.toString(count));
+						_newEternalCountsCB.processStatement(current);
+						// to step forward, the object has already been peeked
+						// anyway:
+						_eternal.next();
+						return count;
+					}
+				} catch (NumberFormatException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (URISyntaxException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
 
 				// if there is no entry for u in eternal (we just skipped over
 				// its empty place):
-				if (current != null
-						&& ((Resource) current[0]).toURI().compareTo(u) > 0) {
-					_newEternalCountsCB
-							.processStatement(new Node[] {
-									new Resource(NxUtil.escapeForNx(u.toString())),
-									new Literal(Integer
-											.toString(itsCountInThisRound)) });
-					return itsCountInThisRound;
+				try {
+					if (current != null
+							&& ((Resource) current[0]).toURI().compareTo(u) > 0) {
+						_newEternalCountsCB
+								.processStatement(new Node[] {
+										new Resource(NxUtil.escapeIRI(u.toString())),
+										new Literal(Integer
+												.toString(itsCountInThisRound)) });
+						return itsCountInThisRound;
+					}
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
 				// to step forward, the object has already been peeked anyway:
@@ -552,7 +575,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			// if the uri is to be put at the end of the non-empty eternal:
 			_newEternalCountsCB.processStatement(current);
 			_newEternalCountsCB.processStatement(new Node[] {
-					new Resource(NxUtil.escapeForNx(u.toString())),
+					new Resource(NxUtil.escapeIRI(u.toString())),
 					new Literal(Integer.toString(itsCountInThisRound)) });
 			return itsCountInThisRound;
 		}
@@ -682,7 +705,8 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 
 			Set<Node[]> set = new HashSet<Node[]>();
 			Set<Nodes> nodesset = new HashSet<Nodes>();
-			NxParser nxp = new NxParser(br);
+			NxParser nxp = new NxParser();
+			nxp.parse(br);
 
 			int count = 0;
 			int dup = 0;
@@ -706,7 +730,7 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			if (shorterThan10k) {
 				List<Node[]> list = Arrays.asList(set.toArray(new Node[0][0]));
 				Collections.sort(list, _nc);
-				Callback cb = new CallbackNxAppender(bw);
+				Callback cb = new CallbackNxBufferedWriter(bw);
 				for (Node[] nodes : list)
 					cb.processStatement(nodes);
 				bw.close();
@@ -730,7 +754,8 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 
 			// Code from NxParser's Sort class
 
-			Iterator<Node[]> it = new NxParser(br);
+			NxParser nxp2 = new NxParser(); 
+			Iterator<Node[]> it = nxp2.parse(br);
 
 			Callback cb = new CallbackNxBufferedWriter(bw, true);
 
