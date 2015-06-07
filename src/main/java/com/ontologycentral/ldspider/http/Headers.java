@@ -31,23 +31,29 @@ public class Headers {
 	static final String[] HEADERFIELDS = {
 		"Accept",
 		"Accept-Charset",
-	    "Accept-Encoding",
-	    "Connection",
-	    "Content-Encoding",
-	    "Content-Length",
-	    "Content-Location",
-	    "Content-Type",
-	    "Date",
-	    "ETag",
-	    "Host",
-	    "Last-Modified",
-	    "Location",
-	    "MIME-Version",
-	    "Server",
-	    "Accept",
-	    "Content-Base",
-	    "Link",
-	    "Expires"
+		"Accept-Encoding",
+		"Connection",
+		"Content-Encoding",
+		"Content-Length",
+		"Content-Location",
+		"Content-Type",
+		"Date",
+		"ETag",
+		"Host",
+		"Last-Modified",
+		"Location",
+		"MIME-Version",
+		"Server",
+		"Accept",
+		"Content-Base",
+		"Link",
+		"Expires",
+		"Cache-Control",
+		"pragma",
+		"if-Modified-Since",
+		"If-Unmodified-Since",
+		"If-Match",
+		"If-None-Match"
     };
 	
 	static final Resource[] PRED_HEADERS = {
@@ -69,7 +75,13 @@ public class Headers {
 		new Resource(httpNS+"accept"),
 		new Resource(httpNS+"content-base"),
 		new Resource(httpNS+"link"),
-		new Resource(httpNS+"expires")		
+		new Resource(httpNS+"expires"),
+		new Resource(httpNS+"cache-control"),
+		new Resource(httpNS+"pragma"),
+		new Resource(httpNS+"if-modified-since"),
+		new Resource(httpNS+"if-unmodified-since"),
+		new Resource(httpNS+"if-match"),
+		new Resource(httpNS+"if-none-match")
 	};
 	
 	static Map<String, Resource> HEADER_MAP = null;
