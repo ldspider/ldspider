@@ -36,7 +36,7 @@
 		</repository>
 		<repository>
 			<id>ldspider-snapshots</id>
-			<url>https://ldspider.googlecode.com/svn/snapshots</url>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
@@ -71,11 +71,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.semanticweb.yars</groupId>
-			<artifactId>nxparser</artifactId>
-			<version>1.2.5</version>
-		</dependency>
 
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -99,6 +94,16 @@
 			<groupId>org.apache.any23</groupId>
 			<artifactId>apache-any23-core</artifactId>
 			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.semanticweb.yars</groupId>
+			<artifactId>nxparser-cli</artifactId>
+			<version>2.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.semanticweb.yars</groupId>
+			<artifactId>nxparser-utilities-nx</artifactId>
+			<version>2.2-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
