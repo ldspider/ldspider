@@ -9,8 +9,7 @@ import java.util.logging.Logger;
 import org.semanticweb.yars.nx.Resource;
 import org.semanticweb.yars.nx.parser.Callback;
 import org.semanticweb.yars.nx.parser.ParseException;
-import org.semanticweb.yars.nx.util.NxUtil;
-import org.semanticweb.yars2.rdfxml.RDFXMLParser;
+import org.semanticweb.yars.rdfxml.RdfXmlParser;
 
 /**
  * Handles RDF/XML documents.
@@ -34,7 +33,8 @@ public class ContentHandlerRdfXml implements ContentHandler {
 
 	public boolean handle(URI uri, String mime, InputStream source, Callback callback) {
 		try {
-			RDFXMLParser r = new RDFXMLParser(source, true, true, uri.toString(), callback, new Resource(NxUtil.escapeForNx(uri.toString())));
+			RdfXmlParser r = new RdfXmlParser();
+			r.parse(source, true, true, uri.toString(), callback, new Resource(uri.toString()));
 //			RDFXMLParser r = new RDFXMLParser(source, true, false, uri.toString());
 //			while (r.hasNext()) {
 //				Node[] nx = r.next();
