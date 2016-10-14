@@ -11,3 +11,8 @@ buildNumber.properties
 
 # account details to deploy to OSSRH are stored in the settings.xml file
 settings.xml
+
+
+.classpath
+.project
+.settings
