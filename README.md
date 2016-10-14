@@ -43,5 +43,10 @@ url = { http://iswc2010.semanticweb.org/pdf/495.pdf }
 ### Community ###
 Sign up to the [LDSpider mailing list](http://groups.google.com/group/ldspider/) via the [web interface](http://groups.google.com/group/ldspider/subscribe/) or by emailing [mailto:ldspider+subscribe@googlegroups.com](mailto:ldspider+subscribe@googlegroups.com)
 
-&lt;wiki:gadget url="http://www.ohloh.net/p/gwt/widgets/project\_users.xml" height="100" border="0" /&gt;
+### Acknowledgements ###
+
+![YourKit logo](https://www.yourkit.com/images/yklogo.png) YourKit supports open source projects with its full-featured Java Profiler.
+YourKit, LLC is the creator of [YourKit Java Profiler](https://www.yourkit.com/java/profiler/index.jsp) and [YourKit .NET Profiler](https://www.yourkit.com/.net/profiler/index.jsp), innovative and intelligent tools for profiling Java and .NET applications. 
+
+<!-- &lt;wiki:gadget url="http://www.ohloh.net/p/gwt/widgets/project\_users.xml" height="100" border="0" /&gt; -->
 
