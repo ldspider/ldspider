@@ -21,41 +21,6 @@
 		<maven.compiler.source>1.6</maven.compiler.source>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>ldspider-repo</id>
-			<url>https://ldspider.googlecode.com/svn/repository</url>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>fail</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>ldspider-snapshots</id>
-			<url>https://ldspider.googlecode.com/svn/snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-
-		<repository>
-			<id>nxparser-repo</id>
-			<url>http://nxparser.googlecode.com/svn/repository</url>
-		</repository>
-		<repository>
-			<id>nxparser-snapshots</id>
-			<url>http://nxparser.googlecode.com/svn/snapshots</url>
-		</repository>
-
-	</repositories>
-
 	<dependencies>
 
 		<dependency>
@@ -74,7 +39,7 @@
 		<dependency>
 			<groupId>org.semanticweb.yars</groupId>
 			<artifactId>nxparser</artifactId>
-			<version>1.2.5</version>
+			<version>1.2.10</version>
 		</dependency>
 
 		<dependency>
@@ -101,17 +66,6 @@
 			<version>1.0</version>
 		</dependency>
 	</dependencies>
-
-	<distributionManagement>
-		<repository>
-			<id>ldspider-repo</id>
-			<url>svn:https://ldspider.googlecode.com/svn/repository</url>
-		</repository>
-		<snapshotRepository>
-			<id>ldspider-snapshots</id>
-			<url>svn:https://ldspider.googlecode.com/svn/snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<scm>
 		<connection>svn:https://ldspider.googlecode.com/svn/trunk</connection>

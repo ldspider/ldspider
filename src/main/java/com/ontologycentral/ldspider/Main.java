@@ -917,7 +917,12 @@ public class Main {
 				to = (Resource) nx[1];
 
 				if (from != null && to != null) {
-					redirects.put(from.toURI(), to.toURI());
+					try {
+						redirects.put(from.toURI(), to.toURI());
+					} catch (URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					++i;
 				} else
 					_log.info("Dropping from redirects because of URI problems: "

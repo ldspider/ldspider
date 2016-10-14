@@ -17,6 +17,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -111,9 +112,9 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 	static final NodeComparator _nc;
 	static {
 		NodeComparatorArgs nca = new NodeComparatorArgs();
-		nca.setOrder(NodeComparatorArgs.getIntegerMask("10"));
-		nca.setReverse(NodeComparatorArgs.getBooleanMask("1"));
-		nca.setNumeric(NodeComparatorArgs.getBooleanMask("1"));
+		nca.setOrder(new int[] { 1, 0 });
+		nca.setReverse(new boolean[] { false, true });
+		nca.setNumeric(new boolean[] { false, true });
 		_nc = new NodeComparator(nca);
 	}
 
@@ -502,11 +503,16 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 			}
 
 			// insertion of uris before first one in eternal
-			if (((Resource) _eternal.peek()[0]).toURI().compareTo(u) > 0) {
-				_newEternalCountsCB.processStatement(new Node[] {
-						new Resource(NxUtil.escapeForNx(u.toString())),
-						new Literal(Integer.toString(itsCountInThisRound)) });
-				return itsCountInThisRound;
+			try {
+				if (((Resource) _eternal.peek()[0]).toURI().compareTo(u) > 0) {
+					_newEternalCountsCB.processStatement(new Node[] {
+							new Resource(NxUtil.escapeForNx(u.toString())),
+							new Literal(Integer.toString(itsCountInThisRound)) });
+					return itsCountInThisRound;
+				}
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			// iterate until eternal ends or uri has been put:
@@ -520,29 +526,42 @@ public class DiskBreadthFirstQueue extends RedirectsFavouringSpiderQueue {
 					_newEternalCountsCB.processStatement(prev);
 
 				// if we are AT u in eternal:
-				if (current != null
-						&& ((Resource) current[0]).toURI().equals(u)) {
-					int count = itsCountInThisRound
-							+ Integer
-									.parseInt(((Literal) current[1]).getData());
-					current[1] = new Literal(Integer.toString(count));
-					_newEternalCountsCB.processStatement(current);
-					// to step forward, the object has already been peeked
-					// anyway:
-					_eternal.next();
-					return count;
+				try {
+					if (current != null
+							&& ((Resource) current[0]).toURI().equals(u)) {
+						int count = itsCountInThisRound
+								+ Integer
+										.parseInt(((Literal) current[1]).getData());
+						current[1] = new Literal(Integer.toString(count));
+						_newEternalCountsCB.processStatement(current);
+						// to step forward, the object has already been peeked
+						// anyway:
+						_eternal.next();
+						return count;
+					}
+				} catch (NumberFormatException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
 				// if there is no entry for u in eternal (we just skipped over
 				// its empty place):
-				if (current != null
-						&& ((Resource) current[0]).toURI().compareTo(u) > 0) {
-					_newEternalCountsCB
-							.processStatement(new Node[] {
-									new Resource(NxUtil.escapeForNx(u.toString())),
-									new Literal(Integer
-											.toString(itsCountInThisRound)) });
-					return itsCountInThisRound;
+				try {
+					if (current != null
+							&& ((Resource) current[0]).toURI().compareTo(u) > 0) {
+						_newEternalCountsCB
+								.processStatement(new Node[] {
+										new Resource(NxUtil.escapeForNx(u.toString())),
+										new Literal(Integer
+												.toString(itsCountInThisRound)) });
+						return itsCountInThisRound;
+					}
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 
 				// to step forward, the object has already been peeked anyway:
