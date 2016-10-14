@@ -16,7 +16,9 @@ import org.apache.any23.extractor.ExtractorFactory;
 import org.apache.any23.extractor.ExtractorRegistryImpl;
 import org.apache.any23.mime.MIMEType;
 import org.semanticweb.yars.nx.parser.Callback;
-import org.semanticweb.yars.util.CallbackCount;
+
+import com.ontologycentral.ldspider.http.StatementCountingCallback;
+
 
 /**
  * Communicates with an Any23 server to handle all kinds of documents.
@@ -65,8 +67,8 @@ public class ContentHandlerAny23 implements ContentHandler {
 	 * @return True, if the Server is working. False, otherwise.
 	 */
 	public boolean checkServer() {
-		CallbackCount cb = new CallbackCount();
-		return handleGet(_any23Endpoint, cb) && cb.getStmts() > 0;
+		StatementCountingCallback cb = new StatementCountingCallback();
+		return handleGet(_any23Endpoint, cb) && cb.getStmtCount() > 0;
 	}
 	
 	/**
