@@ -37,7 +37,7 @@ url = { http://iswc2010.semanticweb.org/pdf/495.pdf }
 
 ### Getting Started ###
 **LDSpider** can be used in two ways:
-  * Through a command line application. [Getting started (CLI)](wiki/GettingStartedCommandLine)
+  * Through a command line application. [Getting started (CLI)](https://github.com/ldspider/ldspider/wiki/GettingStartedCommandLine)
   * Through a flexible API, which provides various [Hooks](wiki/Hooks) to extend the behavior of the crawler. [Getting started (API)](wiki/GettingStartedAPI)
 
 ### Community ###
